@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>灵数2048 - 仙界游坊</title>
+  <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/game2048.css">
+</head>
+<body>
+  <div class="particles-container" id="particles"></div>
+  <div class="page-wrapper">
+    <div class="game-container game2048-wrapper">
+      <div class="game-header">
+        <h1 class="game-title">灵数2048</h1>
+        <div class="game-stats">
+          <div class="stat-box">
+            <div class="stat-label">分数</div>
+            <div class="stat-value" id="score">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">最高</div>
+            <div class="stat-value" id="best">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="game-actions">
+        <button class="btn btn-gold btn-sm" id="btn-new">新局</button>
+        <button class="btn btn-outline btn-sm" id="btn-undo">悔棋 (<span id="undo-count">3</span>)</button>
+      </div>
+      <div class="board-container">
+        <div class="board size-4" id="board"></div>
+        <div class="tiles-container" id="tiles"></div>
+        <div class="game-over-overlay" id="game-over">
+          <div class="game-over-text">道心破碎</div>
+          <div class="game-over-score">得分：<span id="final-score">0</span></div>
+          <button class="btn btn-gold" id="btn-retry">重新修炼</button>
+        </div>
+      </div>
+      <div class="controls-hint">
+        使用 <strong>方向键</strong> 或 <strong>WASD</strong> 移动 | 手机可 <strong>滑动屏幕</strong>
+      </div>
+    </div>
+  </div>
+  <script src="../js/shared.js"></script>
+  <script src="../js/game2048.js"></script>
+</body>
+</html>

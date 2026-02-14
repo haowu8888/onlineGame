@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仙界游坊 - 在线游戏</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/portal.css">
+</head>
+<body>
+  <div class="particles-container" id="particles"></div>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-mountains">
+      <div class="mountain mountain-1"></div>
+      <div class="mountain mountain-2"></div>
+      <div class="mountain mountain-3"></div>
+      <div class="mountain mountain-4"></div>
+    </div>
+    <div class="hero-content">
+      <h1 class="hero-title">仙界游坊</h1>
+      <p class="hero-subtitle">三界游戏，一界修行 —— 踏入仙途，畅游无尽</p>
+      <div class="hero-actions">
+        <a href="#hall" class="btn btn-gold btn-lg">进入游坊</a>
+        <a href="#about" class="btn btn-outline btn-lg">了解更多</a>
+      </div>
+    </div>
+    <div class="scroll-hint">向下滚动</div>
+  </section>
+
+  <!-- 游戏大厅 -->
+  <section class="game-hall section" id="hall">
+    <div class="container">
+      <h2 class="section-title fade-in">游戏大厅</h2>
+      <div class="game-cards">
+        <a href="games/2048.html" class="game-card fade-in">
+          <span class="game-card-icon">🀄</span>
+          <h3 class="game-card-title">灵数2048</h3>
+          <p class="game-card-desc">以仙灵之数，合天地至理。滑动灵玉方块，合二为一，直至悟道成仙。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">益智</span>
+            <span class="game-tag">数字</span>
+            <span class="game-tag">轻松</span>
+          </div>
+          <span class="btn btn-gold btn-sm">开始修炼</span>
+        </a>
+        <a href="games/tetris.html" class="game-card fade-in">
+          <span class="game-card-icon">🏔️</span>
+          <h3 class="game-card-title">天降奇石</h3>
+          <p class="game-card-desc">天降灵石，排列有序方可化为灵气。考验你的眼疾手快，消行得分。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">经典</span>
+            <span class="game-tag">反应</span>
+            <span class="game-tag">挑战</span>
+          </div>
+          <span class="btn btn-gold btn-sm">开始修炼</span>
+        </a>
+        <a href="games/cultivation.html" class="game-card fade-in">
+          <span class="game-card-icon">🧘</span>
+          <h3 class="game-card-title">修仙之路</h3>
+          <p class="game-card-desc">选择灵根，拜入仙门，打坐修炼、突破境界、炼丹战斗，踏上成仙之路。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">放置</span>
+            <span class="game-tag">RPG</span>
+            <span class="game-tag">养成</span>
+          </div>
+          <span class="btn btn-gold btn-sm">开始修炼</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 排行榜 -->
+  <section class="leaderboard-section section" id="leaderboard">
+    <div class="container">
+      <h2 class="section-title fade-in">仙榜</h2>
+      <div class="leaderboard-tabs fade-in" id="lb-tabs">
+        <button class="leaderboard-tab active" data-game="2048">灵数2048</button>
+        <button class="leaderboard-tab" data-game="tetris">天降奇石</button>
+        <button class="leaderboard-tab" data-game="cultivation">修仙之路</button>
+      </div>
+      <div class="leaderboard-table fade-in" id="lb-table"></div>
+    </div>
+  </section>
+
+  <!-- 关于 -->
+  <section class="about-section section" id="about">
+    <div class="container">
+      <h2 class="section-title fade-in">关于游坊</h2>
+      <div class="about-grid">
+        <div class="about-card fade-in">
+          <div class="about-card-icon">🎮</div>
+          <h3>三款精品游戏</h3>
+          <p>从休闲益智到深度养成，每一款都经过精心打磨，带来沉浸式仙侠体验。</p>
+        </div>
+        <div class="about-card fade-in">
+          <div class="about-card-icon">💾</div>
+          <h3>本地存档</h3>
+          <p>所有游戏进度自动保存在本地，无需注册账号，随时继续你的修仙之旅。</p>
+        </div>
+        <div class="about-card fade-in">
+          <div class="about-card-icon">📱</div>
+          <h3>多端适配</h3>
+          <p>响应式设计，手机、平板、电脑均可畅玩，随时随地修炼。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>仙界游坊 &copy; 2025 &mdash; 纯前端项目，数据存储于本地浏览器</p>
+  </footer>
+
+  <script src="js/shared.js"></script>
+  <script src="js/portal.js"></script>
+</body>
+</html>

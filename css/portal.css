@@ -1,0 +1,378 @@
+/* ========== 门户主页样式 ========== */
+
+/* --- Hero区 --- */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--gradient-hero);
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 20px;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: bold;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+  animation: heroTitleIn 1.2s ease forwards;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  animation: heroSubIn 1.2s ease 0.3s both;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: heroSubIn 1.2s ease 0.5s both;
+}
+
+/* 山峦剪影 */
+.hero-mountains {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: 1;
+}
+
+.mountain {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: solid transparent;
+  border-right: solid transparent;
+  border-bottom: solid;
+}
+
+.mountain-1 {
+  left: 5%;
+  border-left-width: 180px;
+  border-right-width: 200px;
+  border-bottom-width: 180px;
+  border-bottom-color: rgba(20, 15, 30, 0.6);
+}
+
+.mountain-2 {
+  left: 25%;
+  border-left-width: 250px;
+  border-right-width: 220px;
+  border-bottom-width: 200px;
+  border-bottom-color: rgba(15, 12, 25, 0.7);
+}
+
+.mountain-3 {
+  right: 10%;
+  border-left-width: 200px;
+  border-right-width: 280px;
+  border-bottom-width: 170px;
+  border-bottom-color: rgba(18, 14, 28, 0.5);
+}
+
+.mountain-4 {
+  right: 30%;
+  border-left-width: 300px;
+  border-right-width: 200px;
+  border-bottom-width: 220px;
+  border-bottom-color: rgba(12, 10, 22, 0.8);
+}
+
+@keyframes heroTitleIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes heroSubIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 滚动提示 */
+.scroll-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  animation: scrollBounce 2s ease infinite;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.scroll-hint::after {
+  content: '▼';
+  display: block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+/* --- 游戏大厅 --- */
+.game-hall {
+  background: var(--bg-secondary);
+}
+
+.game-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  perspective: 1000px;
+}
+
+.game-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.4s ease;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(212, 164, 74, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+
+.game-card:hover::before {
+  opacity: 1;
+}
+
+.game-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-8px);
+}
+
+.game-card-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.game-card-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.game-card-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.game-card-tags {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.game-tag {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(212, 164, 74, 0.1);
+  color: var(--gold);
+  border: 1px solid rgba(212, 164, 74, 0.2);
+}
+
+/* --- 排行榜 --- */
+.leaderboard-section {
+  background: var(--bg-primary);
+}
+
+.leaderboard-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.leaderboard-tab {
+  padding: 8px 20px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  font-size: 0.9rem;
+}
+
+.leaderboard-tab:hover {
+  color: var(--text-primary);
+}
+
+.leaderboard-tab.active {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.1);
+}
+
+.leaderboard-table {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 4px;
+  transition: background var(--transition-fast);
+}
+
+.leaderboard-row:hover {
+  background: var(--bg-card);
+}
+
+.leaderboard-rank {
+  width: 40px;
+  font-weight: bold;
+  color: var(--text-muted);
+}
+
+.leaderboard-rank.top-1 { color: #ffd700; font-size: 1.2rem; }
+.leaderboard-rank.top-2 { color: #c0c0c0; font-size: 1.1rem; }
+.leaderboard-rank.top-3 { color: #cd7f32; font-size: 1.05rem; }
+
+.leaderboard-name {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.leaderboard-score {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.leaderboard-date {
+  width: 100px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.leaderboard-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 0;
+  font-size: 0.95rem;
+}
+
+/* --- 关于区 --- */
+.about-section {
+  background: var(--bg-secondary);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.about-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+}
+
+.about-card-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.about-card h3 {
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.about-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* --- 页脚 --- */
+.footer {
+  text-align: center;
+  padding: 32px 20px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.footer a {
+  color: var(--text-secondary);
+}
+
+/* --- 响应式 --- */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .game-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-date {
+    display: none;
+  }
+}

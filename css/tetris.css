@@ -1,0 +1,200 @@
+/* ========== 俄罗斯方块样式 ========== */
+
+.tetris-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+/* --- 侧栏 --- */
+.tetris-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 120px;
+}
+
+.info-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+}
+
+.info-box-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.info-box-value {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--gold);
+}
+
+/* 下一个预览 */
+.next-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+}
+
+.next-preview-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.next-canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+/* --- 主画布 --- */
+.tetris-main {
+  position: relative;
+}
+
+.tetris-canvas {
+  display: block;
+  background: rgba(10, 14, 26, 0.8);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* 暂停/结束覆盖 */
+.tetris-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.tetris-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.tetris-overlay-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.tetris-overlay-sub {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+/* --- 移动端控制按钮 --- */
+.touch-controls {
+  display: none;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.touch-btn {
+  width: 56px;
+  height: 56px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.touch-btn:active {
+  background: rgba(212, 164, 74, 0.2);
+  border-color: var(--gold);
+  transform: scale(0.95);
+}
+
+.touch-btn-wide {
+  width: 120px;
+}
+
+.touch-controls-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .touch-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* --- 行消除动画 --- */
+.line-clear-flash {
+  animation: lineClear 0.3s ease;
+}
+
+@keyframes lineClear {
+  0% { opacity: 1; }
+  50% { opacity: 0; background: var(--gold); }
+  100% { opacity: 0; }
+}
+
+/* --- 操作提示 --- */
+.tetris-controls-hint {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  max-width: 300px;
+}
+
+/* --- 响应式 --- */
+@media (max-width: 768px) {
+  .tetris-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tetris-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-width: auto;
+  }
+
+  .info-box {
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 400px) {
+  .tetris-canvas {
+    max-width: 90vw;
+  }
+}
