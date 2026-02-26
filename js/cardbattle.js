@@ -2015,7 +2015,7 @@
       const milestones = [3, 6, 9, 12];
       if (milestones.includes(data.currentRun.streak)) {
         const card = grantRandomCard();
-        if (card) showToast('竞技场里程碑! 获得 ' + card.name, 'success');
+        if (card) showToast('竞技场里程碑！获得 ' + card.name, 'success');
       }
       saveArenaData(data);
       arenaState = data.currentRun;
@@ -2033,17 +2033,24 @@
   function showArenaResult() {
     if (G && G.isArena) {
       const won = G.winner === 'player';
+      const before = getArenaData();
+      const runStreak = before.currentRun ? before.currentRun.streak : 0;
+
       endArenaMatch(won);
+
+      const after = getArenaData();
+      const bestStreak = after.bestStreak || 0;
+      const currentStreak = won && arenaState ? arenaState.streak : runStreak;
+
       $battle.style.display = 'none';
       $result.style.display = '';
       const $title = document.getElementById('result-title');
       $title.textContent = won ? '竞技场胜利！' : '竞技场结束';
       $title.className = 'cb-result-title ' + (won ? 'win' : 'lose');
-      const streak = won && arenaState ? arenaState.streak : (getArenaData().bestStreak || 0);
       const $stats = document.getElementById('result-stats');
       $stats.innerHTML = `
-        <div class="cb-result-stat"><span class="stat-label">${won ? '当前连胜' : '本次连胜'}</span><span class="stat-value">${won ? streak : (getArenaData().bestStreak || 0)}</span></div>
-        <div class="cb-result-stat"><span class="stat-label">历史最佳</span><span class="stat-value" style="color:var(--gold)">${getArenaData().bestStreak}</span></div>
+        <div class="cb-result-stat"><span class="stat-label">${won ? '当前连胜' : '本次连胜'}</span><span class="stat-value">${currentStreak}</span></div>
+        <div class="cb-result-stat"><span class="stat-label">历史最佳</span><span class="stat-value" style="color:var(--gold)">${bestStreak}</span></div>
         ${won ? '<div class="cb-result-stat"><span class="stat-label">剩余生命</span><span class="stat-value">' + G.playerHP + '/30</span></div>' : ''}
       `;
       // Replace result buttons
@@ -2063,6 +2070,7 @@
       }
       return;
     }
+  }
 
   document.getElementById('btn-arena').addEventListener('click', () => {
     const data = getArenaData();

@@ -602,20 +602,76 @@
   // ==================== 功法系统 ====================
 
   const TECHNIQUES = [
-    { id: 'tech_flame', name: '焚天诀', icon: '🔥', desc: '攻击+12%', type: 'attack', realmReq: 1, cost: 500, effect: { atkMul: 1.12 } },
-    { id: 'tech_thunder', name: '雷霆万钧', icon: '⚡', desc: '攻击+20%, 暴击+10%', type: 'attack', realmReq: 3, cost: 3000, effect: { atkMul: 1.20, critBonus: 0.10 } },
-    { id: 'tech_void_slash', name: '虚空斩', icon: '🌀', desc: '攻击+35%', type: 'attack', realmReq: 5, cost: 15000, effect: { atkMul: 1.35 } },
-    { id: 'tech_iron_body', name: '金钟罩', icon: '🛡️', desc: '防御+15%', type: 'defense', realmReq: 1, cost: 500, effect: { defMul: 1.15 } },
-    { id: 'tech_diamond', name: '金刚不坏', icon: '💎', desc: '防御+25%, 生命+10%', type: 'defense', realmReq: 3, cost: 3000, effect: { defMul: 1.25, hpMul: 1.10 } },
-    { id: 'tech_chaos_body', name: '混沌体', icon: '🌌', desc: '防御+30%, 生命+20%', type: 'defense', realmReq: 5, cost: 15000, effect: { defMul: 1.30, hpMul: 1.20 } },
-    { id: 'tech_spirit_draw', name: '聚灵决', icon: '💨', desc: '修炼速度+15%', type: 'cultivate', realmReq: 0, cost: 200, effect: { expMul: 1.15 } },
-    { id: 'tech_heaven_sutra', name: '太上感应', icon: '📜', desc: '修炼速度+25%, 灵力+15%', type: 'cultivate', realmReq: 2, cost: 2000, effect: { expMul: 1.25, spiritMul: 1.15 } },
-    { id: 'tech_dao_heart', name: '道心种魔', icon: '☯️', desc: '修炼速度+40%', type: 'cultivate', realmReq: 4, cost: 10000, effect: { expMul: 1.40 } },
-    { id: 'tech_pill_art', name: '天工开物', icon: '⚗️', desc: '炼丹成功率+10%', type: 'support', realmReq: 1, cost: 800, effect: { alchemyBonus: 0.10 } },
-    { id: 'tech_treasure_eye', name: '鉴宝神瞳', icon: '👁️', desc: '掉落率+20%, 金币+15%', type: 'support', realmReq: 3, cost: 4000, effect: { dropBonus: 0.20, goldMul: 1.15 } },
-    { id: 'tech_reborn', name: '不灭轮回', icon: '♾️', desc: '轮回保留额外10%金币', type: 'support', realmReq: 5, cost: 20000, effect: { rebirthGoldBonus: 0.10 } },
+    { id: 'tech_flame', name: '焚天诀', icon: '🔥', desc: '攻击+12%', type: 'attack', element: 'fire', realmReq: 1, cost: 500, effect: { atkMul: 1.12 } },
+    { id: 'tech_thunder', name: '雷霆万钧', icon: '⚡', desc: '攻击+20%, 暴击+10%', type: 'attack', element: 'wood', realmReq: 3, cost: 3000, effect: { atkMul: 1.20, critBonus: 0.10 } },
+    { id: 'tech_void_slash', name: '虚空斩', icon: '🌀', desc: '攻击+35%', type: 'attack', element: 'chaos', realmReq: 5, cost: 15000, effect: { atkMul: 1.35 } },
+    { id: 'tech_iron_body', name: '金钟罩', icon: '🛡️', desc: '防御+15%', type: 'defense', element: 'earth', realmReq: 1, cost: 500, effect: { defMul: 1.15 } },
+    { id: 'tech_diamond', name: '金刚不坏', icon: '💎', desc: '防御+25%, 生命+10%', type: 'defense', element: 'gold', realmReq: 3, cost: 3000, effect: { defMul: 1.25, hpMul: 1.10 } },
+    { id: 'tech_chaos_body', name: '混沌体', icon: '🌌', desc: '防御+30%, 生命+20%', type: 'defense', element: 'chaos', realmReq: 5, cost: 15000, effect: { defMul: 1.30, hpMul: 1.20 } },
+    { id: 'tech_spirit_draw', name: '聚灵决', icon: '💨', desc: '修炼速度+15%', type: 'cultivate', element: 'water', realmReq: 0, cost: 200, effect: { expMul: 1.15 } },
+    { id: 'tech_heaven_sutra', name: '太上感应', icon: '📜', desc: '修炼速度+25%, 灵力+15%', type: 'cultivate', element: 'wood', realmReq: 2, cost: 2000, effect: { expMul: 1.25, spiritMul: 1.15 } },
+    { id: 'tech_dao_heart', name: '道心种魔', icon: '☯️', desc: '修炼速度+40%', type: 'cultivate', element: 'chaos', realmReq: 4, cost: 10000, effect: { expMul: 1.40 } },
+    { id: 'tech_pill_art', name: '天工开物', icon: '⚗️', desc: '炼丹成功率+10%', type: 'support', element: 'wood', realmReq: 1, cost: 800, effect: { alchemyBonus: 0.10 } },
+    { id: 'tech_treasure_eye', name: '鉴宝神瞳', icon: '👁️', desc: '掉落率+20%, 金币+15%', type: 'support', element: 'gold', realmReq: 3, cost: 4000, effect: { dropBonus: 0.20, goldMul: 1.15 } },
+    { id: 'tech_reborn', name: '不灭轮回', icon: '♾️', desc: '轮回保留额外10%金币', type: 'support', element: 'chaos', realmReq: 5, cost: 20000, effect: { rebirthGoldBonus: 0.10 } },
   ];
   const TECHNIQUES_MAP = Object.fromEntries(TECHNIQUES.map(t => [t.id, t]));
+
+  const ELEMENT_GEN = { wood: 'fire', fire: 'earth', earth: 'gold', gold: 'water', water: 'wood' };
+  const ELEMENT_CTRL = { wood: 'earth', earth: 'water', water: 'fire', fire: 'gold', gold: 'wood' };
+
+  function scaleMul(baseMul, strength = 1) {
+    if (typeof baseMul !== 'number') return baseMul;
+    return 1 + (baseMul - 1) * strength;
+  }
+
+  function getTechniqueAffinity(spiritRootId, tech) {
+    const rootElem = spiritRootId === 'chaos' ? 'chaos' : spiritRootId;
+    const techElem = tech && tech.element ? tech.element : null;
+    if (!techElem) return { label: '—', relation: 'none', mult: 1, breakBonus: 0, deviationBonus: 0 };
+
+    // 混沌：弱相性，偏正向
+    if (rootElem === 'chaos' || techElem === 'chaos') {
+      return { label: '混沌契合', relation: 'chaos', mult: 1.05, breakBonus: 0.01, deviationBonus: 0 };
+    }
+
+    if (rootElem === techElem) {
+      return { label: '同源', relation: 'same', mult: 1.10, breakBonus: 0.02, deviationBonus: 0 };
+    }
+    if (ELEMENT_GEN[rootElem] === techElem) {
+      return { label: '相生', relation: 'gen', mult: 1.06, breakBonus: 0.01, deviationBonus: 0 };
+    }
+    if (ELEMENT_GEN[techElem] === rootElem) {
+      return { label: '相生(反)', relation: 'gen_by', mult: 1.03, breakBonus: 0.00, deviationBonus: 0 };
+    }
+    if (ELEMENT_CTRL[rootElem] === techElem) {
+      return { label: '相克', relation: 'ctrl', mult: 0.92, breakBonus: -0.02, deviationBonus: 0.06 };
+    }
+    if (ELEMENT_CTRL[techElem] === rootElem) {
+      return { label: '相克(反)', relation: 'ctrl_by', mult: 0.95, breakBonus: -0.01, deviationBonus: 0.04 };
+    }
+    return { label: '平', relation: 'neutral', mult: 1.00, breakBonus: 0, deviationBonus: 0 };
+  }
+
+  function getScaledTechniqueEffect(d, tech) {
+    if (!tech || !tech.effect) return null;
+    const affinity = getTechniqueAffinity(d.spiritRoot, tech);
+    const mult = affinity.mult || 1;
+    const eff = tech.effect;
+    const out = { ...eff };
+
+    // 乘法类：按“强度”缩放增益幅度
+    ['atkMul', 'defMul', 'hpMul', 'spiritMul', 'expMul', 'goldMul'].forEach((k) => {
+      if (typeof eff[k] === 'number') out[k] = scaleMul(eff[k], mult);
+    });
+
+    // 加法类：按强度线性缩放
+    ['critBonus', 'alchemyBonus', 'dropBonus', 'rebirthGoldBonus'].forEach((k) => {
+      if (typeof eff[k] === 'number') out[k] = eff[k] * mult;
+    });
+
+    return out;
+  }
 
   // ==================== 天劫小游戏 ====================
 
@@ -1117,11 +1173,12 @@
       // 功法加成
       if (d.activeTechnique) {
         const tech = TECHNIQUES_MAP[d.activeTechnique];
-        if (tech && tech.effect) {
-          if (tech.effect.atkMul) baseAtk *= tech.effect.atkMul;
-          if (tech.effect.defMul) baseDef *= tech.effect.defMul;
-          if (tech.effect.hpMul) baseHp *= tech.effect.hpMul;
-          if (tech.effect.spiritMul) baseSpirit *= tech.effect.spiritMul;
+        const eff = tech ? getScaledTechniqueEffect(d, tech) : null;
+        if (eff) {
+          if (eff.atkMul) baseAtk *= eff.atkMul;
+          if (eff.defMul) baseDef *= eff.defMul;
+          if (eff.hpMul) baseHp *= eff.hpMul;
+          if (eff.spiritMul) baseSpirit *= eff.spiritMul;
         }
       }
 
@@ -1182,7 +1239,8 @@
       // 功法加成
       if (this.data.activeTechnique) {
         const tech = TECHNIQUES_MAP[this.data.activeTechnique];
-        if (tech && tech.effect && tech.effect.expMul) rate = Math.floor(rate * tech.effect.expMul);
+        const eff = tech ? getScaledTechniqueEffect(this.data, tech) : null;
+        if (eff && eff.expMul) rate = Math.floor(rate * eff.expMul);
       }
       // 轮回加成
       if (this.data.rebirthCount > 0) {
@@ -1311,6 +1369,16 @@
       if (!this.canBreakthrough()) return { success: false, reason: '修为或悟道不足' };
       const nextRealm = REALMS[this.data.realm + 1];
       let rate = nextRealm.rate || 0.5;
+      let deviationChance = 0.1;
+      // 灵根×功法相性：影响突破率与走火入魔概率
+      if (this.data.activeTechnique) {
+        const tech = TECHNIQUES_MAP[this.data.activeTechnique];
+        if (tech) {
+          const aff = getTechniqueAffinity(this.data.spiritRoot, tech);
+          rate += aff.breakBonus || 0;
+          deviationChance += aff.deviationBonus || 0;
+        }
+      }
 
       // 使用玩家选择的突破丹药
       let usedPillName = null;
@@ -1337,6 +1405,7 @@
       // 天劫加成
       rate += tribulationBonus;
       rate = Math.min(0.99, rate);
+      deviationChance = Math.max(0, Math.min(0.6, deviationChance));
 
       // 消耗70%修为
       this.data.exp -= Math.floor(nextRealm.expReq * 0.7);
@@ -1360,7 +1429,7 @@
 
       // 突破失败：10%几率走火入魔（60秒修炼减半）
       let deviation = false;
-      if (Math.random() < 0.1) {
+      if (Math.random() < deviationChance) {
         this.data.deviationEnd = Date.now() + 60000;
         deviation = true;
       }
@@ -1382,7 +1451,8 @@
       }
       if (this.data.activeTechnique) {
         const tech = TECHNIQUES_MAP[this.data.activeTechnique];
-        if (tech && tech.effect && tech.effect.critBonus) crit += tech.effect.critBonus;
+        const eff = tech ? getScaledTechniqueEffect(this.data, tech) : null;
+        if (eff && eff.critBonus) crit += eff.critBonus;
       }
       return crit;
     }
@@ -1645,7 +1715,8 @@
       let goldFinal = gold;
       if (this.data.activeTechnique) {
         const tech = TECHNIQUES_MAP[this.data.activeTechnique];
-        if (tech && tech.effect && tech.effect.goldMul) goldFinal = Math.floor(goldFinal * tech.effect.goldMul);
+        const eff = tech ? getScaledTechniqueEffect(this.data, tech) : null;
+        if (eff && eff.goldMul) goldFinal = Math.floor(goldFinal * eff.goldMul);
       }
       // 世界事件金币加成
       const we = this.getActiveWorldEvent();
@@ -1659,8 +1730,18 @@
       b.log.push({ text: `获得 ${exp} 修为, ${goldFinal} 灵石`, type: 'reward' });
       const mTemplate = MONSTERS[m.id];
       if (mTemplate.drops) {
+        // 掉落加成：世界事件(dropMul) + 功法(dropBonus)
+        let dropMul = 1;
+        let dropBonus = 0;
+        if (we && we.effect.dropMul) dropMul *= we.effect.dropMul;
+        if (this.data.activeTechnique) {
+          const tech = TECHNIQUES_MAP[this.data.activeTechnique];
+          const eff = tech ? getScaledTechniqueEffect(this.data, tech) : null;
+          if (eff && eff.dropBonus) dropBonus += eff.dropBonus;
+        }
         for (const drop of mTemplate.drops) {
-          if (Math.random() < drop.rate) {
+          const chance = Math.min(0.95, drop.rate * dropMul * (1 + dropBonus));
+          if (Math.random() < chance) {
             const count = randomInt(1, 2);
             this.data.inventory[drop.id] = (this.data.inventory[drop.id] || 0) + count;
             b.log.push({ text: `获得 ${MATERIALS[drop.id].icon} ${MATERIALS[drop.id].name} x${count}`, type: 'reward' });
@@ -1720,7 +1801,8 @@
       // 功法炼丹加成
       if (this.data.activeTechnique) {
         const tech = TECHNIQUES_MAP[this.data.activeTechnique];
-        if (tech && tech.effect && tech.effect.alchemyBonus) rate += tech.effect.alchemyBonus;
+        const eff = tech ? getScaledTechniqueEffect(this.data, tech) : null;
+        if (eff && eff.alchemyBonus) rate += eff.alchemyBonus;
       }
       // 宗门永久炼丹加成
       if (this.data.sectPermBonuses && this.data.sectPermBonuses.alchemyPct) rate += this.data.sectPermBonuses.alchemyPct;
@@ -2455,7 +2537,14 @@
       if (!this.canRebirth()) return false;
       const d = this.data;
       const rb = REBIRTH_CONFIG;
-      const goldCarry = Math.floor(d.gold * (rb.bonusPerRebirth.goldCarry * (d.rebirthCount + 1)));
+      let carryRate = rb.bonusPerRebirth.goldCarry * (d.rebirthCount + 1);
+      if (d.activeTechnique) {
+        const tech = TECHNIQUES_MAP[d.activeTechnique];
+        const eff = tech ? getScaledTechniqueEffect(d, tech) : null;
+        if (eff && eff.rebirthGoldBonus) carryRate += eff.rebirthGoldBonus;
+      }
+      carryRate = Math.min(0.9, Math.max(0, carryRate));
+      const goldCarry = Math.floor(d.gold * carryRate);
       const startRealm = rb.startRealm[Math.min(d.rebirthCount + 1, rb.startRealm.length - 1)] || 0;
       const keptTechniques = [...d.learnedTechniques];
       const keptActiveTech = d.activeTechnique;
@@ -3546,7 +3635,14 @@
           const d = this.game.data;
           const rb = REBIRTH_CONFIG.bonusPerRebirth;
           const nextCount = d.rebirthCount + 1;
-          const goldCarry = Math.floor(d.gold * (rb.goldCarry * nextCount));
+          let carryRate = rb.goldCarry * nextCount;
+          if (d.activeTechnique) {
+            const tech = TECHNIQUES_MAP[d.activeTechnique];
+            const eff = tech ? getScaledTechniqueEffect(d, tech) : null;
+            if (eff && eff.rebirthGoldBonus) carryRate += eff.rebirthGoldBonus;
+          }
+          carryRate = Math.min(0.9, Math.max(0, carryRate));
+          const goldCarry = Math.floor(d.gold * carryRate);
           const startIdx = Math.min(nextCount - 1, REBIRTH_CONFIG.startRealm.length - 1);
           const REALM_NAMES = ['凡人','炼气期','筑基期','金丹期','元婴期','化神期','渡劫期','大乘期','飞升'];
           const startRealm = REALM_NAMES[REBIRTH_CONFIG.startRealm[startIdx] || 0];
@@ -3838,7 +3934,11 @@
         if (sect.alchemyBonus) rate += sect.alchemyBonus;
         if (d.sectPermBonuses && d.sectPermBonuses.alchemyPct) rate += d.sectPermBonuses.alchemyPct;
         if (d.activeTitle) { const t = TITLES_MAP[d.activeTitle]; if (t && t.bonus && t.bonus.alchemyPct) rate += t.bonus.alchemyPct; }
-        if (d.activeTechnique) { const tech = TECHNIQUES_MAP[d.activeTechnique]; if (tech && tech.effect && tech.effect.alchemyBonus) rate += tech.effect.alchemyBonus; }
+        if (d.activeTechnique) {
+          const tech = TECHNIQUES_MAP[d.activeTechnique];
+          const eff = tech ? getScaledTechniqueEffect(d, tech) : null;
+          if (eff && eff.alchemyBonus) rate += eff.alchemyBonus;
+        }
         if (d.npcTeachings && d.npcTeachings.includes('teach_pill')) { const pn = NPC_DATA.find(n => n.teachSkill && n.teachSkill.id === 'teach_pill'); if (pn && pn.teachSkill.effect.alchemyPct) rate += pn.teachSkill.effect.alchemyPct; }
         rate = Math.min(0.99, rate);
         detailEl.innerHTML = `<h4>${r.name}</h4><p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">${r.desc}</p>
@@ -4324,10 +4424,13 @@
           const active = d.activeTechnique === tech.id;
           const locked = d.realm < tech.realmReq;
           const branchFull = !learned && branchCount >= branchMax;
+          const aff = getTechniqueAffinity(d.spiritRoot, tech);
+          const affColor = aff.relation === 'same' || aff.relation === 'gen' || aff.relation === 'chaos' ? 'var(--green)'
+            : (aff.relation && aff.relation.indexOf('ctrl') === 0 ? 'var(--red)' : 'var(--text-muted)');
           html += `<div class="shop-item ${locked || branchFull ? 'locked' : ''} ${active ? 'owned' : ''}" data-tech="${tech.id}">
             <div class="item-icon">${tech.icon}</div>
             <div class="item-name">${tech.name}</div>
-            <div class="item-desc">${tech.desc}</div>
+            <div class="item-desc">${tech.desc}<div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">灵根相性：<span style="color:${affColor};font-weight:700;">${aff.label}</span></div></div>
             <div class="item-price">${learned ? (active ? '使用中' : '已学习') : (locked ? '需' + REALMS[tech.realmReq].name : branchFull ? '已满3/3' : tech.cost + ' 灵石')}</div>
           </div>`;
         }
@@ -4346,7 +4449,15 @@
               showToast('已卸下功法', 'info');
             } else {
               this.game.setActiveTechnique(techId);
-              showToast('已装备功法！', 'success');
+              const tech = TECHNIQUES_MAP[techId];
+              const aff = tech ? getTechniqueAffinity(d.spiritRoot, tech) : null;
+              if (aff && aff.relation && aff.relation.indexOf('ctrl') === 0) {
+                showToast('已装备功法（相克：突破更易走火入魔）', 'info', 4500);
+              } else if (aff && aff.label && aff.label !== '—') {
+                showToast(`已装备功法（${aff.label}）`, 'success');
+              } else {
+                showToast('已装备功法！', 'success');
+              }
             }
             this.renderTechniquePanel();
             this.renderStatusBar();

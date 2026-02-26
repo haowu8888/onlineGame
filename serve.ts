@@ -1,4 +1,7 @@
 import { serveDir } from "https://deno.land/std@0.224.0/http/file_server.ts";
+import { fromFileUrl } from "https://deno.land/std@0.224.0/path/mod.ts";
+
+const FS_ROOT = fromFileUrl(new URL(".", import.meta.url));
 
 Deno.serve((req: Request) => {
   // 部署环境（如 Deno Deploy）访问 `/` 时通常希望返回 `index.html`。
@@ -11,7 +14,7 @@ Deno.serve((req: Request) => {
   }
 
   return serveDir(req, {
-    fsRoot: ".",
+    fsRoot: FS_ROOT,
     showIndex: true,
   });
 });

@@ -163,6 +163,8 @@
       if (c.upDraw !== undefined) c.draw = c.upDraw;
       if (c.upHeal !== undefined) c.heal = c.upHeal;
       if (c.upEnergy !== undefined) c.energy = c.upEnergy;
+      if (c.upPoison !== undefined) c.poison = c.upPoison;
+      if (c.upBurn !== undefined) c.burn = c.upBurn;
       if (c.upThorns !== undefined) c.thorns = c.upThorns;
       if (c.upArmorBreak !== undefined) c.armorBreak = c.upArmorBreak;
       if (c.upDiscount !== undefined) c.discount = c.upDiscount;
@@ -200,6 +202,65 @@
       text = text.replace(new RegExp(keyword, 'g'), `<span class="ct-keyword-tip" data-tip="${tip}">${keyword}</span>`);
     }
     return text;
+  }
+
+  function getCardTags(card) {
+    const tags = [];
+    if (!card) return tags;
+
+    if (card.type === 'attack') tags.push('攻击');
+    else if (card.type === 'defense') tags.push('防御');
+    else if (card.type === 'spell') tags.push('法术');
+
+    if (card.aoe || card.targetAll) tags.push('群攻');
+    if ((card.hits || 1) > 1) tags.push('多段');
+    if (card.draw) tags.push('抽牌');
+    if (card.energy) tags.push('灵力');
+    if (card.blk) tags.push('护甲');
+    if (card.heal || card.lifestealFull) tags.push('回复');
+    if (card.poison) tags.push('中毒');
+    if (card.burn) tags.push('灼烧');
+    if (card.freeze) tags.push('冻结');
+    if (card.vulnerable) tags.push('易伤');
+    if (card.applyWeak) tags.push('虚弱');
+    if (card.discount || card.nextDiscount) tags.push('减费');
+    if (card.armorBreak) tags.push('破甲');
+    if (card.retainScaling || card.scalesWithBlock) tags.push('成长');
+    if (card.selfDmg) tags.push('代价');
+    if (card.discardAll || card.requiresExhaust) tags.push('弃牌');
+
+    return Array.from(new Set(tags));
+  }
+
+  function renderTagChips(tags, max = 5) {
+    if (!tags || tags.length === 0) return '';
+    const shown = tags.slice(0, max);
+    return `<div class="ct-card-tags">${shown.map(t => `<span class="ct-tag">${escapeHtml(t)}</span>`).join('')}</div>`;
+  }
+
+  function getBuildSummary(deck, relicIds) {
+    const counts = new Map();
+    (deck || []).forEach(c => {
+      const tags = getCardTags(c);
+      tags.forEach(t => counts.set(t, (counts.get(t) || 0) + 1));
+    });
+
+    // Relic set “方向提示”
+    const setCounts = getRelicSetCounts(relicIds || []);
+    for (const [setId, ct] of Object.entries(setCounts)) {
+      const set = RELIC_SETS_MAP[setId];
+      if (!set) continue;
+      counts.set(set.name, (counts.get(set.name) || 0) + ct * 2);
+    }
+
+    const blacklist = new Set(['攻击', '防御', '法术']);
+    const sorted = Array.from(counts.entries())
+      .filter(([k]) => !blacklist.has(k))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([k]) => k);
+
+    return sorted;
   }
 
   const OBTAINABLE_IDS = [
@@ -468,37 +529,112 @@
   ];
 
   const RELICS = [
-    { id:'jade_pendant', name:'玉佩', desc:'最大生命+10', icon:'💎', effect:{maxHpBonus:10} },
-    { id:'spirit_brush', name:'灵笔', desc:'每回合多抽1张牌', icon:'🖊️', effect:{drawBonus:1} },
-    { id:'thorn_ring', name:'荆棘戒', desc:'受到攻击时反弹3伤害', icon:'💍', effect:{autoThorns:3} },
-    { id:'iron_bell', name:'铁钟', desc:'每回合获得3护甲', icon:'🔔', effect:{autoBlock:3} },
-    { id:'blood_jade', name:'血玉', desc:'击杀敌人回复5HP', icon:'🔴', effect:{killHeal:5} },
-    { id:'qi_stone', name:'气运石', desc:'战斗开始获得1灵力', icon:'🪨', effect:{startEnergy:1} },
-    { id:'ancient_scroll', name:'古卷', desc:'卡牌奖励多1张选择', icon:'📜', effect:{rewardExtra:1} },
-    { id:'mirror_shard', name:'镜片', desc:'第一回合抽2张额外牌', icon:'🪞', effect:{firstTurnDraw:2} },
-    { id:'poison_fang', name:'毒牙', desc:'每回合给所有敌人施加1毒', icon:'🐍', effect:{autoPoison:1} },
-    { id:'golden_core', name:'金丹', desc:'力量永久+1', icon:'💊', effect:{strengthBonus:1} },
-    { id:'spirit_armor', name:'灵甲', desc:'战斗开始获得5护甲', icon:'🛡️', effect:{startBlock:5} },
-    { id:'star_dust', name:'星尘', desc:'获得卡牌时有30%几率升级', icon:'✨', effect:{autoUpgradeChance:0.3} },
-    { id:'phoenix_feather', name:'凤羽', desc:'死亡时复活(30%HP)一次', icon:'🪶', effect:{revive:true} },
-    { id:'dao_heart', name:'道心', desc:'最大灵力+1', icon:'❤️', effect:{maxEnergyBonus:1} },
-    { id:'void_eye', name:'虚空之眼', desc:'可预知Boss下一步行动', icon:'👁️', effect:{seeIntent:true} },
+    { id:'jade_pendant', name:'玉佩', desc:'最大生命+10', icon:'💎', setId:'iron', effect:{maxHpBonus:10} },
+    { id:'spirit_brush', name:'灵笔', desc:'每回合多抽1张牌', icon:'🖊️', setId:'talisman', effect:{drawBonus:1} },
+    { id:'thorn_ring', name:'荆棘戒', desc:'受到攻击时反弹3伤害', icon:'💍', setId:'iron', effect:{autoThorns:3} },
+    { id:'iron_bell', name:'铁钟', desc:'每回合获得3护甲', icon:'🔔', setId:'iron', effect:{autoBlock:3} },
+    { id:'blood_jade', name:'血玉', desc:'击杀敌人回复5HP', icon:'🔴', setId:'venom', effect:{killHeal:5} },
+    { id:'qi_stone', name:'气运石', desc:'战斗开始获得1灵力', icon:'🪨', setId:'talisman', effect:{startEnergy:1} },
+    { id:'ancient_scroll', name:'古卷', desc:'卡牌奖励多1张选择', icon:'📜', setId:'talisman', effect:{rewardExtra:1} },
+    { id:'mirror_shard', name:'镜片', desc:'第一回合抽2张额外牌', icon:'🪞', setId:'talisman', effect:{firstTurnDraw:2} },
+    { id:'poison_fang', name:'毒牙', desc:'每回合给所有敌人施加1毒', icon:'🐍', setId:'venom', effect:{autoPoison:1} },
+    { id:'golden_core', name:'金丹', desc:'力量永久+1', icon:'💊', setId:'venom', effect:{strengthBonus:1} },
+    { id:'spirit_armor', name:'灵甲', desc:'战斗开始获得5护甲', icon:'🛡️', setId:'iron', effect:{startBlock:5} },
+    { id:'star_dust', name:'星尘', desc:'获得卡牌时有30%几率升级', icon:'✨', setId:'talisman', effect:{autoUpgradeChance:0.3} },
+    { id:'phoenix_feather', name:'凤羽', desc:'死亡时复活(30%HP)一次', icon:'🪶', setId:'venom', effect:{revive:true} },
+    { id:'dao_heart', name:'道心', desc:'最大灵力+1', icon:'❤️', setId:'talisman', effect:{maxEnergyBonus:1} },
+    { id:'void_eye', name:'虚空之眼', desc:'可预知Boss下一步行动', icon:'👁️', setId:'talisman', effect:{seeIntent:true} },
     // --- Phase 3E 新增圣物 ---
-    { id:'fire_pendant', name:'火坠', desc:'每回合对全体敌人造成2伤害', icon:'🔥', effect:{autoBurn:2} },
-    { id:'ice_crystal', name:'冰晶', desc:'每3回合冻结敌人1回合', icon:'❄️', effect:{autoFreeze:3} },
-    { id:'wind_boots', name:'风靴', desc:'第一回合多获得1灵力', icon:'👟', effect:{startEnergy:1} },
-    { id:'earth_shield', name:'地盾', desc:'每回合获得2护甲', icon:'🪨', effect:{autoBlock:2} },
-    { id:'blood_pact', name:'血契', desc:'攻击回复1HP', icon:'🩸', effect:{attackHeal:1} },
-    { id:'thunder_mark', name:'雷印', desc:'力量永久+2', icon:'⚡', effect:{strengthBonus:2} },
-    { id:'soul_chain', name:'魂锁', desc:'每回合给敌人施加2毒', icon:'⛓️', effect:{autoPoison:2} },
-    { id:'dragon_scale', name:'龙鳞', desc:'最大生命+20', icon:'🐉', effect:{maxHpBonus:20} },
-    { id:'sage_eye', name:'圣者之眼', desc:'手牌上限+2', icon:'🔮', effect:{handSizeBonus:2} },
-    { id:'cursed_ring', name:'诅咒戒', desc:'力量+3，但每回合失去1HP', icon:'💜', effect:{strengthBonus:3,hpLossPerTurn:1} },
-    { id:'lucky_coin', name:'幸运币', desc:'卡牌奖励多1张选择', icon:'🪙', effect:{rewardExtra:1} },
-    { id:'time_hourglass', name:'时之沙', desc:'每场战斗第1回合打出的牌费用-1', icon:'⏳', effect:{firstTurnDiscount:1} },
-    { id:'life_root', name:'生命之根', desc:'每回合回复2HP', icon:'🌱', effect:{autoHeal:2} },
+    { id:'fire_pendant', name:'火坠', desc:'每回合对全体敌人造成2伤害', icon:'🔥', setId:null, effect:{autoBurn:2} },
+    { id:'ice_crystal', name:'冰晶', desc:'每3回合冻结敌人1回合', icon:'❄️', setId:null, effect:{autoFreeze:3} },
+    { id:'wind_boots', name:'风靴', desc:'第一回合多获得1灵力', icon:'👟', setId:'talisman', effect:{startEnergy:1} },
+    { id:'earth_shield', name:'地盾', desc:'每回合获得2护甲', icon:'🪨', setId:'iron', effect:{autoBlock:2} },
+    { id:'blood_pact', name:'血契', desc:'攻击回复1HP', icon:'🩸', setId:'venom', effect:{attackHeal:1} },
+    { id:'thunder_mark', name:'雷印', desc:'力量永久+2', icon:'⚡', setId:'venom', effect:{strengthBonus:2} },
+    { id:'soul_chain', name:'魂锁', desc:'每回合给敌人施加2毒', icon:'⛓️', setId:'venom', effect:{autoPoison:2} },
+    { id:'dragon_scale', name:'龙鳞', desc:'最大生命+20', icon:'🐉', setId:'iron', effect:{maxHpBonus:20} },
+    { id:'sage_eye', name:'圣者之眼', desc:'手牌上限+2', icon:'🔮', setId:null, effect:{handSizeBonus:2} },
+    { id:'cursed_ring', name:'诅咒戒', desc:'力量+3，但每回合失去1HP', icon:'💜', setId:'venom', effect:{strengthBonus:3,hpLossPerTurn:1} },
+    { id:'lucky_coin', name:'幸运币', desc:'卡牌奖励多1张选择', icon:'🪙', setId:'talisman', effect:{rewardExtra:1} },
+    { id:'time_hourglass', name:'时之沙', desc:'每场战斗第1回合打出的牌费用-1', icon:'⏳', setId:'talisman', effect:{firstTurnDiscount:1} },
+    { id:'life_root', name:'生命之根', desc:'每回合回复2HP', icon:'🌱', setId:'iron', effect:{autoHeal:2} },
   ];
   const RELICS_MAP = Object.fromEntries(RELICS.map(r => [r.id, r]));
+
+  const RELIC_SETS = [
+    {
+      id: 'talisman',
+      name: '符箓机缘',
+      icon: '📜',
+      tiers: {
+        2: { spellFirstDiscount: 1 },
+        4: { rewardExtra: 1 },
+      },
+      desc: '堆叠法术节奏与奖励选择',
+    },
+    {
+      id: 'iron',
+      name: '铁骨守御',
+      icon: '🛡️',
+      tiers: {
+        2: { autoBlock: 2 },
+        4: { firstDefenseBoost: 3 },
+      },
+      desc: '护甲体系与防御连动',
+    },
+    {
+      id: 'venom',
+      name: '毒煞魔道',
+      icon: '☠️',
+      tiers: {
+        2: { poisonAmp: 1 },
+        4: { autoPoison: 1 },
+      },
+      desc: '施毒增幅与持续压制',
+    },
+  ];
+  const RELIC_SETS_MAP = Object.fromEntries(RELIC_SETS.map(s => [s.id, s]));
+
+  function _sumEffectValue(v) {
+    if (typeof v === 'number') return v;
+    return v ? 1 : 0;
+  }
+
+  function getRelicSetCounts(relicIds) {
+    const counts = {};
+    for (const rid of relicIds) {
+      const r = RELICS_MAP[rid];
+      if (!r || !r.setId) continue;
+      counts[r.setId] = (counts[r.setId] || 0) + 1;
+    }
+    return counts;
+  }
+
+  function getRelicSetBonusEffects(relicIds) {
+    const counts = getRelicSetCounts(relicIds);
+    const effects = {};
+    const activeSets = [];
+
+    for (const [setId, count] of Object.entries(counts)) {
+      const set = RELIC_SETS_MAP[setId];
+      if (!set) continue;
+      const activeTiers = Object.keys(set.tiers)
+        .map(n => Number(n))
+        .filter(n => count >= n)
+        .sort((a, b) => a - b);
+      if (activeTiers.length === 0) continue;
+
+      activeSets.push({ set, count, activeTiers });
+      for (const tier of activeTiers) {
+        const tierEff = set.tiers[tier] || {};
+        for (const [k, v] of Object.entries(tierEff)) {
+          effects[k] = (effects[k] || 0) + _sumEffectValue(v);
+        }
+      }
+    }
+
+    return { effects, activeSets, counts };
+  }
 
   /* ============================================================
      角色职业系统
@@ -585,6 +721,7 @@
       this.maxEnergy = 3;
       this.block = 0;
       this.poison = 0;
+      this.burn = 0;
       this.thorns = 0;
       this.drawPenalty = 0;
       this.costDiscount = 0;
@@ -604,13 +741,17 @@
       if (cls) cls.startBonus(this);
     }
     getRelicEffect(key) {
-      return this.relics.reduce((sum, rid) => {
+      const base = this.relics.reduce((sum, rid) => {
         const r = RELICS_MAP[rid];
-        return sum + ((r && r.effect[key]) ? (typeof r.effect[key]==='number'?r.effect[key]:1) : 0);
+        return sum + ((r && r.effect && r.effect[key]) ? _sumEffectValue(r.effect[key]) : 0);
       }, 0);
+      const setBonus = getRelicSetBonusEffects(this.relics).effects;
+      return base + (setBonus[key] ? _sumEffectValue(setBonus[key]) : 0);
     }
     hasRelic(key) {
-      return this.relics.some(rid => { const r=RELICS_MAP[rid]; return r&&r.effect[key]; });
+      if (this.relics.some(rid => { const r = RELICS_MAP[rid]; return r && r.effect && r.effect[key]; })) return true;
+      const setBonus = getRelicSetBonusEffects(this.relics).effects;
+      return !!setBonus[key];
     }
     _buildStarterDeck() {
       const d = [];
@@ -632,6 +773,8 @@
       this.turn = 0;
       this.inBattle = false;
       this.playerTurn = false;
+      this._spellDiscountUsed = false;
+      this._defenseBoostUsed = false;
     }
 
     startBattle(enemyKeys) {
@@ -646,6 +789,8 @@
           hp: scaledHp,
           block: 0,
           poison: 0,
+          burn: 0,
+          frozen: 0,
           patternIndex: 0,
           enrageBonus: 0,
           charged: false,
@@ -664,6 +809,7 @@
       s.vulnerable = 0;
       s.weak = 0;
       s.drawNextBonus = 0;
+      s.burn = 0;
 
       // Prepare piles
       s.drawPile = this._shuffle([...s.deck]);
@@ -673,10 +819,27 @@
       this.startPlayerTurn();
     }
 
+    getTurnSpellDiscount(card) {
+      const s = this.game.state;
+      if (!card || card.type !== 'spell') return 0;
+      const disc = s.getRelicEffect('spellFirstDiscount');
+      if (!disc) return 0;
+      if (this._spellDiscountUsed) return 0;
+      return disc;
+    }
+
+    getEffectiveCost(card) {
+      const s = this.game.state;
+      const base = Math.max(0, card.cost - s.costDiscount);
+      return Math.max(0, base - this.getTurnSpellDiscount(card));
+    }
+
     startPlayerTurn() {
       const s = this.game.state;
       this.turn++;
       this.playerTurn = true;
+      this._spellDiscountUsed = false;
+      this._defenseBoostUsed = false;
       s.block = 0;
       s.thorns = 0;
       s.costDiscount = 0;
@@ -706,8 +869,9 @@
       // Relic: autoPoison (poison_fang) - apply to all enemies each turn
       const autoPoison = s.getRelicEffect('autoPoison');
       if (autoPoison > 0) {
+        const amp = s.getRelicEffect('poisonAmp') || 0;
         this.enemies.forEach(e => {
-          if (e.hp > 0) e.poison += autoPoison;
+          if (e.hp > 0) e.poison += (autoPoison + amp);
         });
       }
 
@@ -723,6 +887,17 @@
       const autoHeal = s.getRelicEffect('autoHeal');
       if (autoHeal > 0) {
         s.hp = Math.min(s.maxHp, s.hp + autoHeal);
+      }
+
+      // Relic: autoFreeze (ice_crystal) - every N turns freeze a random enemy for 1 turn
+      const autoFreezeEvery = s.getRelicEffect('autoFreeze');
+      if (autoFreezeEvery > 0 && this.turn % autoFreezeEvery === 0) {
+        const candidates = this.enemies.filter(e => e.hp > 0);
+        if (candidates.length > 0) {
+          const e = candidates[randomInt(0, candidates.length - 1)];
+          e.frozen = Math.max(e.frozen || 0, 1);
+          this.game.ui.logMessage(`${e.name} 被冻结！`, 'block');
+        }
       }
 
       // Relic: hpLossPerTurn (cursed_ring) - lose HP each turn
@@ -748,6 +923,18 @@
         s.hp -= s.poison;
         this.game.ui.logMessage(`毒素侵体，受到 ${s.poison} 点伤害`, 'damage');
         s.poison = Math.max(0, s.poison - 1);
+        if (s.hp <= 0) {
+          s.hp = 0;
+          this.endGame(false);
+          return;
+        }
+      }
+
+      // Burn damage to player
+      if (s.burn > 0) {
+        s.hp -= s.burn;
+        this.game.ui.logMessage(`灼烧焚身，受到 ${s.burn} 点伤害`, 'damage');
+        s.burn = Math.max(0, s.burn - 1);
         if (s.hp <= 0) {
           s.hp = 0;
           this.endGame(false);
@@ -804,7 +991,7 @@
     canPlayCard(card) {
       const s = this.game.state;
       if (!this.playerTurn) return false;
-      const cost = Math.max(0, card.cost - s.costDiscount);
+      const cost = this.getEffectiveCost(card);
       if (s.energy < cost) return false;
       // requiresExhaust needs at least 1 other card in hand
       if (card.requiresExhaust && s.hand.filter(c => c.uid !== card.uid).length === 0) return false;
@@ -818,8 +1005,10 @@
       const card = s.hand[idx];
       if (!this.canPlayCard(card)) return;
 
-      const cost = Math.max(0, card.cost - s.costDiscount);
+      const spellDisc = this.getTurnSpellDiscount(card);
+      const cost = Math.max(0, card.cost - s.costDiscount - spellDisc);
       s.energy -= cost;
+      if (spellDisc > 0) this._spellDiscountUsed = true;
       s.hand.splice(idx, 1);
       if (typeof SoundManager !== 'undefined') SoundManager.play('card');
 
@@ -850,7 +1039,9 @@
 
     _resolveCard(card) {
       const s = this.game.state;
-      const target = this.enemies[0]; // primary target
+      const primaryTarget = this.enemies[0]; // primary target
+      const affectAll = !!(card.aoe || card.targetAll);
+      const targets = affectAll ? this.enemies.filter(e => e.hp > 0) : (primaryTarget ? [primaryTarget] : []);
 
       // requiresExhaust: must exhaust another hand card first
       if (card.requiresExhaust) {
@@ -874,24 +1065,24 @@
       }
 
       // blkAsDmg: deal damage equal to current block (体修 震弹)
-      if (card.blkAsDmg && target && target.hp > 0) {
+      if (card.blkAsDmg && primaryTarget && primaryTarget.hp > 0) {
         let dmg = s.block;
         if (s.weak > 0) dmg = Math.floor(dmg * 0.75);
-        if (target.vulnerable && target.vulnerable > 0) dmg = Math.floor(dmg * 1.5);
-        let blocked = Math.min(target.block, dmg);
-        target.block -= blocked;
+        if (primaryTarget.vulnerable && primaryTarget.vulnerable > 0) dmg = Math.floor(dmg * 1.5);
+        let blocked = Math.min(primaryTarget.block, dmg);
+        primaryTarget.block -= blocked;
         dmg -= blocked;
-        target.hp = Math.max(0, target.hp - dmg);
-        this.game.ui.showEnemyDamage(target, s.block, blocked);
+        primaryTarget.hp = Math.max(0, primaryTarget.hp - dmg);
+        this.game.ui.showEnemyDamage(primaryTarget, s.block, blocked);
         this.game.ui.logMessage(`震弹造成 ${s.block} 伤害`, 'damage');
-        if (target.hp <= 0) {
+        if (primaryTarget.hp <= 0) {
           s.enemiesKilled++;
-          this.game.ui.logMessage(`${target.name} 被击败！`, 'heal');
+          this.game.ui.logMessage(`${primaryTarget.name} 被击败！`, 'heal');
         }
       }
 
       // Attack
-      if (card.atk && target) {
+      if (card.atk && targets.length > 0) {
         let baseDmg = card.atk;
 
         // retainScaling (shenhunmie)
@@ -916,31 +1107,33 @@
 
         const hits = card.hits || 1;
         let totalDealt = 0;
-        for (let h = 0; h < hits; h++) {
-          if (!target || target.hp <= 0) break;
-          let dmg = baseDmg;
+        for (const t of targets) {
+          for (let h = 0; h < hits; h++) {
+            if (!t || t.hp <= 0) break;
+            let dmg = baseDmg;
 
-          // vulnerable on target: increase damage by 50%
-          if (target.vulnerable && target.vulnerable > 0) {
-            dmg = Math.floor(dmg * 1.5);
-          }
+            // vulnerable on target: increase damage by 50%
+            if (t.vulnerable && t.vulnerable > 0) {
+              dmg = Math.floor(dmg * 1.5);
+            }
 
-          let blocked = Math.min(target.block, dmg);
-          target.block -= blocked;
-          dmg -= blocked;
-          target.hp = Math.max(0, target.hp - dmg);
-          totalDealt += dmg;
+            let blocked = Math.min(t.block, dmg);
+            t.block -= blocked;
+            dmg -= blocked;
+            t.hp = Math.max(0, t.hp - dmg);
+            totalDealt += dmg;
 
-          this.game.ui.showEnemyDamage(target, baseDmg, blocked);
-          if (target.hp <= 0) {
-            s.enemiesKilled++;
-            this.game.ui.logMessage(`${target.name} 被击败！`, 'heal');
-            // blood_jade relic: heal on kill
-            const killHealAmt = s.getRelicEffect('killHeal');
-            if (killHealAmt > 0) {
-              const healed = Math.min(killHealAmt, s.maxHp - s.hp);
-              s.hp += healed;
-              if (healed > 0) this.game.ui.logMessage(`血玉回复 ${healed} 生命`, 'heal');
+            this.game.ui.showEnemyDamage(t, baseDmg, blocked);
+            if (t.hp <= 0) {
+              s.enemiesKilled++;
+              this.game.ui.logMessage(`${t.name} 被击败！`, 'heal');
+              // blood_jade relic: heal on kill
+              const killHealAmt = s.getRelicEffect('killHeal');
+              if (killHealAmt > 0) {
+                const healed = Math.min(killHealAmt, s.maxHp - s.hp);
+                s.hp += healed;
+                if (healed > 0) this.game.ui.logMessage(`血玉回复 ${healed} 生命`, 'heal');
+              }
             }
           }
         }
@@ -961,36 +1154,57 @@
       }
 
       // Apply vulnerable from card (to target or all)
-      if (card.vulnerable && !card.targetAll) {
-        if (target && target.hp > 0) {
-          target.vulnerable = (target.vulnerable || 0) + card.vulnerable;
-          this.game.ui.logMessage(`${target.name} 易伤 ${card.vulnerable} 回合`, 'damage');
+      if (card.vulnerable && !affectAll) {
+        if (primaryTarget && primaryTarget.hp > 0) {
+          primaryTarget.vulnerable = (primaryTarget.vulnerable || 0) + card.vulnerable;
+          this.game.ui.logMessage(`${primaryTarget.name} 易伤 ${card.vulnerable} 回合`, 'damage');
         }
       }
-      if (card.vulnerable && card.targetAll) {
-        this.enemies.forEach(e => {
-          if (e.hp > 0) {
-            e.vulnerable = (e.vulnerable || 0) + card.vulnerable;
-          }
-        });
+      if (card.vulnerable && affectAll) {
+        targets.forEach(e => { e.vulnerable = (e.vulnerable || 0) + card.vulnerable; });
         this.game.ui.logMessage(`所有敌人易伤 ${card.vulnerable} 回合`, 'damage');
       }
 
       // Apply weak from card
-      if (card.applyWeak && target && target.hp > 0) {
-        target.weak = (target.weak || 0) + card.applyWeak;
-        this.game.ui.logMessage(`${target.name} 虚弱 ${card.applyWeak} 回合`, 'damage');
+      if (card.applyWeak && primaryTarget && primaryTarget.hp > 0) {
+        primaryTarget.weak = (primaryTarget.weak || 0) + card.applyWeak;
+        this.game.ui.logMessage(`${primaryTarget.name} 虚弱 ${card.applyWeak} 回合`, 'damage');
       }
 
       // Armor break
-      if (card.armorBreak && target) {
-        target.block = Math.max(0, target.block - card.armorBreak);
+      if (card.armorBreak && primaryTarget) {
+        primaryTarget.block = Math.max(0, primaryTarget.block - card.armorBreak);
+      }
+
+      // Poison / burn / freeze from card (to target or all)
+      if (card.poison) {
+        const amp = s.getRelicEffect('poisonAmp') || 0;
+        const amount = card.poison + amp;
+        (affectAll ? targets : [primaryTarget]).forEach(e => { if (e && e.hp > 0) e.poison = (e.poison || 0) + amount; });
+        this.game.ui.logMessage(`${affectAll ? '全体敌人' : (primaryTarget ? primaryTarget.name : '敌人')} 中毒 +${amount}`, 'damage');
+      }
+      if (card.burn) {
+        const amount = card.burn;
+        (affectAll ? targets : [primaryTarget]).forEach(e => { if (e && e.hp > 0) e.burn = (e.burn || 0) + amount; });
+        this.game.ui.logMessage(`${affectAll ? '全体敌人' : (primaryTarget ? primaryTarget.name : '敌人')} 灼烧 +${amount}`, 'damage');
+      }
+      if (card.freeze) {
+        const amount = card.freeze;
+        (affectAll ? targets : [primaryTarget]).forEach(e => { if (e && e.hp > 0) e.frozen = Math.max(e.frozen || 0, amount); });
+        this.game.ui.logMessage(`${affectAll ? '全体敌人' : (primaryTarget ? primaryTarget.name : '敌人')} 冻结！`, 'block');
       }
 
       // Block
       if (card.blk) {
-        s.block += card.blk;
-        this.game.ui.logMessage(`获得 ${card.blk} 护甲`, 'block');
+        let blk = card.blk;
+        const firstBoost = s.getRelicEffect('firstDefenseBoost') || 0;
+        if (card.type === 'defense' && firstBoost > 0 && !this._defenseBoostUsed) {
+          blk += firstBoost;
+          this._defenseBoostUsed = true;
+          this.game.ui.logMessage(`铁骨套装：首张防御牌护甲 +${firstBoost}`, 'block');
+        }
+        s.block += blk;
+        this.game.ui.logMessage(`获得 ${blk} 护甲`, 'block');
       }
 
       // Thorns
@@ -1161,6 +1375,31 @@
         }
       }
 
+      // Burn on enemy
+      if (enemy.burn > 0) {
+        enemy.hp = Math.max(0, enemy.hp - enemy.burn);
+        this.game.ui.logMessage(`${enemy.name} 灼烧，受到 ${enemy.burn} 伤害`, 'damage');
+        enemy.burn = Math.max(0, enemy.burn - 1);
+        if (enemy.hp <= 0) {
+          s.enemiesKilled++;
+          this.game.ui.logMessage(`${enemy.name} 被击败！`, 'heal');
+          const killHealAmt = s.getRelicEffect('killHeal');
+          if (killHealAmt > 0) {
+            const healed = Math.min(killHealAmt, s.maxHp - s.hp);
+            s.hp += healed;
+            if (healed > 0) this.game.ui.logMessage(`血玉回复 ${healed} 生命`, 'heal');
+          }
+          return;
+        }
+      }
+
+      // Frozen: skip action
+      if (enemy.frozen > 0) {
+        enemy.frozen = Math.max(0, enemy.frozen - 1);
+        this.game.ui.logMessage(`${enemy.name} 冻结中，跳过行动`, 'block');
+        return;
+      }
+
       if (action.type === 'attack') {
         let dmg = action.dmg + (enemy.enrageBonus || 0);
 
@@ -1223,6 +1462,12 @@
           this.game.ui.logMessage(`中毒! 毒素 +${action.poison}`, 'damage');
         }
 
+        // Burn from attack
+        if (action.burn) {
+          s.burn += action.burn;
+          this.game.ui.logMessage(`灼烧! 灼烧 +${action.burn}`, 'damage');
+        }
+
         // Steal card — remove from an active battle pile, then sync s.deck
         if (action.steal) {
           let stolen = null;
@@ -1259,6 +1504,12 @@
           this.game.ui.logMessage(`${enemy.name} 施放毒雾！毒素 +${action.poison}`, 'damage');
         }
 
+        // Burn (no attack)
+        if (action.burn) {
+          s.burn += action.burn;
+          this.game.ui.logMessage(`${enemy.name} 施放火焰！灼烧 +${action.burn}`, 'damage');
+        }
+
         // Bind
         if (action.bind) {
           s.bound = true;
@@ -1274,6 +1525,8 @@
             hp: summonTmpl.maxHp,
             block: 0,
             poison: 0,
+            burn: 0,
+            frozen: 0,
             patternIndex: 0,
             enrageBonus: 0,
             charged: false,
@@ -1643,6 +1896,7 @@
 
     /* --- Enemies --- */
     renderEnemies() {
+      const s = this.game.state;
       const enemies = this.game.battle.enemies;
       if (!enemies || enemies.length === 0) {
         this.els.enemyArea.innerHTML = '';
@@ -1659,17 +1913,25 @@
         let statuses = '';
         if (e.block > 0) statuses += `<span class="ct-status-badge block">护甲 ${e.block}</span>`;
         if (e.poison > 0) statuses += `<span class="ct-status-badge poison">毒 ${e.poison}</span>`;
+        if (e.burn > 0) statuses += `<span class="ct-status-badge burn">灼烧 ${e.burn}</span>`;
+        if (e.frozen > 0) statuses += `<span class="ct-status-badge frozen">冻结 ${e.frozen}</span>`;
         if (e.enrageBonus > 0) statuses += `<span class="ct-status-badge enraged">狂暴 +${e.enrageBonus}</span>`;
         if (e.charged) statuses += `<span class="ct-status-badge enraged">蓄力中</span>`;
         if (e.vulnerable > 0) statuses += `<span class="ct-status-badge vulnerable">易伤 ${e.vulnerable}</span>`;
         if (e.weak > 0) statuses += `<span class="ct-status-badge weak">虚弱 ${e.weak}</span>`;
+
+        let intentHtml = `意图: ${intent.label}`;
+        if (e.isBoss && s.hasRelic('seeIntent')) {
+          const next = e.pattern[(e.patternIndex + 1) % e.pattern.length];
+          if (next && next.label) intentHtml += `<div class="ct-intent-next">下一步: ${next.label}</div>`;
+        }
 
         return `<div class="ct-enemy ${e.isBoss ? 'boss-enemy' : ''}" data-idx="${i}">
           <span class="ct-enemy-sprite">${e.sprite}</span>
           <div class="ct-enemy-name">${e.name}</div>
           <div class="ct-enemy-hp-bar"><div class="ct-enemy-hp-fill" style="width:${hpPct}%"></div></div>
           <div class="ct-enemy-hp-text">${e.hp} / ${e.maxHp}</div>
-          <div class="ct-enemy-intent ${intentClass}">意图: ${intent.label}</div>
+          <div class="ct-enemy-intent ${intentClass}">${intentHtml}</div>
           <div class="ct-enemy-statuses">${statuses}</div>
         </div>`;
       }).join('');
@@ -1692,11 +1954,17 @@
         <div class="ct-ps-item"><span class="ct-ps-icon">🛡</span><span class="ct-ps-label">护甲</span><span class="ct-ps-value block">${s.block}</span></div>
       `;
       if (s.poison > 0) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">☠</span><span class="ct-ps-label">中毒</span><span class="ct-ps-value hp">${s.poison}</span></div>`;
+      if (s.burn > 0) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🔥</span><span class="ct-ps-label">灼烧</span><span class="ct-ps-value hp">${s.burn}</span></div>`;
       if (s.thorns > 0) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🦔</span><span class="ct-ps-label">荆棘</span><span class="ct-ps-value block">${s.thorns}</span></div>`;
       if (s.bound) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🔗</span><span class="ct-ps-label">缠绕</span><span class="ct-ps-value hp">!</span></div>`;
       if (s.strength > 0) statusHTML += `<div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">💪</span><span class="ct-ps-label">力量</span><span class="ct-ps-value energy">${s.strength}</span></div>`;
       if (s.vulnerable > 0) statusHTML += `<div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">💔</span><span class="ct-ps-label">易伤</span><span class="ct-ps-value hp">${s.vulnerable}</span></div>`;
       if (s.weak > 0) statusHTML += `<div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">😵</span><span class="ct-ps-label">虚弱</span><span class="ct-ps-value hp">${s.weak}</span></div>`;
+
+      const summary = getBuildSummary(s.deck, s.relics);
+      if (summary.length > 0) {
+        statusHTML += `<div class="ct-ps-item ct-ps-build"><span class="ct-ps-icon">🧩</span><span class="ct-ps-label">构筑</span><span class="ct-ps-value build">${summary.map(t => `<span class="ct-tag">${escapeHtml(t)}</span>`).join('')}</span></div>`;
+      }
 
       // Relics
       const relicHTML = this.renderRelics();
@@ -1713,14 +1981,16 @@
 
       this.els.handArea.innerHTML = hand.map((card, i) => {
         const canPlay = battleMgr.canPlayCard(card);
-        const effectiveCost = Math.max(0, card.cost - s.costDiscount);
+        const effectiveCost = battleMgr.getEffectiveCost(card);
         const discounted = effectiveCost < card.cost;
         const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
+        const tagsHtml = renderTagChips(getCardTags(card), 3);
         return `<div class="ct-card ${typeClass} ${canPlay ? '' : 'cant-play'} ${card.upgraded ? 'upgraded' : ''}" data-uid="${card.uid}">
           <div class="ct-card-cost ${discounted ? 'discounted' : ''}">${effectiveCost}</div>
           <div class="ct-card-art">${card.art}</div>
           <div class="ct-card-name">${card.name}</div>
           <div class="ct-card-type">${card.type === 'attack' ? '攻击' : card.type === 'defense' ? '防御' : '法术'}</div>
+          ${tagsHtml}
           <div class="ct-card-desc">${cardDescResolved(card)}</div>
         </div>`;
       }).join('');
@@ -1774,11 +2044,13 @@
     showCardReward(cards) {
       this.els.rewardCards.innerHTML = cards.map(card => {
         const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
+        const tagsHtml = renderTagChips(getCardTags(card), 5);
         return `<div class="ct-card ${typeClass}" data-id="${card.id}">
           <div class="ct-card-cost">${card.cost}</div>
           <div class="ct-card-art">${card.art}</div>
           <div class="ct-card-name">${card.name}</div>
           <div class="ct-card-type">${card.type === 'attack' ? '攻击' : card.type === 'defense' ? '防御' : '法术'}</div>
+          ${tagsHtml}
           <div class="ct-card-desc">${cardDescResolved(card)}</div>
         </div>`;
       }).join('');
@@ -1840,11 +2112,13 @@
 
       this.els.upgradeCards.innerHTML = upgradable.map(card => {
         const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
+        const tagsHtml = renderTagChips(getCardTags(card), 5);
         return `<div class="ct-card ${typeClass}" data-uid="${card.uid}">
           <div class="ct-card-cost">${card.cost}</div>
           <div class="ct-card-art">${card.art}</div>
           <div class="ct-card-name">${card.name}</div>
           <div class="ct-card-type">${card.type === 'attack' ? '攻击' : card.type === 'defense' ? '防御' : '法术'}</div>
+          ${tagsHtml}
           <div class="ct-card-desc">${cardDescResolved(card)}</div>
         </div>`;
       }).join('');
@@ -1858,11 +2132,23 @@
 
     /* --- Relic Reward --- */
     showRelicReward(relics) {
+      const s = this.game.state;
+      const setCounts = getRelicSetCounts(s.relics);
       this.els.relicChoices.innerHTML = relics.map(r => {
+        const set = r.setId ? RELIC_SETS_MAP[r.setId] : null;
+        const cur = set ? (setCounts[r.setId] || 0) : 0;
+        const next = set ? (cur + 1) : 0;
+        let setHtml = '';
+        if (set) {
+          const tiers = Object.keys(set.tiers).map(n => Number(n)).sort((a, b) => a - b);
+          const justUnlocked = tiers.filter(t => cur < t && next >= t);
+          setHtml = `<div class="ct-relic-choice-set">套装：${set.icon} ${set.name}（${cur}→${next}）${justUnlocked.length ? ` <span class="ct-set-unlock">达成${justUnlocked[0]}件</span>` : ''}</div>`;
+        }
         return `<div class="ct-relic-choice" data-id="${r.id}">
           <div class="ct-relic-choice-icon">${r.icon}</div>
           <div class="ct-relic-choice-name">${r.name}</div>
           <div class="ct-relic-choice-desc">${r.desc}</div>
+          ${setHtml}
         </div>`;
       }).join('');
       this.els.relicReward.classList.add('active');
@@ -1905,11 +2191,13 @@
       const s = this.game.state;
       this.els.removalCards.innerHTML = s.deck.map(card => {
         const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
+        const tagsHtml = renderTagChips(getCardTags(card), 5);
         return `<div class="ct-card ${typeClass} ${card.upgraded ? 'upgraded' : ''}" data-uid="${card.uid}">
           <div class="ct-card-cost">${card.cost}</div>
           <div class="ct-card-art">${card.art}</div>
           <div class="ct-card-name">${card.name}</div>
           <div class="ct-card-type">${card.type === 'attack' ? '攻击' : card.type === 'defense' ? '防御' : '法术'}</div>
+          ${tagsHtml}
           <div class="ct-card-desc">${cardDescResolved(card)}</div>
         </div>`;
       }).join('');
@@ -1924,10 +2212,26 @@
     renderRelics() {
       const s = this.game.state;
       if (s.relics.length === 0) return '';
-      return s.relics.map(rid => {
+      const relicBadges = s.relics.map(rid => {
         const r = RELICS_MAP[rid];
         return r ? `<span class="ct-relic-badge" title="${r.name}: ${r.desc}">${r.icon}</span>` : '';
       }).join('');
+
+      const setInfo = getRelicSetBonusEffects(s.relics);
+      const setBadges = (setInfo.activeSets || []).map(({ set, count, activeTiers }) => {
+        const tiers = Object.keys(set.tiers).map(n => Number(n)).sort((a, b) => a - b);
+        const tierText = tiers.map(t => `${t}${count >= t ? '✅' : ''}`).join(' / ');
+        const bonusLines = activeTiers.map(t => {
+          const eff = set.tiers[t] || {};
+          const effText = Object.entries(eff).map(([k, v]) => `${k}${typeof v === 'number' ? (v >= 0 ? `+${v}` : v) : ''}`).join('，');
+          return `${t}件：${effText || '—'}`;
+        }).join('\n');
+        const title = `${set.icon} ${set.name} (${count}件)\n${set.desc}\n进度：${tierText}\n${bonusLines}`;
+        const titleAttr = escapeHtml(title).replace(/\n/g, '&#10;');
+        return `<span class="ct-relic-set-badge" title="${titleAttr}">${set.icon}${count}</span>`;
+      }).join('');
+
+      return `<div class="ct-relic-badges">${relicBadges}</div>${setBadges ? `<div class="ct-relic-set-badges">${setBadges}</div>` : ''}`;
     }
 
     /* --- Game Over --- */
