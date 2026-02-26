@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>灵卡对决 - 仙界游坊</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/cardbattle.css">
+</head>
+<body>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
+  <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
+    <span class="game-nav-title">灵卡对决</span>
+  </nav>
+  <div class="page-wrapper">
+    <div class="game-container">
+
+      <!-- 开始界面 -->
+      <div class="cb-start" id="cb-start">
+        <h1 class="cb-logo">灵卡对决</h1>
+        <p class="cb-subtitle">召唤弟子、布阵法宝，击败三位仙师</p>
+        <div class="cb-difficulty-select">
+          <button class="cb-diff-btn" data-diff="0">
+            <span class="cb-diff-icon">🟢</span>
+            <span class="cb-diff-name">练气</span>
+            <span class="cb-diff-desc">对手生命 30 · 基础牌组</span>
+          </button>
+          <button class="cb-diff-btn locked" data-diff="1">
+            <span class="cb-diff-icon">🟡</span>
+            <span class="cb-diff-name">筑基</span>
+            <span class="cb-diff-desc">对手生命 40 · 进阶牌组</span>
+            <span class="cb-lock-hint">击败练气对手解锁</span>
+          </button>
+          <button class="cb-diff-btn locked" data-diff="2">
+            <span class="cb-diff-icon">🔴</span>
+            <span class="cb-diff-name">金丹</span>
+            <span class="cb-diff-desc">对手生命 50 · 强力牌组</span>
+            <span class="cb-lock-hint">击败筑基对手解锁</span>
+          </button>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px;">
+          <button class="btn btn-outline" id="btn-collection">📦 卡牌收藏</button>
+          <button class="btn btn-outline" id="btn-deckbuild">🃏 组建套牌</button>
+          <button class="btn btn-outline" id="btn-arena">🏟️ 竞技场</button>
+        </div>
+        <div class="cb-leaderboard" id="cb-leaderboard"></div>
+      </div>
+
+      <!-- 战斗界面 -->
+      <div class="cb-battle" id="cb-battle" style="display:none;">
+        <!-- 对手区域 -->
+        <div class="cb-enemy-area">
+          <div class="cb-master cb-enemy-master" id="enemy-master">
+            <div class="cb-master-portrait">👹</div>
+            <div class="cb-master-info">
+              <div class="cb-master-name" id="enemy-name">对手</div>
+              <div class="cb-hp-bar">
+                <div class="cb-hp-fill enemy-hp" id="enemy-hp-fill"></div>
+                <span class="cb-hp-text" id="enemy-hp-text">30/30</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb-deck-info cb-enemy-deck">
+            <span class="cb-deck-count" id="enemy-deck-count">牌库: 27</span>
+            <span class="cb-hand-count" id="enemy-hand-count">手牌: 3</span>
+          </div>
+        </div>
+
+        <!-- 战场 -->
+        <div class="cb-board">
+          <div class="cb-field cb-enemy-field" id="enemy-field"></div>
+          <div class="cb-divider">
+            <span class="cb-turn-indicator" id="turn-indicator">你的回合</span>
+          </div>
+          <div class="cb-field cb-player-field" id="player-field"></div>
+        </div>
+
+        <!-- 玩家区域 -->
+        <div class="cb-player-area">
+          <div class="cb-player-controls">
+            <div class="cb-master cb-player-master" id="player-master">
+              <div class="cb-master-portrait">🧙</div>
+              <div class="cb-master-info">
+                <div class="cb-master-name">你</div>
+                <div class="cb-hp-bar">
+                  <div class="cb-hp-fill player-hp" id="player-hp-fill"></div>
+                  <span class="cb-hp-text" id="player-hp-text">30/30</span>
+                </div>
+              </div>
+            </div>
+            <div class="cb-energy-display" id="energy-display">
+              <span class="cb-energy-icon">💎</span>
+              <span class="cb-energy-text" id="energy-text">1/1</span>
+            </div>
+            <button class="btn btn-outline cb-hero-power" id="btn-hero-power" title="灵气冲击：造成2点伤害（每回合1次，费用2）">⚡ 灵技(2)</button>
+            <button class="btn btn-gold cb-end-turn" id="btn-end-turn">结束回合</button>
+          </div>
+          <div class="cb-deck-info cb-player-deck-info">
+            <span class="cb-deck-count" id="player-deck-count">牌库: 27</span>
+          </div>
+          <div class="cb-hand" id="player-hand"></div>
+        </div>
+
+        <!-- 目标选择提示 -->
+        <div class="cb-target-hint" id="target-hint" style="display:none;">
+          选择攻击目标（点击敌方随从或对手头像）
+          <button class="btn btn-outline btn-sm cb-cancel-btn" id="btn-cancel">取消</button>
+        </div>
+      </div>
+
+      <!-- 结果界面 -->
+      <div class="cb-result" id="cb-result" style="display:none;">
+        <div class="cb-result-card">
+          <h2 class="cb-result-title" id="result-title">胜利！</h2>
+          <div class="cb-result-stats" id="result-stats"></div>
+          <div class="cb-result-actions">
+            <button class="btn btn-gold" id="btn-retry">再来一局</button>
+            <button class="btn btn-outline" id="btn-back-menu">返回选关</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 收藏/组牌界面 -->
+      <div class="cb-collection" id="cb-collection" style="display:none;"></div>
+
+    </div>
+  </div>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cardbattle.js" defer></script>
+</body>
+</html>

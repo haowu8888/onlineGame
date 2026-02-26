@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仙卡录 - 仙界游坊</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/cardcollect.css">
+</head>
+<body>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
+  <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
+    <span class="game-nav-title">仙卡录</span>
+  </nav>
+  <div class="page-wrapper">
+    <div class="game-container cc-container">
+      <!-- 顶部状态栏 -->
+      <div class="cc-header">
+        <div class="cc-currency">
+          <span class="cc-stone-icon">💎</span>
+          <span class="cc-stone-count" id="stone-count">1000</span>
+          <span class="cc-stone-label">灵石</span>
+        </div>
+        <div class="cc-info">
+          <span class="cc-chapter-info" id="chapter-info">最高通关：第0章</span>
+          <span class="cc-card-count" id="card-count">卡牌：0/30</span>
+        </div>
+      </div>
+
+      <!-- Tab导航 -->
+      <div class="cc-tabs" id="cc-tabs">
+        <button class="cc-tab active" data-tab="team">阵容</button>
+        <button class="cc-tab" data-tab="chapter">秘境</button>
+        <button class="cc-tab" data-tab="gacha">召唤</button>
+        <button class="cc-tab" data-tab="collection">图鉴</button>
+      </div>
+
+      <!-- 阵容面板 -->
+      <div class="cc-panel active" id="panel-team" data-panel="team">
+        <h3 class="cc-panel-title">出战阵容</h3>
+        <div class="cc-team-slots" id="team-slots"></div>
+        <h3 class="cc-panel-title" style="margin-top:20px;">候选角色</h3>
+        <div class="cc-bench-filter" id="bench-filter">
+          <button class="cc-filter-btn active" data-filter="all">全部</button>
+          <button class="cc-filter-btn" data-filter="ATK">攻击</button>
+          <button class="cc-filter-btn" data-filter="DEF">防御</button>
+          <button class="cc-filter-btn" data-filter="SUP">辅助</button>
+        </div>
+        <div class="cc-bench-list" id="bench-list"></div>
+      </div>
+
+      <!-- 秘境面板 -->
+      <div class="cc-panel" id="panel-chapter" data-panel="chapter">
+        <h3 class="cc-panel-title">秘境探索</h3>
+        <div class="cc-chapter-grid" id="chapter-grid"></div>
+      </div>
+
+      <!-- 召唤面板 -->
+      <div class="cc-panel" id="panel-gacha" data-panel="gacha">
+        <h3 class="cc-panel-title">灵石召唤</h3>
+        <div class="cc-gacha-banner">
+          <div class="cc-gacha-orb"></div>
+          <p class="cc-gacha-rates">概率：凡40% | 灵35% | 仙20% | 圣5%</p>
+        </div>
+        <div class="cc-gacha-buttons">
+          <button class="btn btn-gold" id="btn-pull1">单抽 (100灵石)</button>
+          <button class="btn btn-cyan" id="btn-pull10">十连 (900灵石)</button>
+        </div>
+        <div class="cc-gacha-results" id="gacha-results"></div>
+      </div>
+
+      <!-- 图鉴面板 -->
+      <div class="cc-panel" id="panel-collection" data-panel="collection">
+        <h3 class="cc-panel-title">角色图鉴</h3>
+        <div class="cc-collection-filter" id="collection-filter">
+          <button class="cc-filter-btn active" data-filter="all">全部</button>
+          <button class="cc-filter-btn" data-filter="凡">凡</button>
+          <button class="cc-filter-btn" data-filter="灵">灵</button>
+          <button class="cc-filter-btn" data-filter="仙">仙</button>
+          <button class="cc-filter-btn" data-filter="圣">圣</button>
+        </div>
+        <div class="cc-collection-grid" id="collection-grid"></div>
+      </div>
+
+      <!-- 战斗界面（覆盖层） -->
+      <div class="cc-battle-overlay" id="battle-overlay">
+        <div class="cc-battle-scene">
+          <div class="cc-battle-header">
+            <span class="cc-battle-chapter" id="battle-chapter-name"></span>
+            <span class="cc-battle-wave" id="battle-wave-info"></span>
+          </div>
+          <div class="cc-battle-field">
+            <div class="cc-battle-side cc-allies" id="battle-allies"></div>
+            <div class="cc-battle-vs">VS</div>
+            <div class="cc-battle-side cc-enemies" id="battle-enemies"></div>
+          </div>
+          <div class="cc-battle-log" id="battle-log"></div>
+          <div class="cc-battle-controls">
+            <button class="btn btn-outline btn-sm" id="btn-battle-speed">速度：1x</button>
+            <button class="btn btn-outline btn-sm" id="btn-battle-skip">跳过战斗</button>
+          </div>
+          <div class="cc-battle-hint" style="text-align:center;font-size:0.7rem;color:var(--text-muted);margin-top:6px;">点击敌人可锁定目标 | 大招就绪时可手动触发</div>
+        </div>
+      </div>
+
+      <!-- 角色详情弹窗 -->
+      <div class="modal-overlay" id="char-detail-modal">
+        <div class="modal cc-char-modal">
+          <div class="modal-header">
+            <h3 class="modal-title" id="char-detail-name"></h3>
+            <button class="modal-close" id="char-detail-close">&times;</button>
+          </div>
+          <div class="cc-char-detail-body" id="char-detail-body"></div>
+          <div class="modal-footer" id="char-detail-footer"></div>
+        </div>
+      </div>
+
+      <!-- 战斗结算弹窗 -->
+      <div class="modal-overlay" id="battle-result-modal">
+        <div class="modal cc-result-modal">
+          <div class="modal-header">
+            <h3 class="modal-title" id="result-title"></h3>
+            <button class="modal-close" id="result-close">&times;</button>
+          </div>
+          <div class="cc-result-body" id="result-body"></div>
+          <div class="modal-footer">
+            <button class="btn btn-gold btn-sm" id="result-ok">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cardcollect.js" defer></script>
+</body>
+</html>

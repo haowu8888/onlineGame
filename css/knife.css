@@ -1,0 +1,608 @@
+/* ========== 转转刀 - 武侠肉鸽割草样式 ========== */
+
+/* --- 容器 --- */
+.knife-container {
+  max-width: 860px;
+  padding: 10px 10px 20px;
+}
+
+/* --- HUD 顶栏 --- */
+.knife-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.hud-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.hud-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-bar-label {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--text-muted);
+  width: 22px;
+  text-align: right;
+}
+
+.hud-bar-track {
+  flex: 1;
+  height: 12px;
+  background: var(--bg-primary);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 164, 74, 0.15);
+}
+
+.hud-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.2s ease;
+  position: relative;
+}
+
+.hp-fill {
+  background: linear-gradient(90deg, #d44a4a, #ff6b6b);
+}
+
+.xp-fill {
+  background: linear-gradient(90deg, #4adad4, #80f0ec);
+}
+
+.hud-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: progressShine 2.5s infinite;
+}
+
+.hud-bar-text {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: left;
+}
+
+.hud-right {
+  display: flex;
+  gap: 12px;
+}
+
+.hud-stat {
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 4px 12px;
+  min-width: 55px;
+}
+
+.hud-stat-label {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.hud-stat-value {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--gold);
+}
+
+/* --- Boss 血条 --- */
+.knife-boss-bar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  padding: 6px 14px;
+  background: rgba(212, 74, 74, 0.08);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-md);
+  animation: bossBarPulse 2s infinite;
+}
+
+.knife-boss-bar.active {
+  display: flex;
+}
+
+.boss-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--red-light);
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.boss-hp-track {
+  flex: 1;
+  height: 10px;
+  background: var(--bg-primary);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.boss-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), #ff6b6b);
+  border-radius: 5px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.boss-hp-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: progressShine 1.5s infinite;
+}
+
+@keyframes bossBarPulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+/* --- 波次公告 --- */
+.wave-announce {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.5);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(212, 164, 74, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.4s ease;
+  z-index: 15;
+  white-space: nowrap;
+}
+
+.wave-announce.active {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.wave-announce.boss {
+  color: var(--red-light);
+  text-shadow: 0 0 30px rgba(212, 74, 74, 0.8);
+  font-size: 2.4rem;
+}
+
+/* --- 游戏主区域 --- */
+.knife-main {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+#knife-canvas {
+  display: block;
+  background: #0d1117;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), inset 0 0 60px rgba(0, 0, 0, 0.3);
+}
+
+/* --- 覆盖层 --- */
+.knife-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 26, 0.92);
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+  z-index: 20;
+  padding: 30px;
+}
+
+.knife-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.knife-overlay-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* --- 升级面板 --- */
+.upgrade-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  padding: 20px;
+}
+
+.upgrade-panel.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.upgrade-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.upgrade-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.upgrade-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+  width: 160px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  animation: cardSlideIn 0.35s ease backwards;
+}
+
+.upgrade-card:nth-child(2) { animation-delay: 0.08s; }
+.upgrade-card:nth-child(3) { animation-delay: 0.16s; }
+
+.upgrade-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 0 25px rgba(212, 164, 74, 0.3);
+}
+
+.upgrade-card:active {
+  transform: translateY(-2px) scale(0.97);
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.upgrade-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.upgrade-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.upgrade-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.upgrade-count {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.upgrade-title {
+  animation: titleGlow 1.5s ease infinite alternate;
+}
+
+@keyframes titleGlow {
+  from { text-shadow: 0 0 10px rgba(212, 164, 74, 0.2); }
+  to   { text-shadow: 0 0 25px rgba(212, 164, 74, 0.5); }
+}
+
+.knife-overlay-desc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  text-align: center;
+  margin-bottom: 28px;
+  white-space: pre-line;
+  line-height: 1.8;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 摇杆（移动端） --- */
+.joystick-wrapper {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 16px;
+  gap: 6px;
+}
+
+.joystick-area {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(212, 164, 74, 0.08);
+  border: 2px solid rgba(212, 164, 74, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  touch-action: none;
+}
+
+.joystick-knob {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-gold);
+  box-shadow: 0 0 12px rgba(212, 164, 74, 0.4);
+  transition: transform 0.05s linear;
+}
+
+.joystick-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* --- 操作提示 --- */
+.knife-hint {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* --- 响应式 --- */
+@media (max-width: 768px) {
+  .knife-container {
+    padding: 8px;
+  }
+
+  .knife-hud {
+    gap: 8px;
+  }
+
+  .hud-right {
+    gap: 6px;
+  }
+
+  .hud-stat {
+    padding: 3px 8px;
+    min-width: 45px;
+  }
+
+  .hud-stat-value {
+    font-size: 0.85rem;
+  }
+
+  .knife-overlay-title {
+    font-size: 2rem;
+  }
+
+  .wave-announce {
+    font-size: 1.5rem;
+  }
+
+  .wave-announce.boss {
+    font-size: 1.8rem;
+  }
+
+  .joystick-wrapper {
+    display: flex;
+  }
+
+  .knife-hint {
+    display: none;
+  }
+
+  .upgrade-card {
+    width: 130px;
+    padding: 14px 10px;
+  }
+
+  .upgrade-icon {
+    font-size: 1.6rem;
+  }
+
+  .upgrade-name {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .hud-bar-text {
+    display: none;
+  }
+
+  .hud-stat {
+    min-width: 40px;
+    padding: 2px 6px;
+  }
+
+  .hud-stat-label {
+    font-size: 0.55rem;
+  }
+
+  .hud-stat-value {
+    font-size: 0.75rem;
+  }
+
+  .upgrade-card {
+    width: 110px;
+    padding: 10px 8px;
+  }
+
+  .upgrade-desc {
+    font-size: 0.7rem;
+  }
+
+  .knife-overlay-title {
+    font-size: 1.6rem;
+  }
+}
+
+/* --- 手机端技能按钮 --- */
+.mobile-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mobile-skills {
+  display: none;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mobile-skill-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  background: rgba(26, 26, 46, 0.85);
+  border: 2px solid rgba(212, 164, 74, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.mobile-skill-btn:active {
+  transform: scale(0.9);
+}
+
+.mobile-skill-btn.locked {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.mobile-skill-btn.cooldown {
+  opacity: 0.5;
+}
+
+.mobile-skill-btn.active {
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  background: rgba(212, 164, 74, 0.15);
+}
+
+.mobile-skill-icon {
+  font-size: 1.3rem;
+}
+
+.mobile-skill-key {
+  font-size: 0.55rem;
+  color: rgba(212, 164, 74, 0.5);
+}
+
+@media (max-width: 768px) {
+  .mobile-skills {
+    display: flex;
+  }
+}
+
+/* --- 技能栏 --- */
+.skill-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+  min-height: 48px;
+}
+
+.skill-slot {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background: rgba(26, 26, 46, 0.8);
+  border: 2px solid rgba(212, 164, 74, 0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.skill-slot.active {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.skill-icon {
+  font-size: 1.4rem;
+  z-index: 1;
+}
+
+.skill-key {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.6rem;
+  color: rgba(212, 164, 74, 0.6);
+  z-index: 1;
+}
+
+.skill-cd-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 0;
+  transition: height 0.1s;
+}

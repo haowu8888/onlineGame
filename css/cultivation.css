@@ -1,72 +1,11 @@
 /* ========== 修仙游戏样式 ========== */
 
-/* --- 存档槽位 --- */
-.slot-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin: 20px 0;
+:root {
+  --blue: #4a7ad4;
+  --blue-light: #6a9af4;
 }
 
-.save-slot {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  transition: all var(--transition-fast);
-}
-
-.save-slot:hover {
-  border-color: var(--gold-dark);
-}
-
-.slot-info {
-  flex: 1;
-}
-
-.slot-name {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  color: var(--gold);
-  margin-bottom: 4px;
-}
-
-.slot-realm {
-  font-size: 0.8rem;
-  color: var(--purple-light);
-}
-
-.slot-details {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.slot-empty {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.slot-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.back-to-slots {
-  cursor: pointer;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin-bottom: 16px;
-  display: inline-block;
-}
-
-.back-to-slots:hover {
-  color: var(--gold);
-}
+/* --- 存档槽位 → 已移至 shared.css --- */
 
 /* --- 角色创建 --- */
 .char-create {
@@ -174,7 +113,7 @@
 .status-value.cyan { color: var(--cyan); }
 .status-value.purple { color: var(--purple-light); }
 .status-value.red { color: var(--red-light); }
-.status-value.blue { color: #4a7ad4; }
+.status-value.blue { color: var(--blue); }
 
 /* 经验条 */
 .exp-bar-wrap {
@@ -211,38 +150,58 @@
 }
 
 .spirit-bar-label span:first-child {
-  color: #4a7ad4;
+  color: var(--blue);
 }
 
 .progress-bar.spirit-bar .progress-fill {
-  background: linear-gradient(90deg, #4a7ad4, #6a9af4);
+  background: linear-gradient(90deg, var(--blue), var(--blue-light));
 }
 
 /* --- Tab导航 --- */
 .cult-tabs {
   display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   gap: 4px;
   margin-bottom: 16px;
-  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dark) transparent;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 8px, black calc(100% - 8px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 8px, black calc(100% - 8px), transparent 100%);
 }
 
-.cult-tabs::-webkit-scrollbar { display: none; }
+.cult-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cult-tabs::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 2px;
+}
+
+.cult-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 .cult-tab {
-  padding: 8px 16px;
+  padding: 6px 10px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   white-space: nowrap;
   transition: all var(--transition-fast);
 }
 
 .cult-tab:hover {
   color: var(--text-primary);
+}
+
+.cult-tab:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
 }
 
 .cult-tab.active {
@@ -331,6 +290,32 @@
   color: var(--purple-light);
 }
 
+/* --- 丹药选择弹窗 --- */
+.pill-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pill-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.pill-choice:hover {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+  transform: translateX(4px);
+}
+
+.pill-choice:active {
+  transform: translateX(2px) scale(0.98);
+}
+
 /* --- 战斗面板 --- */
 .battle-zone {
   text-align: center;
@@ -413,7 +398,7 @@
 
 .battle-spirit-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4a7ad4, #6a9af4);
+  background: linear-gradient(90deg, var(--blue), var(--blue-light));
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -422,6 +407,16 @@
   font-size: 1.5rem;
   color: var(--red);
   font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.element-badge {
+  font-size: 0.85rem;
+  margin-left: 2px;
+  text-shadow: 0 0 6px currentColor;
 }
 
 .battle-actions {
@@ -444,16 +439,21 @@
   padding: 6px 14px;
   font-size: 0.8rem;
   background: var(--bg-card);
-  border: 1px solid #4a7ad4;
+  border: 1px solid var(--blue);
   border-radius: var(--radius-md);
-  color: #6a9af4;
+  color: var(--blue-light);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .skill-btn:hover:not(.on-cd):not(:disabled) {
   background: rgba(74, 122, 212, 0.15);
-  border-color: #6a9af4;
+  border-color: var(--blue-light);
+  box-shadow: 0 0 10px rgba(106, 154, 244, 0.25);
+}
+
+.skill-btn:active:not(.on-cd):not(:disabled) {
+  transform: scale(0.93);
 }
 
 .skill-btn.on-cd {
@@ -467,6 +467,22 @@
   font-size: 0.65rem;
   color: var(--red-light);
   margin-left: 4px;
+}
+
+.pet-skill-btn {
+  border-color: rgba(74, 212, 106, 0.4);
+  color: #4ad46a;
+}
+
+.pet-skill-btn:hover:not(:disabled) {
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(74, 212, 106, 0.3);
+}
+
+.pet-skill-btn.on-cd {
+  opacity: 0.5;
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 .battle-log {
@@ -490,7 +506,7 @@
 .battle-log-entry.heal { color: var(--green-light); }
 .battle-log-entry.info { color: var(--cyan); }
 .battle-log-entry.reward { color: var(--gold); }
-.battle-log-entry.skill { color: #6a9af4; }
+.battle-log-entry.skill { color: var(--blue-light); }
 
 /* 秘境选择 */
 .realm-select {
@@ -542,6 +558,17 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+/* 批量炼制按钮组 */
+.craft-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.craft-buttons .btn {
+  flex: 0 0 auto;
 }
 
 .recipe-list {
@@ -650,6 +677,7 @@
 .inv-item:hover {
   border-color: var(--gold-dark);
   transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(212, 164, 74, 0.15);
 }
 
 .shop-item.locked {
@@ -965,5 +993,1763 @@
 
   .achievement-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ========== 特效动画系统 ========== */
+
+/* --- 粒子爆炸 --- */
+.effect-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100;
+  animation: effectParticleFly var(--fly-duration, 1s) ease-out forwards;
+}
+
+@keyframes effectParticleFly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx, 50px), var(--ty, -80px)) scale(0); }
+}
+
+/* --- 全屏闪光 --- */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  animation: flashFade var(--flash-duration, 0.4s) ease-out forwards;
+}
+
+@keyframes flashFade {
+  0% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* --- 浮动文字 --- */
+.floating-text {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  font-weight: bold;
+  text-shadow: 0 0 8px currentColor;
+  animation: floatUp 1.2s ease-out forwards;
+  white-space: nowrap;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  60% { opacity: 1; transform: translateY(-40px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-70px) scale(0.8); }
+}
+
+/* --- 屏幕震动 --- */
+.shaking {
+  animation: screenShake var(--shake-duration, 0.4s) ease-in-out;
+}
+
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, 2px); }
+  20% { transform: translate(4px, -2px); }
+  30% { transform: translate(-3px, 3px); }
+  40% { transform: translate(3px, -3px); }
+  50% { transform: translate(-2px, 1px); }
+  60% { transform: translate(2px, -1px); }
+  70% { transform: translate(-1px, 2px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(-1px, 0); }
+}
+
+/* --- 境界提升大字 --- */
+.realm-up-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 10000;
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.4);
+  animation: realmUpIn 2s ease-out forwards;
+  white-space: nowrap;
+}
+
+@keyframes realmUpIn {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  40% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -55%) scale(1.1); opacity: 0; }
+}
+
+/* --- 丹炉动画 --- */
+.cauldron-anim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  animation: cauldronShake 0.3s ease-in-out infinite;
+  margin: 20px auto;
+}
+
+@keyframes cauldronShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+.cauldron-fire {
+  font-size: 1.5rem;
+  animation: fireFlicker 0.4s ease-in-out infinite alternate;
+  margin-top: -8px;
+}
+
+@keyframes fireFlicker {
+  0% { transform: scaleY(0.8) scaleX(1); opacity: 0.8; }
+  100% { transform: scaleY(1.2) scaleX(0.9); opacity: 1; }
+}
+
+/* --- 炼丹成功/失败 --- */
+.alchemy-success {
+  animation: alchemySuccess 0.6s ease-out;
+}
+
+@keyframes alchemySuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); filter: brightness(1.5); }
+  100% { transform: scale(1); }
+}
+
+.alchemy-fail {
+  animation: alchemyFail 0.5s ease-out;
+}
+
+@keyframes alchemyFail {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+/* --- 掉落卡片 --- */
+.loot-card {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg-card);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 0 20px rgba(212, 164, 74, 0.4);
+  animation: lootSlideIn 0.4s ease-out forwards;
+}
+
+.loot-card.out {
+  animation: lootSlideOut 0.3s ease-in forwards;
+}
+
+.loot-card-icon {
+  font-size: 1.5rem;
+}
+
+.loot-card-text {
+  color: var(--gold);
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+@keyframes lootSlideIn {
+  0% { transform: translateX(120%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes lootSlideOut {
+  0% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+/* --- 速度加成发光 --- */
+.speed-boost-active .meditation-visual {
+  box-shadow: 0 0 40px rgba(74, 218, 212, 0.6), 0 0 80px rgba(74, 218, 212, 0.3);
+  border-color: var(--cyan);
+}
+
+.speed-boost-active .meditation-visual::after {
+  content: '⚡';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 1.2rem;
+  animation: floatUp 2s ease-in-out infinite;
+}
+
+/* --- 暴击闪光 --- */
+.crit-flash {
+  animation: critFlash 0.3s ease-out;
+}
+
+@keyframes critFlash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(2); }
+  100% { filter: brightness(1); }
+}
+
+/* --- 炼丹过程覆盖 --- */
+.alchemy-process-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.alchemy-process-text {
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  margin-top: 16px;
+}
+
+/* ==================== 装备强化 ==================== */
+
+.enhance-btn {
+  margin-top: 4px;
+  font-size: 0.65rem !important;
+  padding: 2px 8px !important;
+}
+
+.btn-xs {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.enhance-cost {
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 12px 0;
+}
+
+.enhance-cost ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.enhance-cost li {
+  padding: 3px 0;
+  font-size: 0.8rem;
+}
+
+.enhance-cost li.has { color: var(--green); }
+.enhance-cost li.missing { color: var(--red); }
+
+/* ==================== 灵宠系统 ==================== */
+
+.pet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.pet-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.pet-card.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(212, 164, 74, 0.2);
+}
+
+.pet-icon {
+  font-size: 2rem;
+  margin-bottom: 6px;
+}
+
+.pet-name {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.pet-stats {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.pet-exp-bar {
+  height: 4px;
+  background: var(--bg-primary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.pet-exp-fill {
+  height: 100%;
+  background: var(--cyan);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.pet-exp-text {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.pet-evo-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.pet-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pet-empty {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.pet-info-text {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* ==================== 秘境探索 ==================== */
+
+.secret-realm-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.sr-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sr-best {
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-left: auto;
+}
+
+.secret-realm-modal {
+  max-width: 500px;
+  width: 100%;
+}
+
+.sr-progress {
+  height: 8px;
+  background: var(--bg-primary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 12px 0 8px;
+}
+
+.sr-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--gold));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.sr-floor-text {
+  font-size: 0.85rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.sr-log {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.sr-log-entry {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* ==================== 宗门任务 ==================== */
+
+.quest-board {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.quest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.quest-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.quest-card.completable {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.06);
+}
+
+.quest-card.claimed {
+  opacity: 0.5;
+}
+
+.quest-name {
+  font-size: 0.9rem;
+  color: var(--gold);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.quest-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.quest-progress-bar {
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.quest-progress-fill {
+  height: 100%;
+  background: var(--cyan);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.quest-progress-text {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.quest-reward {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.quest-status {
+  font-size: 0.7rem;
+  color: var(--green);
+}
+
+.quest-claim-btn {
+  margin-top: 4px;
+}
+
+/* --- 响应式补充 --- */
+@media (max-width: 600px) {
+  .pet-grid {
+    grid-template-columns: 1fr;
+  }
+  .quest-grid {
+    grid-template-columns: 1fr;
+  }
+  .secret-realm-entry {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sr-best {
+    margin-left: 0;
+  }
+}
+
+/* ==================== 天劫小游戏 ==================== */
+
+.trib-dir-btn {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* ==================== 世界事件横幅 ==================== */
+
+#world-event-banner {
+  animation: worldEventPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes worldEventPulse {
+  from { border-color: var(--gold-dark); }
+  to { border-color: var(--gold); box-shadow: 0 0 12px rgba(212, 164, 74, 0.3); }
+}
+
+/* ==================== 悟道进度条 ==================== */
+
+.insight-area {
+  margin: 10px 0;
+}
+
+.insight-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.insight-bar {
+  height: 8px;
+  background: rgba(128, 0, 255, 0.15);
+  border-radius: 4px;
+}
+
+.insight-fill {
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  transition: width 0.5s ease;
+  border-radius: 4px;
+}
+
+.insight-fill.sufficient {
+  background: linear-gradient(90deg, #4ad46a, #22c55e);
+  box-shadow: 0 0 8px rgba(74, 212, 106, 0.5);
+}
+
+/* 走火入魔警告 */
+.deviation-warning {
+  color: #e53e3e;
+  font-weight: bold;
+  font-size: 0.8rem;
+  animation: deviationPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes deviationPulse {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+/* ==================== 炼器品质标记 ==================== */
+
+.forge-quality-normal { color: var(--text-secondary); }
+.forge-quality-good { color: #4adad4; }
+.forge-quality-fine { color: #a855f7; }
+.forge-quality-epic { color: #ffd700; text-shadow: 0 0 6px rgba(255, 215, 0, 0.5); }
+
+/* ==================== 捕捉按钮 ==================== */
+
+.capture-btn {
+  background: linear-gradient(135deg, #b8860b, #daa520);
+  color: #fff;
+  border: 2px solid #ffd700;
+  border-radius: var(--radius-md);
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.capture-btn:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
+  transform: scale(1.05);
+}
+
+.capture-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.capture-btn.glow {
+  animation: captureGlow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes captureGlow {
+  from { box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
+  to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 0 40px rgba(255, 215, 0, 0.3); }
+}
+
+/* ==================== 亲密度进度条 ==================== */
+
+.affinity-bar {
+  height: 4px;
+  background: rgba(255, 105, 180, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.affinity-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff69b4, #ff1493);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.affinity-text {
+  font-size: 0.65rem;
+  color: #ff69b4;
+  margin-bottom: 4px;
+}
+
+.pet-skill-info {
+  font-size: 0.7rem;
+  color: var(--blue-light);
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  background: rgba(74, 122, 212, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+/* ==================== 自动战斗按钮 ==================== */
+
+.auto-battle-btn {
+  position: relative;
+}
+
+.auto-battle-btn.active {
+  background: rgba(74, 218, 212, 0.2);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* ==================== 宗门面板 ==================== */
+
+.sect-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.sect-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.sect-section-title {
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.donate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.donate-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 0.8rem;
+}
+
+.donate-item:hover {
+  border-color: var(--gold-dark);
+}
+
+.donate-item .donate-cost {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.donate-item .donate-gain {
+  font-size: 0.7rem;
+  color: var(--gold);
+  margin-top: 2px;
+}
+
+.sect-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.sect-shop-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sect-shop-item:hover:not(.purchased) {
+  border-color: var(--gold-dark);
+}
+
+.sect-shop-item.purchased {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--green);
+}
+
+.training-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.training-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.training-card:hover {
+  border-color: var(--gold-dark);
+}
+
+.training-active {
+  background: var(--bg-card);
+  border: 1px solid var(--cyan);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.training-timer {
+  font-size: 1.5rem;
+  color: var(--cyan);
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.training-mul {
+  font-size: 0.85rem;
+  color: var(--gold);
+}
+
+.tournament-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.tournament-npc {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tournament-npc:hover:not(.defeated) {
+  border-color: var(--gold-dark);
+  transform: translateY(-2px);
+}
+
+.tournament-npc.defeated {
+  border-color: var(--green);
+  background: rgba(74, 212, 106, 0.06);
+}
+
+.tournament-npc.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tournament-npc .npc-rank {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.tournament-npc .npc-name {
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin: 4px 0;
+}
+
+.tournament-npc .npc-reward {
+  font-size: 0.65rem;
+  color: var(--cyan);
+}
+
+/* ==================== 图鉴面板 ==================== */
+
+.bestiary-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.bestiary-tab {
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.bestiary-tab.active {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.1);
+}
+
+.bestiary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.bestiary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.bestiary-card.undiscovered {
+  opacity: 0.4;
+}
+
+.bestiary-card .bestiary-icon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.bestiary-card .bestiary-name {
+  color: var(--gold);
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.bestiary-card .bestiary-info {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* ==================== 称号系统 ==================== */
+
+.title-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.title-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.title-card:hover {
+  border-color: var(--gold-dark);
+}
+
+.title-card.equipped {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+  box-shadow: 0 0 8px rgba(212, 164, 74, 0.2);
+}
+
+.title-card.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.title-card .title-name {
+  font-size: 0.9rem;
+  color: var(--gold);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.title-card .title-condition {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.title-card .title-bonus {
+  font-size: 0.7rem;
+  color: var(--cyan);
+}
+
+.active-title-badge {
+  font-size: 0.75rem;
+  color: var(--gold);
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* --- 响应式补充（新增） --- */
+@media (max-width: 600px) {
+  .sect-shop-grid {
+    grid-template-columns: 1fr;
+  }
+  .tournament-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bestiary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .title-grid {
+    grid-template-columns: 1fr;
+  }
+  .donate-grid {
+    grid-template-columns: 1fr;
+  }
+  .training-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==================== 世界地图系统 ==================== */
+
+.world-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.world-location-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+
+.world-location-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 100px;
+}
+
+.stamina-bar-wrap {
+  min-width: 120px;
+  max-width: 180px;
+}
+
+.stamina-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.stamina-bar-label span:first-child {
+  color: #e0a030;
+}
+
+.progress-bar.stamina-bar .progress-fill {
+  background: linear-gradient(90deg, #e0a030, #f0c060);
+}
+
+/* 区域容器 */
+.world-region {
+  margin-bottom: 16px;
+}
+
+.world-region-title {
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.world-region-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+/* 地点节点 */
+.world-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.world-node:hover:not(.locked) {
+  border-color: var(--gold-dark);
+  transform: translateY(-2px);
+}
+
+.world-node.current {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(212, 164, 74, 0.4);
+  animation: worldNodePulse 2s ease-in-out infinite;
+}
+
+@keyframes worldNodePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(212, 164, 74, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(212, 164, 74, 0.6); }
+}
+
+.world-node.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.world-node.locked:hover {
+  transform: none;
+  border-color: var(--border-color);
+}
+
+.world-node-icon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.world-node-name {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.world-node-lock {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* 地点操作面板 */
+.world-actions {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--gold-dark);
+  border-radius: var(--radius-md);
+}
+
+.world-actions-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.world-actions-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.world-action-btn {
+  padding: 8px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.world-action-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+}
+
+.world-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* World Action Cards */
+.world-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.world-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.world-action-card:hover:not(.disabled) {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+  transform: translateY(-2px);
+}
+
+.world-action-card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.wac-icon {
+  font-size: 1.8rem;
+}
+
+.wac-info {
+  flex: 1;
+}
+
+.wac-name {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.9rem;
+}
+
+.wac-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.wac-cost {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  background: rgba(74, 212, 164, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+/* Location Detail Panel */
+.world-loc-detail {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.wld-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.wld-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.wld-row:last-child {
+  border-bottom: none;
+}
+
+.wld-label {
+  color: var(--text-muted);
+  min-width: 60px;
+}
+
+.wld-row span:last-child {
+  color: var(--text-secondary);
+  text-align: right;
+  max-width: 200px;
+  word-break: break-all;
+}
+
+.world-npc-list {
+  margin-top: 12px;
+}
+
+.world-npc-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all var(--transition-fast);
+}
+
+.world-npc-item:hover {
+  border-color: var(--cyan);
+}
+
+/* ==================== NPC交互模态框 ==================== */
+
+.npc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.npc-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 460px;
+  width: 90%;
+  animation: scaleIn 0.25s ease;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.npc-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.npc-modal-icon {
+  font-size: 2.5rem;
+}
+
+.npc-modal-info {
+  flex: 1;
+}
+
+.npc-modal-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+
+.npc-modal-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* 好感度条 */
+.favor-bar-wrap {
+  margin: 12px 0;
+}
+
+.favor-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.favor-bar {
+  height: 10px;
+  background: var(--bg-primary);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.favor-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.favor-fill.level-0 { background: #666; }
+.favor-fill.level-1 { background: linear-gradient(90deg, var(--blue), var(--blue-light)); }
+.favor-fill.level-2 { background: linear-gradient(90deg, #4ad46a, #22c55e); }
+.favor-fill.level-3 { background: linear-gradient(90deg, #e0a030, #f0c060); }
+.favor-fill.level-4 { background: linear-gradient(90deg, #e04040, #ff6060); }
+
+.npc-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.npc-action-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 送礼面板 */
+.gift-panel {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.gift-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.gift-item {
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all var(--transition-fast);
+}
+
+.gift-item:hover {
+  border-color: var(--gold-dark);
+}
+
+.gift-item .gift-pref {
+  font-size: 0.9rem;
+  margin-left: 2px;
+}
+
+/* NPC对话气泡 */
+.npc-dialogue {
+  margin: 12px 0;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--cyan);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ==================== 冒险事件模态框 ==================== */
+
+.adventure-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  animation: fadeIn 0.2s ease;
+}
+
+.adventure-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 500px;
+  width: 90%;
+  animation: scaleIn 0.25s ease;
+}
+
+.adventure-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.adventure-progress {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.adventure-step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+}
+
+.adventure-step-dot.done {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.adventure-step-dot.current {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px rgba(74, 218, 212, 0.5);
+}
+
+.adventure-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+  min-height: 60px;
+}
+
+.adventure-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adventure-choice-btn {
+  padding: 10px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.adventure-choice-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+}
+
+.adventure-choice-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.adventure-choice-req {
+  font-size: 0.7rem;
+  color: var(--red-light);
+  margin-top: 2px;
+}
+
+.adventure-result {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.adventure-result.success {
+  color: var(--green-light);
+  border-left: 3px solid var(--green);
+}
+
+.adventure-result.failure {
+  color: var(--red-light);
+  border-left: 3px solid var(--red);
+}
+
+.adventure-rewards {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+/* ==================== 响应式（世界系统） ==================== */
+
+@media (max-width: 600px) {
+  .world-region-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .world-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .stamina-bar-wrap {
+    width: 100%;
+    max-width: none;
+  }
+  .npc-modal {
+    padding: 16px;
+  }
+  .gift-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==================== 事件簿系统 ==================== */
+
+.event-inbox-list { display:flex; flex-direction:column; gap:8px; }
+.inbox-item { display:flex; align-items:center; gap:12px; padding:10px 14px; background:rgba(26,26,46,0.7); border:1px solid rgba(212,164,74,0.2); border-radius:8px; cursor:pointer; transition:all 0.2s; }
+.inbox-item:hover { border-color:rgba(212,164,74,0.5); background:rgba(26,26,46,0.9); }
+.inbox-item-icon { font-size:1.5rem; }
+.inbox-item-name { flex:1; color:#d4a44a; }
+.inbox-item-btn { padding:4px 12px; background:rgba(212,164,74,0.2); border:1px solid #d4a44a; border-radius:4px; color:#d4a44a; cursor:pointer; font-size:0.85rem; transition:all 0.2s; }
+.inbox-item-btn:hover { background:rgba(212,164,74,0.35); }
+.inbox-badge { position:absolute; top:-4px; right:-4px; background:#c0392b; color:#fff; border-radius:50%; min-width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; }
+
+/* ==================== 道侣系统 ==================== */
+
+/* 状态栏道侣卡 */
+.companion-status-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(255, 105, 180, 0.08), rgba(255, 20, 147, 0.04));
+  border: 1px solid rgba(255, 105, 180, 0.3);
+  border-radius: var(--radius-md);
+}
+
+.companion-status-icon {
+  font-size: 1.2rem;
+}
+
+.companion-status-name {
+  font-size: 0.8rem;
+  color: #ff69b4;
+  font-weight: bold;
+}
+
+.companion-status-bonus {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: rgba(255, 105, 180, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* 世界面板道侣面板 */
+.companion-panel {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 105, 180, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 12px rgba(255, 105, 180, 0.08);
+}
+
+.companion-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.companion-panel-icon {
+  font-size: 2rem;
+}
+
+.companion-panel-info {
+  flex: 1;
+}
+
+.companion-panel-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: #ff69b4;
+}
+
+.companion-panel-relation {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.companion-panel-bonuses {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.companion-panel-bonuses span {
+  font-size: 0.7rem;
+  color: var(--cyan);
+  background: rgba(74, 218, 212, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* 双修按钮 */
+.companion-dual-btn {
+  background: linear-gradient(135deg, #ff69b4, #ff1493) !important;
+  color: #fff !important;
+  border: 1px solid #ff69b4 !important;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+}
+
+.companion-dual-btn:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(255, 105, 180, 0.5);
+  transform: scale(1.02);
+}
+
+.companion-dual-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bg-card) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: none;
+}
+
+/* 表白按钮 */
+.companion-confess-btn {
+  background: linear-gradient(135deg, #ff69b4, #ff1493) !important;
+  color: #fff !important;
+  border: 1px solid #ff69b4 !important;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  animation: confessGlow 1.5s ease-in-out infinite alternate;
+}
+
+.companion-confess-btn:hover {
+  box-shadow: 0 0 16px rgba(255, 105, 180, 0.6);
+  transform: scale(1.05);
+}
+
+@keyframes confessGlow {
+  from { box-shadow: 0 0 4px rgba(255, 105, 180, 0.2); }
+  to { box-shadow: 0 0 12px rgba(255, 105, 180, 0.5); }
+}
+
+/* NPC模态框内道侣标记 */
+.companion-badge-inline {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #ff69b4;
+  padding: 6px 0;
+  margin-top: 4px;
+  background: rgba(255, 105, 180, 0.08);
+  border-radius: var(--radius-md);
+  font-weight: bold;
+}
+
+/* 表白结果 */
+.companion-confess-result {
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  animation: scaleIn 0.3s ease;
+}
+
+.companion-confess-result.success {
+  background: rgba(255, 105, 180, 0.1);
+  border: 1px solid rgba(255, 105, 180, 0.4);
+}
+
+.companion-confess-result.failure {
+  background: rgba(255, 100, 100, 0.06);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+}
+
+.confess-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.confess-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.confess-bonus {
+  font-size: 0.75rem;
+  color: var(--cyan);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .pill-choice {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .companion-panel-bonuses {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .companion-status-card {
+    flex-wrap: wrap;
   }
 }

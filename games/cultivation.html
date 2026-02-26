@@ -4,12 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>修仙之路 - 仙界游坊</title>
-  <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="../css/shared.css">
   <link rel="stylesheet" href="../css/cultivation.css">
 </head>
 <body>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
   <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
+    <span class="game-nav-title">修仙之路</span>
+  </nav>
   <div class="page-wrapper">
     <div class="game-container">
       <!-- 角色创建/存档选择（由JS动态渲染） -->
@@ -25,22 +33,36 @@
           <button class="cult-tab active" data-tab="cultivate">修炼</button>
           <button class="cult-tab" data-tab="battle">历练</button>
           <button class="cult-tab" data-tab="alchemy">炼丹</button>
+          <button class="cult-tab" data-tab="forge">炼器</button>
           <button class="cult-tab" data-tab="shop">坊市</button>
           <button class="cult-tab" data-tab="inventory">乾坤袋</button>
+          <button class="cult-tab" data-tab="pet">灵宠</button>
+          <button class="cult-tab" data-tab="technique">功法</button>
+          <button class="cult-tab" data-tab="sect">宗门</button>
+          <button class="cult-tab" data-tab="world">世界</button>
+          <button class="cult-tab" data-tab="inbox" id="tab-inbox" style="position:relative;">事件簿</button>
+          <button class="cult-tab" data-tab="bestiary">图鉴</button>
           <button class="cult-tab" data-tab="achievement">成就</button>
         </div>
 
         <!-- Tab面板 -->
         <div class="cult-panel active" id="panel-cultivate" data-panel="cultivate"></div>
+        <div class="cult-panel" id="panel-world" data-panel="world"></div>
+        <div class="cult-panel" id="panel-inbox" data-panel="inbox"></div>
         <div class="cult-panel" id="panel-battle" data-panel="battle"></div>
         <div class="cult-panel" id="panel-alchemy" data-panel="alchemy"></div>
+        <div class="cult-panel" id="panel-forge" data-panel="forge"></div>
         <div class="cult-panel" id="panel-shop" data-panel="shop"></div>
         <div class="cult-panel" id="panel-inventory" data-panel="inventory"></div>
+        <div class="cult-panel" id="panel-pet" data-panel="pet"></div>
+        <div class="cult-panel" id="panel-technique" data-panel="technique"></div>
+        <div class="cult-panel" id="panel-sect" data-panel="sect"></div>
+        <div class="cult-panel" id="panel-bestiary" data-panel="bestiary"></div>
         <div class="cult-panel" id="panel-achievement" data-panel="achievement"></div>
       </div>
     </div>
   </div>
-  <script src="../js/shared.js"></script>
-  <script src="../js/cultivation.js"></script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cultivation.js" defer></script>
 </body>
 </html>

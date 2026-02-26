@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鬼谷八荒 - 仙界游坊</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/guigu.css">
+</head>
+<body>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
+  <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
+    <span class="game-nav-title">鬼谷八荒</span>
+  </nav>
+  <div class="page-wrapper">
+    <div class="game-container">
+      <!-- 角色创建/存档选择 -->
+      <div class="char-create" id="char-create"></div>
+
+      <!-- 游戏主界面 -->
+      <div class="guigu-game" id="guigu-game" style="display:none;">
+        <!-- 状态栏 -->
+        <div class="status-bar" id="status-bar"></div>
+        <!-- 日历栏 -->
+        <div class="calendar-bar" id="calendar-bar"></div>
+        <!-- 世界消息滚动 -->
+        <div class="news-ticker" id="news-ticker"></div>
+
+        <!-- Tab导航 -->
+        <div class="guigu-tabs" id="guigu-tabs">
+          <button class="guigu-tab active" data-tab="overview">总览</button>
+          <button class="guigu-tab" data-tab="cultivate">修炼</button>
+          <button class="guigu-tab" data-tab="map">大地图</button>
+          <button class="guigu-tab" data-tab="adventure">历练</button>
+          <button class="guigu-tab" data-tab="npc">人物</button>
+          <button class="guigu-tab" data-tab="craft">炼制</button>
+          <button class="guigu-tab" data-tab="market">坊市</button>
+          <button class="guigu-tab" data-tab="cave">洞府</button>
+          <button class="guigu-tab" data-tab="skill">功法</button>
+          <button class="guigu-tab" data-tab="sect">宗门</button>
+          <button class="guigu-tab" data-tab="inventory">乾坤袋</button>
+          <button class="guigu-tab" data-tab="achievement">成就</button>
+          <button class="guigu-tab" data-tab="bounty">悬赏</button>
+          <button class="guigu-tab" data-tab="mount">坐骑</button>
+        </div>
+
+        <!-- Tab面板 -->
+        <div class="guigu-panel active" id="panel-overview" data-panel="overview"></div>
+        <div class="guigu-panel" id="panel-cultivate" data-panel="cultivate"></div>
+        <div class="guigu-panel" id="panel-map" data-panel="map"></div>
+        <div class="guigu-panel" id="panel-adventure" data-panel="adventure"></div>
+        <div class="guigu-panel" id="panel-npc" data-panel="npc"></div>
+        <div class="guigu-panel" id="panel-craft" data-panel="craft"></div>
+        <div class="guigu-panel" id="panel-market" data-panel="market"></div>
+        <div class="guigu-panel" id="panel-cave" data-panel="cave"></div>
+        <div class="guigu-panel" id="panel-skill" data-panel="skill"></div>
+        <div class="guigu-panel" id="panel-sect" data-panel="sect"></div>
+        <div class="guigu-panel" id="panel-inventory" data-panel="inventory"></div>
+        <div class="guigu-panel" id="panel-achievement" data-panel="achievement"></div>
+        <div class="guigu-panel" id="panel-bounty" data-panel="bounty"></div>
+        <div class="guigu-panel" id="panel-mount" data-panel="mount"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/guigu.js" defer></script>
+</body>
+</html>

@@ -133,6 +133,12 @@
   color: var(--text-muted);
   font-size: 0.85rem;
   text-align: center;
+  transition: opacity 0.5s ease;
+}
+
+.scroll-hint.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .scroll-hint::after {
@@ -154,7 +160,7 @@
 
 .game-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   perspective: 1000px;
 }
@@ -165,7 +171,7 @@
   border-radius: var(--radius-lg);
   padding: 32px 24px;
   text-align: center;
-  transition: all 0.4s ease;
+  transition: all 0.25s ease;
   transform-style: preserve-3d;
   cursor: pointer;
   position: relative;
@@ -190,6 +196,10 @@
   border-color: var(--border-glow);
   box-shadow: var(--shadow-gold);
   transform: translateY(-8px);
+}
+
+.game-card:active {
+  transform: translateY(-2px) scale(0.97);
 }
 
 .game-card-icon {
@@ -229,6 +239,57 @@
   border: 1px solid rgba(212, 164, 74, 0.2);
 }
 
+.game-card-progress {
+  font-size: 0.8rem;
+  color: var(--cyan);
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(74, 218, 212, 0.08);
+  border: 1px solid rgba(74, 218, 212, 0.2);
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+/* 跨游戏奖励角标 */
+.reward-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #e53e3e;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: bold;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 10px;
+  padding: 0 5px;
+  box-shadow: 0 2px 6px rgba(229, 62, 62, 0.4);
+  animation: badgePulse 2s ease infinite;
+  z-index: 3;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* 修仙总力卡片 */
+.stat-dashboard-card.power-card {
+  border-color: rgba(212, 164, 74, 0.3);
+  background: linear-gradient(135deg, var(--bg-card) 60%, rgba(212, 164, 74, 0.08) 100%);
+  grid-column: 1 / -1;
+}
+
+.stat-dashboard-card.power-card .stat-dashboard-value {
+  font-size: 1.8rem;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* --- 排行榜 --- */
 .leaderboard-section {
   background: var(--bg-primary);
@@ -237,6 +298,7 @@
 .leaderboard-tabs {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 24px;
 }
@@ -253,6 +315,7 @@
 
 .leaderboard-tab:hover {
   color: var(--text-primary);
+  background: var(--bg-card-hover);
 }
 
 .leaderboard-tab.active {
@@ -264,6 +327,11 @@
 .leaderboard-table {
   max-width: 600px;
   margin: 0 auto;
+  transition: opacity 0.2s ease;
+}
+
+.leaderboard-table.fading {
+  opacity: 0;
 }
 
 .leaderboard-row {
@@ -272,16 +340,17 @@
   padding: 12px 16px;
   border-radius: var(--radius-md);
   margin-bottom: 4px;
-  transition: background var(--transition-fast);
+  transition: background 0.25s ease;
 }
 
 .leaderboard-row:hover {
-  background: var(--bg-card);
+  background: var(--bg-card-hover);
 }
 
 .leaderboard-rank {
   width: 40px;
   font-weight: bold;
+  text-align: center;
   color: var(--text-muted);
 }
 
@@ -313,6 +382,120 @@
   font-size: 0.95rem;
 }
 
+/* --- 仙道成就 --- */
+.achievements-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.achievement-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  text-align: left;
+  transition: all 0.25s ease;
+}
+
+.achievement-card.unlocked {
+  border-color: rgba(212, 164, 74, 0.3);
+  background: rgba(212, 164, 74, 0.05);
+}
+
+.achievement-card.unlocked:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(212, 164, 74, 0.2);
+  transform: translateY(-2px);
+}
+
+.achievement-card.locked {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
+
+.achievement-card.locked:hover {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+}
+
+.achievement-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+}
+
+.achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+.achievement-card.locked .achievement-name {
+  color: var(--text-muted);
+}
+
+.achievement-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .achievement-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 成就摘要 */
+.achievement-summary {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.achievement-summary-text {
+  color: var(--gold);
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* 成就卡片淡入 */
+.achievement-card.unlocked {
+  animation: achieveCardIn 0.4s ease both;
+}
+
+.achievement-card.locked {
+  animation: achieveCardInLocked 0.4s ease both;
+}
+
+@keyframes achieveCardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes achieveCardInLocked {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 0.5; transform: translateY(0); }
+}
+
 /* --- 关于区 --- */
 .about-section {
   background: var(--bg-secondary);
@@ -330,6 +513,13 @@
   border-radius: var(--radius-lg);
   padding: 24px;
   text-align: center;
+  transition: all 0.25s ease;
+}
+
+.about-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 18px rgba(212, 164, 74, 0.15);
+  transform: translateY(-4px);
 }
 
 .about-card-icon {
@@ -362,6 +552,15 @@
   color: var(--text-secondary);
 }
 
+/* --- 游戏卡片色彩分化 --- */
+.game-card[data-hue="gold"]   { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(212,164,74,0.08) 100%); }
+.game-card[data-hue="purple"] { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(154,106,212,0.08) 100%); }
+.game-card[data-hue="cyan"]   { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(74,218,212,0.08) 100%); }
+.game-card[data-hue="red"]    { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(212,74,74,0.08) 100%); }
+.game-card[data-hue="blue"]   { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(74,140,212,0.08) 100%); }
+.game-card[data-hue="green"]  { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(74,212,106,0.08) 100%); }
+.game-card[data-hue="orange"] { background: linear-gradient(160deg, var(--bg-card) 60%, rgba(212,140,74,0.08) 100%); }
+
 /* --- 响应式 --- */
 @media (max-width: 768px) {
   .hero-title {
@@ -373,6 +572,315 @@
   }
 
   .leaderboard-date {
-    display: none;
+    font-size: 0.7rem;
+    width: 60px;
+  }
+
+  .mountain-1 {
+    border-left-width: 80px;
+    border-right-width: 90px;
+    border-bottom-width: 80px;
+  }
+  .mountain-2 {
+    border-left-width: 110px;
+    border-right-width: 100px;
+    border-bottom-width: 90px;
+  }
+  .mountain-3 {
+    border-left-width: 90px;
+    border-right-width: 120px;
+    border-bottom-width: 75px;
+  }
+  .mountain-4 {
+    border-left-width: 130px;
+    border-right-width: 90px;
+    border-bottom-width: 100px;
+  }
+
+  .hero-mountains {
+    height: 100px;
+  }
+}
+
+/* --- 修仙档案 --- */
+.stats-section {
+  background: var(--bg-primary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.stat-dashboard-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px 16px;
+  text-align: center;
+  transition: all 0.25s ease;
+}
+
+.stat-dashboard-card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(212, 164, 74, 0.15);
+}
+
+.stat-dashboard-icon {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
+.stat-dashboard-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.stat-dashboard-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* --- 每日仙令 --- */
+.daily-section {
+  background: var(--bg-secondary);
+}
+
+.daily-missions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.daily-mission-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all 0.25s ease;
+}
+
+.daily-mission-card.completed {
+  border-color: rgba(74, 218, 212, 0.3);
+  background: rgba(74, 218, 212, 0.05);
+}
+
+.daily-mission-card.completed:hover {
+  border-color: var(--cyan);
+}
+
+.daily-mission-card:not(.completed):hover {
+  border-color: var(--border-glow);
+}
+
+.daily-mission-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
+}
+
+.daily-mission-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.daily-mission-name {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+
+.daily-mission-card.completed .daily-mission-name {
+  color: var(--cyan);
+}
+
+.daily-mission-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.daily-mission-progress {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.daily-mission-progress .done {
+  color: var(--cyan);
+  font-weight: bold;
+}
+
+.daily-mission-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.daily-mission-bar-fill {
+  height: 100%;
+  background: var(--gradient-gold);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.daily-mission-card.completed .daily-mission-bar-fill {
+  background: var(--cyan);
+}
+
+.daily-mission-check {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.daily-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.daily-points {
+  font-size: 0.9rem;
+  color: var(--gold);
+  background: rgba(212, 164, 74, 0.1);
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(212, 164, 74, 0.2);
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .daily-missions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-dashboard-card {
+    padding: 14px 10px;
+  }
+
+  .stat-dashboard-value {
+    font-size: 1.1rem;
+  }
+}
+
+/* --- 仙缘兑换商店 --- */
+.exchange-section {
+  background: var(--bg-primary);
+}
+
+.exchange-balance {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.exchange-balance-text {
+  display: inline-block;
+  font-size: 1.1rem;
+  color: var(--gold);
+  background: rgba(212, 164, 74, 0.1);
+  padding: 8px 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(212, 164, 74, 0.25);
+}
+
+.exchange-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.exchange-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.exchange-item:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(212, 164, 74, 0.12);
+}
+
+.exchange-item.sold-out {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.exchange-item.sold-out:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.exchange-item-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.exchange-item-name {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.exchange-item-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  min-height: 2.4em;
+}
+
+.exchange-item-cost {
+  display: inline-block;
+  font-size: 0.8rem;
+  padding: 3px 12px;
+  border-radius: 12px;
+  background: rgba(212, 164, 74, 0.15);
+  color: var(--gold);
+  border: 1px solid rgba(212, 164, 74, 0.2);
+}
+
+.exchange-item.sold-out .exchange-item-cost {
+  background: rgba(128, 128, 128, 0.15);
+  color: var(--text-muted);
+  border-color: rgba(128, 128, 128, 0.2);
+}
+
+@media (max-width: 600px) {
+  .exchange-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .exchange-item {
+    padding: 12px 8px;
+  }
+  .exchange-item-desc {
+    font-size: 0.7rem;
   }
 }

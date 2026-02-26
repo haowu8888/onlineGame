@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>斩仙塔 - 仙界游坊</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/cardtower.css">
+</head>
+<body>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
+  <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
+    <span class="game-nav-title">斩仙塔</span>
+  </nav>
+  <div class="page-wrapper">
+    <div class="ct-app" id="ct-app">
+
+      <!-- 开始界面 -->
+      <div class="ct-screen ct-start-screen active" id="ct-start">
+        <div class="ct-start-inner">
+          <div class="ct-start-tower"></div>
+          <h1 class="ct-start-title">斩仙塔</h1>
+          <p class="ct-start-subtitle">肉鸽卡牌攀塔 · 逐层斩妖除魔</p>
+          <div class="ct-start-info">
+            <div class="ct-info-item">五层仙塔，二十场战斗</div>
+            <div class="ct-info-item">40张仙卡+15件法宝</div>
+            <div class="ct-info-item">击败混沌，登顶成仙</div>
+          </div>
+          <button class="btn btn-gold btn-lg ct-start-btn" id="ct-btn-start">开始攀塔</button>
+          <div class="ct-leaderboard" id="ct-leaderboard"></div>
+        </div>
+      </div>
+
+      <!-- 主游戏界面 -->
+      <div class="ct-screen ct-game-screen" id="ct-game">
+        <!-- 左侧塔图 -->
+        <div class="ct-tower-panel" id="ct-tower-panel">
+          <div class="ct-tower-title">仙塔进度</div>
+          <div class="ct-tower-map" id="ct-tower-map"></div>
+          <div class="ct-tower-deck-info" id="ct-deck-info"></div>
+        </div>
+
+        <!-- 中央战斗区 -->
+        <div class="ct-battle-panel" id="ct-battle-panel">
+          <!-- 敌人区域 -->
+          <div class="ct-enemy-area" id="ct-enemy-area"></div>
+
+          <!-- 战斗信息条 -->
+          <div class="ct-battle-info" id="ct-battle-info">
+            <div class="ct-player-status" id="ct-player-status"></div>
+          </div>
+
+          <!-- 战斗日志 -->
+          <div class="ct-battle-log" id="ct-battle-log"></div>
+
+          <!-- 手牌区域 -->
+          <div class="ct-hand-area" id="ct-hand-area"></div>
+
+          <!-- 操作按钮 -->
+          <div class="ct-battle-actions" id="ct-battle-actions">
+            <button class="btn btn-outline btn-sm" id="ct-btn-end-turn">结束回合</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡牌选择叠加层 -->
+      <div class="ct-overlay ct-card-reward" id="ct-card-reward">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">战利品</h2>
+          <p class="ct-overlay-subtitle">选择一张卡牌加入牌组</p>
+          <div class="ct-reward-cards" id="ct-reward-cards"></div>
+          <button class="btn btn-outline btn-sm ct-skip-btn" id="ct-btn-skip-reward">跳过</button>
+        </div>
+      </div>
+
+      <!-- 随机事件叠加层 -->
+      <div class="ct-overlay ct-event-overlay" id="ct-event-overlay">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title" id="ct-event-title"></h2>
+          <p class="ct-overlay-desc" id="ct-event-desc"></p>
+          <div class="ct-event-choices" id="ct-event-choices"></div>
+        </div>
+      </div>
+
+      <!-- 升级卡牌叠加层 -->
+      <div class="ct-overlay ct-upgrade-overlay" id="ct-upgrade-overlay">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">炼丹炉 - 强化卡牌</h2>
+          <p class="ct-overlay-subtitle">选择一张卡牌进行强化</p>
+          <div class="ct-upgrade-cards" id="ct-upgrade-cards"></div>
+        </div>
+      </div>
+
+      <!-- 法宝选择叠加层 -->
+      <div class="ct-overlay ct-relic-reward" id="ct-relic-reward">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">法宝奖励</h2>
+          <p class="ct-overlay-subtitle">选择一件法宝</p>
+          <div class="ct-relic-choices" id="ct-relic-choices"></div>
+        </div>
+      </div>
+
+      <!-- 休息选择叠加层 -->
+      <div class="ct-overlay ct-rest-shop" id="ct-rest-shop">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">层间休息</h2>
+          <p class="ct-overlay-subtitle">选择你的行动</p>
+          <div class="ct-rest-choices" id="ct-rest-choices"></div>
+        </div>
+      </div>
+
+      <!-- 移除卡牌叠加层 -->
+      <div class="ct-overlay ct-card-removal" id="ct-card-removal">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">净化 - 移除卡牌</h2>
+          <p class="ct-overlay-subtitle">选择一张卡牌从牌组中移除</p>
+          <div class="ct-removal-cards" id="ct-removal-cards"></div>
+          <button class="btn btn-outline btn-sm ct-skip-btn" id="ct-btn-skip-removal">取消</button>
+        </div>
+      </div>
+
+      <!-- 游戏结束叠加层 -->
+      <div class="ct-overlay ct-gameover-overlay" id="ct-gameover">
+        <div class="ct-overlay-box ct-gameover-box">
+          <h2 class="ct-overlay-title" id="ct-gameover-title"></h2>
+          <div class="ct-gameover-stats" id="ct-gameover-stats"></div>
+          <button class="btn btn-gold btn-lg" id="ct-btn-restart">再次攀塔</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cardtower.js" defer></script>
+</body>
+</html>

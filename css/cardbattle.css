@@ -1,0 +1,939 @@
+/* ========== 灵卡对决 ========== */
+
+/* --- 开始界面 --- */
+.cb-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: calc(100vh - 60px);
+  justify-content: center;
+}
+
+.cb-logo {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  text-shadow: none;
+}
+
+.cb-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 40px;
+}
+
+.cb-difficulty-select {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.cb-diff-btn {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.cb-diff-btn:hover:not(.locked) {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-4px);
+}
+
+.cb-diff-btn.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cb-diff-icon {
+  font-size: 2rem;
+}
+
+.cb-diff-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold);
+}
+
+.cb-diff-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.cb-lock-hint {
+  font-size: 0.75rem;
+  color: var(--red);
+  margin-top: 4px;
+}
+
+.cb-diff-btn:not(.locked) .cb-lock-hint {
+  display: none;
+}
+
+/* --- 排行榜 --- */
+.cb-leaderboard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.cb-leaderboard h3 {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.cb-lb-list {
+  list-style: none;
+}
+
+.cb-lb-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(212, 164, 74, 0.1);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.cb-lb-list li:last-child {
+  border-bottom: none;
+}
+
+.cb-lb-list .lb-rank {
+  color: var(--gold);
+  min-width: 28px;
+}
+
+.cb-lb-list .lb-score {
+  color: var(--cyan);
+  font-weight: bold;
+}
+
+.cb-lb-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 12px 0;
+}
+
+/* --- 战斗界面 --- */
+.cb-battle {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 60px);
+  padding: 8px;
+  position: relative;
+  user-select: none;
+}
+
+/* --- 对手区域 --- */
+.cb-enemy-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+/* --- 主人物 --- */
+.cb-master {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  min-width: 180px;
+  transition: all var(--transition-fast);
+}
+
+.cb-master.targetable {
+  cursor: pointer;
+  border-color: var(--red);
+  box-shadow: 0 0 12px rgba(212, 74, 74, 0.4);
+}
+
+.cb-master.targetable:hover {
+  box-shadow: 0 0 20px rgba(212, 74, 74, 0.6);
+}
+
+.cb-master-portrait {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.cb-master-info {
+  flex: 1;
+}
+
+.cb-master-name {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.cb-hp-bar {
+  height: 18px;
+  background: var(--bg-primary);
+  border-radius: 9px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 100px;
+}
+
+.cb-hp-fill {
+  height: 100%;
+  border-radius: 9px;
+  transition: width 0.4s ease;
+}
+
+.cb-hp-fill.player-hp {
+  background: linear-gradient(90deg, #2a8a3a, #4ad46a);
+}
+
+.cb-hp-fill.enemy-hp {
+  background: linear-gradient(90deg, #8a2a2a, #d44a4a);
+}
+
+.cb-hp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.cb-deck-info {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 12px;
+}
+
+/* --- 战场 --- */
+.cb-board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 0;
+  min-height: 280px;
+}
+
+.cb-field {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  align-items: center;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.cb-enemy-field {
+  background: rgba(212, 74, 74, 0.03);
+}
+
+.cb-player-field {
+  background: rgba(74, 218, 212, 0.03);
+}
+
+.cb-field.drop-target {
+  background: rgba(74, 218, 212, 0.1);
+  border: 1px dashed rgba(74, 218, 212, 0.3);
+}
+
+.cb-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.cb-turn-indicator {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 4px 20px;
+  font-size: 0.8rem;
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.cb-turn-indicator.enemy-turn {
+  color: var(--red);
+  border-color: rgba(212, 74, 74, 0.3);
+}
+
+/* --- 卡牌（场上随从） --- */
+.cb-minion {
+  width: 80px;
+  height: 100px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: default;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.cb-minion .cb-minion-name {
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  text-align: center;
+  padding: 0 4px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cb-minion .cb-minion-art {
+  font-size: 1.6rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.cb-minion .cb-minion-atk {
+  position: absolute;
+  bottom: 4px;
+  left: 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #f0c040;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cb-minion .cb-minion-hp {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #f06060;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cb-minion .cb-minion-hp.damaged {
+  color: #ff4040;
+}
+
+.cb-minion.has-taunt {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 10px rgba(212, 164, 74, 0.2);
+}
+
+.cb-minion.has-divine-shield {
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), inset 0 0 8px rgba(255, 215, 0, 0.15);
+}
+
+.cb-minion.has-divine-shield::after {
+  content: '✨';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+}
+
+.cb-minion.has-taunt::before {
+  content: '🛡';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+}
+
+.cb-minion.can-attack {
+  border-color: var(--green);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(74, 212, 106, 0.3);
+}
+
+.cb-minion.can-attack:hover {
+  box-shadow: 0 0 16px rgba(74, 212, 106, 0.5);
+  transform: translateY(-2px);
+}
+
+.cb-minion.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(212, 164, 74, 0.6);
+  transform: translateY(-4px);
+}
+
+.cb-minion.targetable {
+  border-color: var(--red);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(212, 74, 74, 0.4);
+}
+
+.cb-minion.targetable:hover {
+  box-shadow: 0 0 16px rgba(212, 74, 74, 0.6);
+}
+
+.cb-minion.sleeping {
+  opacity: 0.7;
+}
+
+.cb-minion.sleeping::after {
+  content: '💤';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.55rem;
+}
+
+.cb-minion.enemy-minion {
+  border-color: rgba(212, 74, 74, 0.3);
+}
+
+/* --- 手牌 --- */
+.cb-hand {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px 16px;
+  min-height: 140px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cb-hand::-webkit-scrollbar {
+  height: 4px;
+}
+
+.cb-hand::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 2px;
+}
+
+.cb-card {
+  width: 95px;
+  min-width: 95px;
+  height: 130px;
+  background: linear-gradient(180deg, #1e2a42, #162035);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cb-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.cb-card.playable {
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(74, 212, 106, 0.3);
+}
+
+.cb-card.playable:hover {
+  box-shadow: 0 8px 24px rgba(74, 212, 106, 0.4);
+}
+
+.cb-card.unplayable {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cb-card.unplayable:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.cb-card .cb-card-cost {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a5ad4, #4a8af0);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+.cb-card .cb-card-art {
+  font-size: 1.8rem;
+  margin-top: 20px;
+  line-height: 1;
+}
+
+.cb-card .cb-card-name {
+  font-size: 0.65rem;
+  color: var(--text-primary);
+  text-align: center;
+  padding: 2px 4px;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+
+.cb-card .cb-card-desc {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0 6px;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.cb-card .cb-card-stats {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 8px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.cb-card .cb-card-atk {
+  color: #f0c040;
+}
+
+.cb-card .cb-card-hp {
+  color: #f06060;
+}
+
+.cb-card.spell-card {
+  border-color: rgba(154, 106, 212, 0.4);
+  background: linear-gradient(180deg, #2a1e42, #1e1635);
+}
+
+.cb-card.spell-card.playable {
+  border-color: var(--purple);
+  box-shadow: 0 0 8px rgba(154, 106, 212, 0.3);
+}
+
+.cb-card.spell-card .cb-card-cost {
+  background: linear-gradient(135deg, #6a2ad4, #9a5af0);
+}
+
+/* --- 玩家控制区 --- */
+.cb-player-area {
+  flex-shrink: 0;
+  padding: 0 8px;
+}
+
+.cb-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.cb-energy-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid rgba(74, 138, 240, 0.3);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+}
+
+.cb-energy-icon {
+  font-size: 1.2rem;
+}
+
+.cb-energy-text {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #6aafff;
+}
+
+.cb-end-turn {
+  margin-left: auto;
+  font-size: 0.9rem;
+  padding: 10px 24px;
+}
+
+.cb-end-turn:disabled {
+  opacity: 0.4;
+}
+
+.cb-hero-power {
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  border-color: rgba(154, 106, 212, 0.5);
+  color: #b88cf0;
+  transition: all var(--transition-fast);
+}
+
+.cb-hero-power:hover:not(:disabled) {
+  border-color: #b88cf0;
+  box-shadow: 0 0 10px rgba(154, 106, 212, 0.4);
+}
+
+.cb-hero-power:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cb-player-deck-info {
+  padding: 0 8px 4px;
+}
+
+/* --- 目标选择提示 --- */
+.cb-target-hint {
+  position: fixed;
+  bottom: 200px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(212, 164, 74, 0.9);
+  color: #1a1000;
+  padding: 10px 24px;
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: bold;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-lg);
+}
+
+.cb-cancel-btn {
+  color: #1a1000;
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* --- 伤害数字 --- */
+.cb-damage-number {
+  position: absolute;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #ff4040;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 200;
+  animation: damageFloat 1s ease-out forwards;
+}
+
+.cb-damage-number.heal {
+  color: #40ff60;
+  text-shadow: 0 0 8px rgba(0, 255, 60, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes damageFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-30px) scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.8);
+  }
+}
+
+/* --- 攻击动画 --- */
+.cb-minion.attacking {
+  animation: minionAttack 0.4s ease-in-out;
+}
+
+@keyframes minionAttack {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-30px); }
+  60% { transform: translateY(-30px); }
+  100% { transform: translateY(0); }
+}
+
+.cb-minion.attacking-down {
+  animation: minionAttackDown 0.4s ease-in-out;
+}
+
+@keyframes minionAttackDown {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(30px); }
+  60% { transform: translateY(30px); }
+  100% { transform: translateY(0); }
+}
+
+.cb-minion.hit {
+  animation: minionHit 0.3s ease;
+}
+
+@keyframes minionHit {
+  0% { filter: brightness(1); }
+  30% { filter: brightness(2) hue-rotate(30deg); }
+  100% { filter: brightness(1); }
+}
+
+.cb-minion.dying {
+  animation: minionDeath 0.5s ease forwards;
+}
+
+@keyframes minionDeath {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); filter: brightness(2); }
+  100% { opacity: 0; transform: scale(0); }
+}
+
+/* --- 出牌动画 --- */
+.cb-card.playing {
+  animation: cardPlay 0.3s ease forwards;
+}
+
+@keyframes cardPlay {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+}
+
+/* --- 结果界面 --- */
+.cb-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  padding: 20px;
+}
+
+.cb-result-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.cb-result-title {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+
+.cb-result-title.win {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cb-result-title.lose {
+  color: var(--red);
+}
+
+.cb-result-stats {
+  margin-bottom: 24px;
+}
+
+.cb-result-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(212, 164, 74, 0.1);
+  font-size: 0.95rem;
+}
+
+.cb-result-stat .stat-label {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  text-transform: none;
+}
+
+.cb-result-stat .stat-value {
+  font-size: 0.95rem;
+}
+
+.cb-result-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* --- 目标选择叠加在场上的视觉 --- */
+.cb-spell-target-mode .cb-enemy-field .cb-minion,
+.cb-spell-target-mode .cb-player-field .cb-minion {
+  cursor: pointer;
+  border-color: var(--red);
+  box-shadow: 0 0 8px rgba(212, 74, 74, 0.4);
+}
+
+.cb-spell-target-mode .cb-enemy-master {
+  cursor: pointer;
+  border-color: var(--red);
+  box-shadow: 0 0 12px rgba(212, 74, 74, 0.4);
+}
+
+/* --- 响应式 --- */
+@media (max-width: 768px) {
+  .cb-logo {
+    font-size: 2.2rem;
+  }
+
+  .cb-difficulty-select {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cb-diff-btn {
+    width: 100%;
+    max-width: 280px;
+    min-width: unset;
+    padding: 16px 20px;
+  }
+
+  .cb-card {
+    width: 80px;
+    min-width: 80px;
+    height: 110px;
+  }
+
+  .cb-card .cb-card-art {
+    font-size: 1.4rem;
+    margin-top: 16px;
+  }
+
+  .cb-card .cb-card-name {
+    font-size: 0.55rem;
+  }
+
+  .cb-card .cb-card-desc {
+    font-size: 0.5rem;
+  }
+
+  .cb-card .cb-card-stats {
+    font-size: 0.65rem;
+  }
+
+  .cb-minion {
+    width: 80px;
+    height: 100px;
+  }
+
+  .cb-minion .cb-minion-art {
+    font-size: 1.3rem;
+  }
+
+  .cb-minion .cb-minion-name {
+    font-size: 0.6rem;
+  }
+
+  .cb-player-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cb-master {
+    min-width: 140px;
+    padding: 6px 10px;
+  }
+
+  .cb-end-turn {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+
+  .cb-target-hint {
+    bottom: 160px;
+    font-size: 0.8rem;
+    padding: 8px 16px;
+  }
+
+  .cb-hand {
+    min-height: 120px;
+    padding: 8px 4px 12px;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cb-minion {
+    width: 70px;
+    height: 90px;
+  }
+
+  .cb-minion .cb-minion-atk,
+  .cb-minion .cb-minion-hp {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+  }
+
+  .cb-card {
+    width: 72px;
+    min-width: 72px;
+    height: 100px;
+  }
+
+  .cb-field {
+    min-height: 100px;
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .cb-board {
+    min-height: 220px;
+  }
+}

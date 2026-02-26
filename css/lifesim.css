@@ -1,0 +1,1499 @@
+/* ========== 仙途模拟器样式 ========== */
+
+.lifesim-wrapper {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* --- 起始画面 --- */
+.lifesim-start {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.lifesim-start h2 {
+  font-family: var(--font-display);
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 1.8rem;
+}
+
+.lifesim-start .subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+}
+
+.lifesim-start.hidden,
+.lifesim-game.hidden,
+.lifesim-ending.hidden {
+  display: none;
+}
+
+/* --- 属性分配 --- */
+.attr-group {
+  margin-bottom: 12px;
+}
+
+.attr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.attr-label {
+  width: 50px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.attr-slider {
+  flex: 1;
+  accent-color: var(--gold);
+}
+
+.attr-val {
+  width: 28px;
+  text-align: center;
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.95rem;
+}
+
+.attr-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: 60px;
+  margin-top: -4px;
+  margin-bottom: 6px;
+}
+
+.attr-points-left {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cyan);
+  margin: 12px 0;
+  font-weight: bold;
+}
+
+.start-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.start-actions .btn {
+  flex: 1;
+}
+
+/* --- 游戏中界面 --- */
+.lifesim-game {
+  display: none;
+}
+
+.lifesim-game.active {
+  display: block;
+}
+
+/* 顶部信息栏 */
+.ls-info-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ls-info-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.ls-info-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.ls-info-value {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--gold);
+  margin-top: 2px;
+}
+
+.ls-info-value.purple { color: var(--purple-light); }
+.ls-info-value.cyan { color: var(--cyan); }
+
+/* 属性条 */
+.ls-attr-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 6px;
+  margin-bottom: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.ls-attr-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ls-attr-name {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  width: 36px;
+}
+
+.ls-attr-fill-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ls-attr-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.ls-attr-fill.str { background: var(--red-light); }
+.ls-attr-fill.int { background: #6a9af4; }
+.ls-attr-fill.cha { background: #e87ad4; }
+.ls-attr-fill.luk { background: var(--gold); }
+.ls-attr-fill.spr { background: var(--cyan); }
+
+.ls-attr-num {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  width: 18px;
+  text-align: right;
+}
+
+/* 事件区 */
+.ls-event-area {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  text-align: center;
+  min-height: 200px;
+}
+
+.ls-event-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.ls-event-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.ls-event-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.ls-event-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ls-choice-btn {
+  padding: 10px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.ls-choice-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+}
+
+.ls-choice-btn:active {
+  transform: scale(0.97);
+}
+
+.ls-event-result {
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--cyan);
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.ls-continue-btn {
+  margin-top: 16px;
+}
+
+/* 寿命条 */
+.ls-life-bar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.ls-life-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.ls-life-bar-bg {
+  height: 8px;
+  background: var(--bg-primary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ls-life-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+}
+
+.ls-life-bar-fill.low {
+  background: linear-gradient(90deg, var(--red), var(--gold));
+}
+
+/* 历史日志 */
+.ls-log-area {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ls-log-title {
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.ls-log-entry {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.ls-log-entry .log-age {
+  color: var(--gold);
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+/* --- 结局画面 --- */
+.lifesim-ending {
+  display: none;
+  text-align: center;
+}
+
+.lifesim-ending.active {
+  display: block;
+}
+
+.ending-card {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 40px 32px;
+  background: var(--bg-card);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 30px rgba(212, 164, 74, 0.2);
+}
+
+.ending-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.ending-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.ending-summary {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.ending-score {
+  font-size: 1.5rem;
+  color: var(--gold);
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.ending-score-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.ending-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.ending-stat {
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: 10px;
+}
+
+.ending-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.ending-stat-value {
+  font-size: 1rem;
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.ending-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* --- 存档槽（基础样式在 shared.css，此处仅覆盖差异） --- */
+.lifesim-start .save-slot {
+  transition: all 0.25s ease;
+}
+
+.lifesim-start .save-slot:hover {
+  border-color: var(--gold-dark);
+  background: rgba(212, 164, 74, 0.04);
+  transform: translateY(-2px);
+}
+
+.ls-achievement-entry {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* --- 天赋系统 --- */
+.ls-talent-section {
+  margin-bottom: 20px;
+}
+
+.ls-talent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.ls-talent-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.ls-talent-icon {
+  font-size: 1.2rem;
+}
+
+.ls-talent-name {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
+.ls-talent-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.ls-talent-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.ls-talent-mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  cursor: help;
+}
+
+/* --- 人际关系 --- */
+.ls-rel-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ls-rel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: help;
+}
+
+.ending-relationships {
+  margin-bottom: 20px;
+}
+
+/* --- 成就面板 --- */
+.ls-ach-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.ls-ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.ls-ach-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.ls-ach-card.completed {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.06);
+}
+
+.ls-ach-card.completed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(212, 164, 74, 0.15);
+}
+
+.ls-ach-card.locked {
+  opacity: 0.5;
+}
+
+.ls-ach-icon {
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+}
+
+.ls-ach-name {
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.ls-ach-card.locked .ls-ach-name {
+  color: var(--text-muted);
+}
+
+.ls-ach-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.ls-ach-status {
+  font-size: 0.65rem;
+  color: var(--gold);
+  margin-top: 6px;
+}
+
+/* --- 结局新成就 --- */
+.ending-new-achievements {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(212, 164, 74, 0.08);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-md);
+}
+
+.ending-ach-title {
+  color: var(--gold);
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.ending-ach-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+.ending-ach-icon {
+  font-size: 1.1rem;
+}
+
+.ending-ach-name {
+  color: var(--gold);
+}
+
+/* --- 响应式 --- */
+@media (max-width: 600px) {
+  .lifesim-wrapper {
+    padding: 10px;
+  }
+
+  .lifesim-start {
+    padding: 20px;
+    margin: 10px auto;
+  }
+
+  .ls-info-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ls-attr-bars {
+    grid-template-columns: 1fr;
+  }
+
+  .ending-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 事件结果反馈样式 */
+.ls-event-result.result-positive {
+  color: #4ade80;
+  border-left: 3px solid #4ade80;
+  padding-left: 10px;
+}
+
+.ls-event-result.result-negative {
+  color: #f87171;
+  border-left: 3px solid #f87171;
+  padding-left: 10px;
+}
+
+/* 事件区域淡入 */
+.ls-event-area {
+  animation: eventFadeIn 0.5s ease-out;
+}
+
+@keyframes eventFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 修为进度条 ===== */
+.ls-cult-bar-wrap {
+  margin: 8px 0 4px;
+}
+
+.ls-cult-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.ls-cult-bar-bg {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(138, 92, 246, 0.2);
+}
+
+.ls-cult-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.ls-cult-bar-fill.full {
+  background: linear-gradient(90deg, #a78bfa, #f0abfc, #a78bfa);
+  background-size: 200% 100%;
+  animation: cultBarPulse 1.5s ease infinite;
+}
+
+@keyframes cultBarPulse {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ===== 突破小游戏 ===== */
+.ls-bt-game {
+  text-align: center;
+  padding: 20px 10px;
+  animation: eventFadeIn 0.3s ease-out;
+}
+
+.ls-bt-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.ls-bt-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.ls-bt-bar-wrap {
+  padding: 0 10px;
+  margin-bottom: 20px;
+}
+
+.ls-bt-bar {
+  position: relative;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+
+.ls-bt-zone {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+
+.zone-red {
+  background: rgba(239, 68, 68, 0.5);
+}
+
+.zone-yellow {
+  background: rgba(234, 179, 8, 0.4);
+}
+
+.zone-green {
+  background: rgba(74, 222, 128, 0.5);
+}
+
+.ls-bt-needle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(255,255,255,0.8);
+  transition: none;
+  z-index: 2;
+}
+
+.ls-bt-stop-btn {
+  font-size: 1.1rem;
+  padding: 10px 40px;
+  animation: btBtnPulse 0.8s ease infinite;
+}
+
+@keyframes btBtnPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.ls-bt-qte-timer {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.ls-bt-qte-timer span {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.ls-bt-result {
+  padding: 20px;
+  text-align: center;
+  animation: eventFadeIn 0.3s ease-out;
+}
+
+/* ===== 属性飘字 ===== */
+.ls-float-text {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 9999;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  animation: floatUp 1.5s ease-out forwards;
+}
+
+.ls-float-text.positive {
+  color: #4ade80;
+}
+
+.ls-float-text.negative {
+  color: #f87171;
+}
+
+.ls-float-text.exp {
+  color: #a78bfa;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-50px); }
+}
+
+/* ===== 传承系统 ===== */
+.ls-legacy-summary {
+  text-align: center;
+  color: var(--purple, #a78bfa);
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+
+.ls-legacy-shop {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(138, 92, 246, 0.25);
+  border-radius: 8px;
+  background: rgba(138, 92, 246, 0.05);
+}
+
+.ls-legacy-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ls-legacy-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.2s;
+}
+
+.ls-legacy-item:not(.disabled):hover {
+  border-color: rgba(138, 92, 246, 0.4);
+}
+
+.ls-legacy-item.disabled {
+  opacity: 0.5;
+}
+
+.ls-legacy-item.owned {
+  border-color: rgba(138, 92, 246, 0.3);
+  background: rgba(138, 92, 246, 0.1);
+}
+
+.ls-legacy-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.ls-legacy-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary, #e2e8f0);
+  white-space: nowrap;
+}
+
+.ls-legacy-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+  flex: 1;
+}
+
+.btn-purple {
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-purple:hover {
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+}
+
+.btn-xs {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* 结局传承点 */
+.ending-legacy {
+  text-align: center;
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(138, 92, 246, 0.1);
+  border: 1px solid rgba(138, 92, 246, 0.25);
+}
+
+.ending-legacy-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #a78bfa;
+}
+
+.ending-legacy-total {
+  font-size: 0.85rem;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 4px;
+}
+
+.ending-legacy-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+  margin-top: 4px;
+}
+
+/* ===== 自由行动 ===== */
+.ls-free-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ls-action-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.ls-action-card:hover {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+  transform: translateY(-2px);
+}
+
+.ls-action-icon {
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+}
+
+.ls-action-name {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.ls-action-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ===== 物品栏 ===== */
+.ls-item-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ls-item-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ls-item-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.08);
+}
+
+/* ===== 门派徽章 ===== */
+.ls-sect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(138, 92, 246, 0.1);
+  border: 1px solid rgba(138, 92, 246, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: var(--purple-light);
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* ===== 事件链 ===== */
+.ls-chain-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.ls-chain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(212, 164, 74, 0.08);
+  border: 1px solid rgba(212, 164, 74, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  color: var(--gold);
+  flex-wrap: wrap;
+}
+
+.ls-chain-progress {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.ls-chain-progress-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.ls-chain-indicator {
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+/* ===== 挑战模式徽章 ===== */
+.ls-challenge-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: var(--red-light, #f87171);
+  font-weight: bold;
+  margin-bottom: 8px;
+  margin-left: 8px;
+}
+
+/* ===== 挑战模式选择 ===== */
+.ls-challenge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.ls-challenge-option {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.ls-challenge-option:hover {
+  border-color: var(--gold);
+}
+
+.ls-challenge-option.selected {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.1);
+}
+
+.ls-challenge-icon {
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+
+.ls-challenge-name {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--gold);
+}
+
+.ls-challenge-desc {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ===== 结局图鉴 ===== */
+.ls-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ls-gallery-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.ls-gallery-card.unlocked {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.06);
+}
+
+.ls-gallery-card.locked {
+  opacity: 0.4;
+}
+
+.ls-gallery-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+.ls-gallery-name {
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.ls-gallery-card.locked .ls-gallery-name {
+  color: var(--text-muted);
+}
+
+.ls-gallery-score {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.ls-gallery-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .ls-free-action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ls-challenge-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ls-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ========== NG+ 轮回加成 ========== */
+
+.ls-ngplus-summary {
+  color: var(--purple);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.ls-ngplus-points {
+  text-align: center;
+  color: var(--purple);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.ls-ngplus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ls-ngplus-card {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.ls-ngplus-card:hover {
+  border-color: var(--purple);
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.ls-ngplus-card.maxed {
+  border-color: var(--gold);
+  background: rgba(255, 215, 0, 0.08);
+}
+
+.ls-ngplus-icon {
+  font-size: 1.8rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ls-ngplus-name {
+  font-weight: 600;
+  color: var(--purple);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ls-ngplus-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ls-ngplus-level {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.ls-ngplus-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.ls-ngplus-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--purple), var(--gold));
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.ls-ngplus-status {
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ========== 血脉系统 ========== */
+
+.ls-bloodline-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ls-bloodline-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 14px;
+  flex: 1;
+}
+
+.ls-bloodline-card.rare {
+  border-color: var(--gold);
+  background: rgba(255, 215, 0, 0.08);
+  animation: bloodlineGlow 2s infinite alternate;
+}
+
+@keyframes bloodlineGlow {
+  from { box-shadow: 0 0 5px rgba(255, 215, 0, 0.1); }
+  to { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+}
+
+.ls-bloodline-icon {
+  font-size: 1.4rem;
+}
+
+.ls-bloodline-name {
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.ls-bloodline-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ls-reroll-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ========== 世界纪元 ========== */
+
+.ls-era-display {
+  display: flex;
+  gap: 10px;
+}
+
+.ls-era-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 14px;
+  flex: 1;
+}
+
+.ls-era-icon {
+  font-size: 1.3rem;
+}
+
+.ls-era-name {
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+.ls-era-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ========== 额外徽章 ========== */
+
+.ls-extra-badges {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ls-dao-badge, .ls-blood-badge, .ls-era-badge {
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.ls-dao-badge {
+  border-color: rgba(139, 92, 246, 0.3);
+  color: var(--purple);
+}
+
+.ls-blood-badge {
+  border-color: rgba(255, 215, 0, 0.3);
+  color: var(--gold);
+}
+
+.ls-era-badge {
+  border-color: rgba(34, 211, 238, 0.3);
+  color: var(--cyan);
+}
+
+/* ========== Ending NG+ ========== */
+
+.ending-ngplus {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* ========== 创建角色向导步骤 ========== */
+
+.ls-wizard-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 16px 0 20px;
+  padding: 0 10px;
+}
+
+.ls-wizard-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ls-wizard-dot-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: 2px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.ls-wizard-dot.active .ls-wizard-dot-circle {
+  border-color: var(--gold);
+  background: rgba(212, 164, 74, 0.15);
+  color: var(--gold);
+  box-shadow: 0 0 12px rgba(212, 164, 74, 0.3);
+}
+
+.ls-wizard-dot.done .ls-wizard-dot-circle {
+  border-color: var(--green, #4ade80);
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--green, #4ade80);
+}
+
+.ls-wizard-dot-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ls-wizard-dot.active .ls-wizard-dot-label {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.ls-wizard-dot.done .ls-wizard-dot-label {
+  color: var(--green, #4ade80);
+}
+
+.ls-wizard-dot-line {
+  width: 24px;
+  height: 2px;
+  background: var(--border-color);
+  margin: 0 4px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.ls-wizard-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.ls-wizard-nav .btn {
+  min-width: 100px;
+}
+
+@media (max-width: 400px) {
+  .ls-wizard-dot-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+
+  .ls-wizard-dot-label {
+    font-size: 0.55rem;
+  }
+
+  .ls-wizard-dot-line {
+    width: 16px;
+  }
+}

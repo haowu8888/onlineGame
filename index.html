@@ -3,13 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="仙界游坊 - 七款精品在线游戏，修仙养成、卡牌策略、肉鸽冒险等多种玩法">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta property="og:title" content="仙界游坊 - 在线游戏">
+  <meta property="og:description" content="七款精品在线游戏，修仙养成、卡牌策略、肉鸽冒险等多种玩法，纯前端免登录">
+  <meta property="og:type" content="website">
   <title>仙界游坊 - 在线游戏</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/shared.css">
   <link rel="stylesheet" href="css/portal.css">
 </head>
 <body>
+  <a href="#hall" class="skip-link">跳转到主内容</a>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
   <div class="particles-container" id="particles"></div>
 
   <!-- Hero -->
@@ -22,7 +32,7 @@
     </div>
     <div class="hero-content">
       <h1 class="hero-title">仙界游坊</h1>
-      <p class="hero-subtitle">三界游戏，一界修行 —— 踏入仙途，畅游无尽</p>
+      <p class="hero-subtitle">七界游戏，一界修行 —— 修仙养成、卡牌策略，畅游无尽仙途</p>
       <div class="hero-actions">
         <a href="#hall" class="btn btn-gold btn-lg">进入游坊</a>
         <a href="#about" class="btn btn-outline btn-lg">了解更多</a>
@@ -35,30 +45,8 @@
   <section class="game-hall section" id="hall">
     <div class="container">
       <h2 class="section-title fade-in">游戏大厅</h2>
-      <div class="game-cards">
-        <a href="games/2048.html" class="game-card fade-in">
-          <span class="game-card-icon">🀄</span>
-          <h3 class="game-card-title">灵数2048</h3>
-          <p class="game-card-desc">以仙灵之数，合天地至理。滑动灵玉方块，合二为一，直至悟道成仙。</p>
-          <div class="game-card-tags">
-            <span class="game-tag">益智</span>
-            <span class="game-tag">数字</span>
-            <span class="game-tag">轻松</span>
-          </div>
-          <span class="btn btn-gold btn-sm">开始修炼</span>
-        </a>
-        <a href="games/tetris.html" class="game-card fade-in">
-          <span class="game-card-icon">🏔️</span>
-          <h3 class="game-card-title">天降奇石</h3>
-          <p class="game-card-desc">天降灵石，排列有序方可化为灵气。考验你的眼疾手快，消行得分。</p>
-          <div class="game-card-tags">
-            <span class="game-tag">经典</span>
-            <span class="game-tag">反应</span>
-            <span class="game-tag">挑战</span>
-          </div>
-          <span class="btn btn-gold btn-sm">开始修炼</span>
-        </a>
-        <a href="games/cultivation.html" class="game-card fade-in">
+      <div class="game-cards" role="list">
+        <a href="games/cultivation.html" class="game-card fade-in" data-hue="gold">
           <span class="game-card-icon">🧘</span>
           <h3 class="game-card-title">修仙之路</h3>
           <p class="game-card-desc">选择灵根，拜入仙门，打坐修炼、突破境界、炼丹战斗，踏上成仙之路。</p>
@@ -69,6 +57,72 @@
           </div>
           <span class="btn btn-gold btn-sm">开始修炼</span>
         </a>
+        <a href="games/lifesim.html" class="game-card fade-in" data-hue="purple">
+          <span class="game-card-icon">🎭</span>
+          <h3 class="game-card-title">仙途模拟器</h3>
+          <p class="game-card-desc">投胎修仙界，逐年推进，遭遇随机事件做出抉择，追求飞升成仙的终极目标。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">模拟</span>
+            <span class="game-tag">文字</span>
+            <span class="game-tag">重开</span>
+          </div>
+          <span class="btn btn-gold btn-sm">开始投胎</span>
+        </a>
+        <a href="games/guigu.html" class="game-card fade-in" data-hue="cyan">
+          <span class="game-card-icon">⛰️</span>
+          <h3 class="game-card-title">鬼谷八荒</h3>
+          <p class="game-card-desc">寿命有尽，大道无穷。探索鬼谷世界，悟道修行，历心魔试炼，踏上成仙之路。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">RPG</span>
+            <span class="game-tag">开放世界</span>
+            <span class="game-tag">策略</span>
+          </div>
+          <span class="btn btn-gold btn-sm">踏入鬼谷</span>
+        </a>
+        <a href="games/knife.html" class="game-card fade-in" data-hue="red">
+          <span class="game-card-icon">🗡️</span>
+          <h3 class="game-card-title">转转刀</h3>
+          <p class="game-card-desc">化身武林大侠，旋转刀刃割草千军。击败武林高手，肉鸽升级强化，挑战无尽波次。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">肉鸽</span>
+            <span class="game-tag">割草</span>
+            <span class="game-tag">动作</span>
+          </div>
+          <span class="btn btn-gold btn-sm">拔刀出鞘</span>
+        </a>
+        <a href="games/cardtower.html" class="game-card fade-in" data-hue="blue">
+          <span class="game-card-icon">🃏</span>
+          <h3 class="game-card-title">斩仙塔</h3>
+          <p class="game-card-desc">肉鸽卡牌攀塔！从初始牌组出发，逐层击败妖魔，收集强力仙卡，挑战魔尊。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">肉鸽</span>
+            <span class="game-tag">卡牌</span>
+            <span class="game-tag">策略</span>
+          </div>
+          <span class="btn btn-gold btn-sm">攀登仙塔</span>
+        </a>
+        <a href="games/cardbattle.html" class="game-card fade-in" data-hue="green">
+          <span class="game-card-icon">⚔️</span>
+          <h3 class="game-card-title">灵卡对决</h3>
+          <p class="game-card-desc">召唤弟子、布阵法宝，与AI仙师回合制对战。策略出牌，击败三位强敌。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">对战</span>
+            <span class="game-tag">卡牌</span>
+            <span class="game-tag">PVE</span>
+          </div>
+          <span class="btn btn-gold btn-sm">灵卡对决</span>
+        </a>
+        <a href="games/cardcollect.html" class="game-card fade-in" data-hue="orange">
+          <span class="game-card-icon">📖</span>
+          <h3 class="game-card-title">仙卡录</h3>
+          <p class="game-card-desc">抽取修仙角色卡，编排五人阵容自动战斗。收集、升级、突破，通关十章秘境。</p>
+          <div class="game-card-tags">
+            <span class="game-tag">收集</span>
+            <span class="game-tag">放置</span>
+            <span class="game-tag">养成</span>
+          </div>
+          <span class="btn btn-gold btn-sm">翻开仙录</span>
+        </a>
       </div>
     </div>
   </section>
@@ -78,11 +132,54 @@
     <div class="container">
       <h2 class="section-title fade-in">仙榜</h2>
       <div class="leaderboard-tabs fade-in" id="lb-tabs">
-        <button class="leaderboard-tab active" data-game="2048">灵数2048</button>
-        <button class="leaderboard-tab" data-game="tetris">天降奇石</button>
-        <button class="leaderboard-tab" data-game="cultivation">修仙之路</button>
+        <button class="leaderboard-tab active" data-game="cultivation">修仙之路</button>
+        <button class="leaderboard-tab" data-game="lifesim">仙途模拟器</button>
+        <button class="leaderboard-tab" data-game="guigu">鬼谷八荒</button>
+        <button class="leaderboard-tab" data-game="knife">转转刀</button>
+        <button class="leaderboard-tab" data-game="cardtower">斩仙塔</button>
+        <button class="leaderboard-tab" data-game="cardbattle">灵卡对决</button>
+        <button class="leaderboard-tab" data-game="cardcollect">仙卡录</button>
       </div>
       <div class="leaderboard-table fade-in" id="lb-table"></div>
+    </div>
+  </section>
+
+  <!-- 修仙档案 -->
+  <section class="stats-section section" id="stats-section">
+    <div class="container">
+      <h2 class="section-title fade-in">修仙档案</h2>
+      <p class="section-desc fade-in">纵览你的修仙历程</p>
+      <div class="stats-grid fade-in" id="stats-grid"></div>
+    </div>
+  </section>
+
+  <!-- 每日仙令 -->
+  <section class="daily-section section" id="daily-section">
+    <div class="container">
+      <h2 class="section-title fade-in">每日仙令</h2>
+      <p class="section-desc fade-in">每日更新的修仙任务，完成可获仙缘点</p>
+      <div class="daily-missions-grid fade-in" id="daily-grid"></div>
+    </div>
+  </section>
+
+  <!-- 仙缘兑换 -->
+  <section class="exchange-section section" id="exchange-section">
+    <div class="container">
+      <h2 class="section-title fade-in">仙缘兑换</h2>
+      <p class="section-desc fade-in">消耗仙缘点兑换各游戏道具</p>
+      <div class="exchange-balance fade-in" id="exchange-balance"></div>
+      <div class="exchange-grid fade-in" id="exchange-grid"></div>
+    </div>
+  </section>
+
+  <!-- 仙道成就 -->
+  <section class="achievements-section section" id="achievements-section">
+    <div class="container">
+      <h2 class="section-title">仙道成就</h2>
+      <p class="section-desc">跨越四方天地，集齐修仙证道</p>
+      <div class="achievement-grid fade-in" id="achievement-grid">
+        <p class="leaderboard-empty" id="achievement-placeholder">畅玩游戏以解锁成就</p>
+      </div>
     </div>
   </section>
 
@@ -93,8 +190,8 @@
       <div class="about-grid">
         <div class="about-card fade-in">
           <div class="about-card-icon">🎮</div>
-          <h3>三款精品游戏</h3>
-          <p>从休闲益智到深度养成，每一款都经过精心打磨，带来沉浸式仙侠体验。</p>
+          <h3>七款精品游戏</h3>
+          <p>从休闲养成到卡牌策略，每一款都经过精心打磨，带来沉浸式仙侠体验。</p>
         </div>
         <div class="about-card fade-in">
           <div class="about-card-icon">💾</div>
@@ -112,10 +209,15 @@
 
   <!-- 页脚 -->
   <footer class="footer">
-    <p>仙界游坊 &copy; 2025 &mdash; 纯前端项目，数据存储于本地浏览器</p>
+    <p>仙界游坊 &copy; <span id="footer-year"></span> &mdash; 纯前端项目，数据存储于本地浏览器</p>
   </footer>
 
-  <script src="js/shared.js"></script>
-  <script src="js/portal.js"></script>
+  <script src="js/shared.js" defer></script>
+  <script src="js/portal.js" defer></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
