@@ -606,8 +606,14 @@ function hideLoading() {
 document.addEventListener('DOMContentLoaded', hideLoading);
 
 /* --- 页面卸载时刷新待写入数据 --- */
-window.addEventListener('beforeunload', () => {
-  Storage.flush();
+function _flushStorageSafe() {
+  try { Storage.flush(); } catch { /* ignore */ }
+}
+window.addEventListener('beforeunload', _flushStorageSafe);
+// 移动端/后台切换时更可靠（beforeunload 可能不触发）
+window.addEventListener('pagehide', _flushStorageSafe);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') _flushStorageSafe();
 });
 
 /* --- 事件委托管理器 --- */
