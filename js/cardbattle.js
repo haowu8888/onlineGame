@@ -2027,6 +2027,11 @@
       saveArenaData(data);
       arenaState = null;
     }
+
+    // Cross-game stat: arena best streak
+    if (typeof CrossGameAchievements !== 'undefined') {
+      CrossGameAchievements.trackStat('cardbattle_arena_best', data.bestStreak || 0);
+    }
   }
 
   // Override showResult for arena
@@ -2036,31 +2041,54 @@
       const before = getArenaData();
       const runStreak = before.currentRun ? before.currentRun.streak : 0;
 
-      endArenaMatch(won);
+      // 仙缘兑换：竞技场复活（失败时消耗一次，保留连胜）
+      let revived = false;
+      if (!won && before.currentRun) {
+        const cbBonuses = Storage.get('xianyuan_cardbattle_bonuses', { arenaRevives: 0 });
+        if ((cbBonuses.arenaRevives || 0) > 0) {
+          cbBonuses.arenaRevives -= 1;
+          Storage.set('xianyuan_cardbattle_bonuses', cbBonuses);
+
+          const data = getArenaData();
+          if (data.currentRun) {
+            data.currentRun.hp = Math.max(10, Math.floor(30 * 0.6));
+            saveArenaData(data);
+            arenaState = data.currentRun;
+            revived = true;
+            showToast('消耗「竞技场复活」：保留连胜并继续！', 'success', 2500);
+          }
+        }
+      }
+
+      if (!revived) endArenaMatch(won);
 
       const after = getArenaData();
       const bestStreak = after.bestStreak || 0;
-      const currentStreak = won && arenaState ? arenaState.streak : runStreak;
+      const uiWon = won || revived;
+      const currentStreak = uiWon && arenaState ? arenaState.streak : runStreak;
 
       $battle.style.display = 'none';
       $result.style.display = '';
       const $title = document.getElementById('result-title');
-      $title.textContent = won ? '竞技场胜利！' : '竞技场结束';
-      $title.className = 'cb-result-title ' + (won ? 'win' : 'lose');
+      $title.textContent = uiWon ? '竞技场胜利！' : '竞技场结束';
+      $title.className = 'cb-result-title ' + (uiWon ? 'win' : 'lose');
       const $stats = document.getElementById('result-stats');
       $stats.innerHTML = `
-        <div class="cb-result-stat"><span class="stat-label">${won ? '当前连胜' : '本次连胜'}</span><span class="stat-value">${currentStreak}</span></div>
+        <div class="cb-result-stat"><span class="stat-label">${uiWon ? '当前连胜' : '本次连胜'}</span><span class="stat-value">${currentStreak}</span></div>
         <div class="cb-result-stat"><span class="stat-label">历史最佳</span><span class="stat-value" style="color:var(--gold)">${bestStreak}</span></div>
-        ${won ? '<div class="cb-result-stat"><span class="stat-label">剩余生命</span><span class="stat-value">' + G.playerHP + '/30</span></div>' : ''}
+        ${uiWon ? '<div class="cb-result-stat"><span class="stat-label">剩余生命</span><span class="stat-value">' + (arenaState ? arenaState.hp : G.playerHP) + '/30</span></div>' : ''}
       `;
       // Replace result buttons
       const $actions = document.querySelector('.cb-result-actions');
-      if (won && arenaState) {
+      if (uiWon && arenaState) {
         $actions.innerHTML = '<button class="btn btn-gold" id="arena-next">下一场</button><button class="btn btn-outline" id="arena-quit">结束竞技场</button>';
         document.getElementById('arena-next').addEventListener('click', () => startArenaMatch());
         document.getElementById('arena-quit').addEventListener('click', () => {
           const d = getArenaData();
           if (d.currentRun && d.currentRun.streak > d.bestStreak) d.bestStreak = d.currentRun.streak;
+          if (typeof CrossGameAchievements !== 'undefined') {
+            CrossGameAchievements.trackStat('cardbattle_arena_best', d.bestStreak || 0);
+          }
           d.currentRun = null; saveArenaData(d); arenaState = null; showStart();
         });
       } else {

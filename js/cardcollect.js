@@ -1811,6 +1811,23 @@
         showToast('仙缘联动: ' + r.name, 'success');
       });
     }
+
+    // 仙缘兑换：装备宝箱（一次性发放）
+    var ccBonuses = Storage.get('xianyuan_cardcollect_bonuses', { equipBoxes: 0 });
+    var boxes = ccBonuses.equipBoxes || 0;
+    if (boxes > 0) {
+      const maxCh = Math.max(1, state.highestChapter || 1);
+      for (let i = 0; i < boxes; i++) {
+        const available = EQUIPMENT_POOL.filter(e => e.minCh <= maxCh);
+        const eq = available.length ? available[Math.floor(Math.random() * available.length)] : EQUIPMENT_POOL[0];
+        if (eq) state.equipInventory.push(eq.id);
+      }
+      ccBonuses.equipBoxes = 0;
+      Storage.set('xianyuan_cardcollect_bonuses', ccBonuses);
+      saveGame();
+      showToast('仙缘兑换生效：获得装备宝箱 x' + boxes, 'success', 2500);
+    }
+
     initNav('cardcollect');
     initParticles('#particles', 20);
     initSettings();

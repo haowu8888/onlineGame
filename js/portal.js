@@ -173,6 +173,21 @@
   const activeTab = tabsContainer.querySelector('.leaderboard-tab.active');
   tableContainer.setAttribute('aria-labelledby', activeTab ? activeTab.id : 'lb-tab-cultivation');
 
+  const CULT_REALMS_NAMES = ['凡人','炼气','筑基','金丹','元婴','化神','渡劫','大乘','飞升'];
+  function formatLeaderboardScore(gameKey, entry) {
+    if (gameKey === 'cultivation') {
+      const idx = Number(entry.score) || 0;
+      return CULT_REALMS_NAMES[idx] || CULT_REALMS_NAMES[0];
+    }
+    if (gameKey === 'knife') {
+      const wave = entry.wave || 0;
+      const kills = entry.score || 0;
+      if (wave) return `第${wave}波 · ${formatNumber(kills)}杀`;
+      return formatNumber(kills);
+    }
+    return formatNumber(entry.score);
+  }
+
   function renderLeaderboard(gameKey) {
     const board = getLeaderboard(gameKey);
     if (!Array.isArray(board) || board.length === 0) {
@@ -199,7 +214,7 @@
 
       const score = document.createElement('span');
       score.className = 'leaderboard-score';
-      score.textContent = formatNumber(entry.score);
+      score.textContent = formatLeaderboardScore(gameKey, entry);
 
       const date = document.createElement('span');
       date.className = 'leaderboard-date';
@@ -378,154 +393,82 @@
   (function renderDailyMissions() {
     const grid = document.getElementById('daily-grid');
     if (!grid) return;
+    if (!window.DailyMissions) return;
 
-    // 种子随机函数
-    function seededRandom(seed) {
-      let s = seed;
-      return function () {
-        s = (s * 1103515245 + 12345) & 0x7fffffff;
-        return s / 0x7fffffff;
-      };
-    }
+    const existingHeader = grid.parentNode && grid.parentNode.querySelector('.daily-header-row');
+    if (existingHeader) existingHeader.remove();
 
-    // 获取今日种子
-    const now = new Date();
-    const dateSeed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-    const rng = seededRandom(dateSeed);
-
-    // 任务模板库
-    const MISSION_TEMPLATES = [
-      { game: 'cultivation', icon: '🧘', name: '静心打坐', desc: '在修仙之路中打坐修炼', statKey: 'cultivation_meditate_count', target: 1, reward: 10 },
-      { game: 'cultivation', icon: '⚔️', name: '斩妖除魔', desc: '在修仙之路中击败3个敌人', statKey: 'cultivation_kills', target: 3, reward: 15 },
-      { game: 'cultivation', icon: '🔥', name: '炼丹一枚', desc: '在修仙之路中炼制1颗丹药', statKey: 'cultivation_pills_crafted', target: 1, reward: 10 },
-      { game: 'knife', icon: '🗡️', name: '试剑江湖', desc: '在转转刀中进行1局', statKey: 'knife_games_played', target: 1, reward: 10 },
-      { game: 'knife', icon: '🌊', name: '十波挑战', desc: '在转转刀中存活到第10波', statKey: 'knife_max_wave', target: 10, reward: 20 },
-      { game: 'cardtower', icon: '🃏', name: '攀塔一试', desc: '挑战斩仙塔1次', statKey: 'cardtower_runs', target: 1, reward: 10 },
-      { game: 'cardbattle', icon: '⚔️', name: '灵卡交锋', desc: '进行1场灵卡对决', statKey: 'cardbattle_games', target: 1, reward: 10 },
-      { game: 'cardcollect', icon: '📖', name: '翻阅仙录', desc: '在仙卡录中抽卡1次', statKey: 'cardcollect_pulls', target: 1, reward: 10 },
-      { game: 'guigu', icon: '⛰️', name: '探索鬼谷', desc: '在鬼谷八荒中探索3个地点', statKey: 'guigu_explored', target: 3, reward: 15 },
-      { game: 'lifesim', icon: '🎭', name: '轮回一世', desc: '在仙途模拟器中活过30岁', statKey: 'lifesim_max_age', target: 30, reward: 15 },
-      { game: 'cultivation', icon: '💎', name: '灵石满囊', desc: '修仙之路中累计拥有500灵石', statKey: 'cultivation_gold', target: 500, reward: 15 },
-      { game: 'guigu', icon: '🗡️', name: '鬼谷斩敌', desc: '在鬼谷八荒中击败2个敌人', statKey: 'guigu_kills', target: 2, reward: 15 },
-      // Phase 6B 新增任务模板
-      { game: 'guigu', icon: '🐴', name: '骑乘远行', desc: '在鬼谷八荒中骑乘坐骑移动', statKey: 'guigu_mount_rides', target: 1, reward: 10 },
-      { game: 'guigu', icon: '📋', name: '完成悬赏', desc: '在鬼谷八荒中完成1个悬赏', statKey: 'guigu_bounties_done', target: 1, reward: 20 },
-      { game: 'cardbattle', icon: '🏟️', name: '竞技场三胜', desc: '灵卡对决竞技场连胜3场', statKey: 'cardbattle_arena_best', target: 3, reward: 25 },
-      { game: 'cardtower', icon: '🏔️', name: '灵塔十层', desc: '斩仙塔探索到第10层', statKey: 'cardtower_max_floor', target: 10, reward: 20 },
-      { game: 'knife', icon: '💰', name: '淘金猎人', desc: '转转刀单局获得50金币', statKey: 'knife_run_gold', target: 50, reward: 15 },
-      { game: 'lifesim', icon: '🎮', name: '试炼高手', desc: '仙途模拟器试炼小游戏得分6+', statKey: 'lifesim_minigame_score', target: 6, reward: 15 }
-    ];
-
-    // 每日选4个不同游戏的任务
-    const DAILY_KEY = 'daily_missions';
-    const saved = Storage.get(DAILY_KEY, {});
-    const todayStr = String(dateSeed);
-
-    let missions;
-    if (saved.seed === todayStr && saved.missions) {
-      missions = saved.missions;
-    } else {
-      // 生成新的每日任务
-      const shuffled = MISSION_TEMPLATES.slice().sort(() => rng() - 0.5);
-      const picked = [];
-      const usedGames = {};
-      for (const m of shuffled) {
-        if (picked.length >= 4) break;
-        if (usedGames[m.game]) continue;
-        usedGames[m.game] = true;
-        picked.push(Object.assign({}, m));
-      }
-      // 记录baseline
-      const stats = Storage.get('cross_game_stats', {});
-      const baselines = {};
-      picked.forEach(m => {
-        baselines[m.statKey] = stats[m.statKey] || 0;
-      });
-      missions = picked;
-      Storage.set(DAILY_KEY, {
-        seed: todayStr,
-        missions: missions,
-        baselines: baselines,
-        claimed: []
-      });
-    }
-
-    // 读取当前进度
-    const dailyData = Storage.get(DAILY_KEY, {});
-    const baselines = dailyData.baselines || {};
-    const claimed = dailyData.claimed || [];
-    const stats = Storage.get('cross_game_stats', {});
-
-    // 仙缘点
-    let xianyuanPoints = stats.xianyuan_points || 0;
-
-    // 头部显示
     const headerRow = document.createElement('div');
     headerRow.className = 'daily-header-row fade-in';
-    headerRow.innerHTML = '<span class="daily-points" id="daily-points">仙缘点: ' + xianyuanPoints + '</span>';
+    headerRow.innerHTML =
+      '<span class="daily-points" id="daily-points">仙缘点: ' + (Storage.get('cross_game_stats', {}).xianyuan_points || 0) + '</span>' +
+      '<button class="btn btn-gold btn-sm" id="daily-open-btn" type="button">查看/领取</button>';
     grid.parentNode.insertBefore(headerRow, grid);
 
-    // 渲染任务卡片
-    grid.innerHTML = missions.map((m, i) => {
-      const baseline = baselines[m.statKey] || 0;
-      const current = stats[m.statKey] || 0;
-      // 对于"最高"类指标，直接检查是否达标；对于累计类，看增量
-      const isMax = m.statKey.includes('max_') || m.statKey.includes('_gold');
-      const progress = isMax ? current : (current - baseline);
-      const done = progress >= m.target;
-      const isClaimed = claimed.includes(i);
+    function refreshNavBadge() {
+      const badgeEl = document.querySelector('.nav .nav-badge');
+      if (!badgeEl) return;
+      const cnt = DailyMissions.getClaimableCount();
+      badgeEl.textContent = cnt > 99 ? '99+' : String(cnt);
+      badgeEl.classList.toggle('hidden', cnt <= 0);
+    }
 
-      return '<div class="daily-mission-card' + (done ? ' completed' : '') + '" data-idx="' + i + '">' +
-        '<div class="daily-mission-icon">' + m.icon + '</div>' +
-        '<div class="daily-mission-info">' +
-          '<div class="daily-mission-name">' + escapeHtml(m.name) + '</div>' +
-          '<div class="daily-mission-desc">' + escapeHtml(m.desc) + '</div>' +
-          '<div class="daily-mission-progress">' +
-            (done ? '<span class="done">已完成</span>' : Math.min(progress, m.target) + '/' + m.target) +
-            ' · +' + m.reward + '仙缘' +
+    function updateExchangePoints(points) {
+      const exchangeEl = document.getElementById('exchange-pts');
+      if (exchangeEl) exchangeEl.textContent = '仙缘点: ' + points;
+    }
+
+    function renderGrid() {
+      const d = DailyMissions.getOrCreateToday();
+      const missions = Array.isArray(d.missions) ? d.missions : [];
+      const claimed = Array.isArray(d.claimed) ? d.claimed : [];
+      const stats = Storage.get('cross_game_stats', {});
+
+      const pointsEl = document.getElementById('daily-points');
+      if (pointsEl) pointsEl.textContent = '仙缘点: ' + (stats.xianyuan_points || 0);
+
+      grid.innerHTML = missions.map((m, i) => {
+        const progress = Math.max(0, DailyMissions.getProgress(m, d));
+        const done = progress >= m.target;
+        const isClaimed = claimed.includes(i);
+        const fill = Math.min(100, Math.floor((Math.min(progress, m.target) / m.target) * 100));
+        const progressText = done ? '<span class="done">已完成</span>' : Math.min(progress, m.target) + '/' + m.target;
+
+        return '<div class="daily-mission-card' + (done ? ' completed' : '') + '" data-idx="' + i + '">' +
+          '<div class="daily-mission-icon">' + m.icon + '</div>' +
+          '<div class="daily-mission-info">' +
+            '<div class="daily-mission-name">' + escapeHtml(m.name) + '</div>' +
+            '<div class="daily-mission-desc">' + escapeHtml(m.desc) + '</div>' +
+            '<div class="daily-mission-progress">' +
+              progressText +
+              ' · +' + m.reward + '仙缘' +
+            '</div>' +
+            '<div class="daily-mission-bar"><div class="daily-mission-bar-fill" style="width:' + fill + '%"></div></div>' +
           '</div>' +
-          '<div class="daily-mission-bar"><div class="daily-mission-bar-fill" style="width:' + Math.min(100, Math.floor((Math.max(0, progress) / m.target) * 100)) + '%"></div></div>' +
-        '</div>' +
-        '<div class="daily-mission-check">' + (isClaimed ? '✅' : (done ? '🎁' : '⬜')) + '</div>' +
-      '</div>';
-    }).join('');
+          '<div class="daily-mission-check">' + (isClaimed ? '✅' : (done ? '🎁' : '⬜')) + '</div>' +
+        '</div>';
+      }).join('');
+    }
 
-    // 点击领取
+    renderGrid();
+    refreshNavBadge();
+
+    const openBtn = document.getElementById('daily-open-btn');
+    if (openBtn) openBtn.addEventListener('click', () => openDailyMissionsModal('portal'));
+
     grid.addEventListener('click', function (e) {
       const card = e.target.closest('.daily-mission-card');
       if (!card) return;
-      const idx = parseInt(card.dataset.idx);
-      const m = missions[idx];
-      if (!m) return;
+      const idx = parseInt(card.dataset.idx, 10);
+      if (Number.isNaN(idx)) return;
 
-      const d = Storage.get(DAILY_KEY, {});
-      if (!d.claimed) d.claimed = [];
-      if (d.claimed.includes(idx)) return;
+      const res = DailyMissions.claim(idx);
+      if (!res.ok) return;
 
-      const bl = (d.baselines || {})[m.statKey] || 0;
-      const cur = (Storage.get('cross_game_stats', {}))[m.statKey] || 0;
-      const isMax = m.statKey.includes('max_') || m.statKey.includes('_gold');
-      const prog = isMax ? cur : (cur - bl);
-      if (prog < m.target) return;
-
-      // 领取奖励
-      d.claimed.push(idx);
-      // 更新基线值为当前值（防止下次任务继承累计进度）
-      if (!d.baselines) d.baselines = {};
-      d.baselines[m.statKey] = cur;
-      Storage.set(DAILY_KEY, d);
-
-      const st = Storage.get('cross_game_stats', {});
-      st.xianyuan_points = (st.xianyuan_points || 0) + m.reward;
-      Storage.set('cross_game_stats', st);
-
-      // 更新UI
-      const checkEl = card.querySelector('.daily-mission-check');
-      if (checkEl) checkEl.textContent = '✅';
-      const pointsEl = document.getElementById('daily-points');
-      if (pointsEl) pointsEl.textContent = '仙缘点: ' + st.xianyuan_points;
-
-      showToast('获得 ' + m.reward + ' 仙缘点！', 'success');
+      renderGrid();
+      refreshNavBadge();
+      updateExchangePoints(res.points);
+      showToast('获得 ' + res.reward + ' 仙缘点！', 'success');
     });
   })();
 
@@ -656,26 +599,43 @@
           }
           Storage.set('cardcollect_save', ccSave);
         }
+        if (eff.type === 'equip_box') {
+          var ccBonuses = Storage.get('xianyuan_cardcollect_bonuses', { equipBoxes: 0 });
+          ccBonuses.equipBoxes = (ccBonuses.equipBoxes || 0) + eff.value;
+          Storage.set('xianyuan_cardcollect_bonuses', ccBonuses);
+        }
       } else if (item.game === 'guigu') {
-        for (var gs = 0; gs < 3; gs++) {
-          var gSave = Storage.get('guigu_save_' + gs);
-          if (gSave) {
-            if (eff.type === 'gold') gSave.gold = (gSave.gold || 0) + eff.value;
-            if (eff.type === 'herb') gSave.herbs = (gSave.herbs || 0) + eff.value;
-            Storage.set('guigu_save_' + gs, gSave);
-            break;
+        if (eff.type === 'mount_feed') {
+          var ggBonuses = Storage.get('xianyuan_guigu_bonuses', { mountFeed: 0 });
+          ggBonuses.mountFeed = (ggBonuses.mountFeed || 0) + eff.value;
+          Storage.set('xianyuan_guigu_bonuses', ggBonuses);
+        } else {
+          for (var gs = 0; gs < 3; gs++) {
+            var gSave = Storage.get('guigu_save_' + gs);
+            if (gSave) {
+              if (eff.type === 'gold') gSave.gold = (gSave.gold || 0) + eff.value;
+              if (eff.type === 'herb') gSave.herbs = (gSave.herbs || 0) + eff.value;
+              Storage.set('guigu_save_' + gs, gSave);
+              break;
+            }
           }
         }
       } else if (item.game === 'knife') {
-        var knifeBonuses = Storage.get('xianyuan_knife_bonuses', { hp: 0, heal_next: 0 });
+        var knifeBonuses = Storage.get('xianyuan_knife_bonuses', { hp: 0, heal_next: 0, goldMul: 1 });
         if (eff.type === 'hp') knifeBonuses.hp += eff.value;
         if (eff.type === 'heal_next') knifeBonuses.heal_next = (knifeBonuses.heal_next || 0) + eff.value;
+        if (eff.type === 'gold_boost') knifeBonuses.goldMul = Math.min(3, (knifeBonuses.goldMul || 1) * eff.value);
         Storage.set('xianyuan_knife_bonuses', knifeBonuses);
       } else if (item.game === 'cardtower') {
-        var towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0 });
+        var towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0, extraRelicChoices: 0 });
         if (eff.type === 'hp') towerBonuses.hp += eff.value;
         if (eff.type === 'heal_next') towerBonuses.heal_next = (towerBonuses.heal_next || 0) + eff.value;
+        if (eff.type === 'relic_box') towerBonuses.extraRelicChoices = (towerBonuses.extraRelicChoices || 0) + eff.value;
         Storage.set('xianyuan_tower_bonuses', towerBonuses);
+      } else if (item.game === 'cardbattle') {
+        var cbBonuses = Storage.get('xianyuan_cardbattle_bonuses', { arenaRevives: 0 });
+        if (eff.type === 'arena_life') cbBonuses.arenaRevives = (cbBonuses.arenaRevives || 0) + eff.value;
+        Storage.set('xianyuan_cardbattle_bonuses', cbBonuses);
       } else if (item.game === 'lifesim') {
         var lsBonuses = Storage.get('xianyuan_lifesim_bonuses', { luck: 0 });
         if (eff.type === 'luck') lsBonuses.luck += eff.value;

@@ -109,6 +109,20 @@ const Storage = (() => {
 })();
 
 /* --- 数据导出/导入 --- */
+ 
+/* --- Player profile (global nickname) --- */
+const PLAYER_PROFILE_KEY = 'player_profile';
+function loadPlayerProfile() {
+  const p = Storage.get(PLAYER_PROFILE_KEY, {});
+  return (p && typeof p === 'object') ? p : {};
+}
+function savePlayerProfile(profile) {
+  Storage.set(PLAYER_PROFILE_KEY, profile && typeof profile === 'object' ? profile : {});
+}
+function getPlayerName() {
+  return String(loadPlayerProfile().name || '').trim();
+}
+ 
 function exportData() {
   try {
     Storage.flush(); // 确保待写入数据都已持久化
@@ -218,6 +232,10 @@ function initNav(activePage) {
   const prefix = isPortal ? 'games/' : '';
   const homeHref = isPortal ? '#' : '../index.html';
 
+  // Remove legacy per-game nav bar (avoids double fixed headers)
+  const legacyGameNav = document.querySelector('.game-nav');
+  if (legacyGameNav) legacyGameNav.remove();
+
   const gameLinks = NAV_GAMES.map(g =>
     `<li><a href="${prefix}${g.file}" class="${activePage === g.id ? 'active' : ''}">${g.name}</a></li>`
   ).join('');
@@ -229,6 +247,7 @@ function initNav(activePage) {
       <li><a href="${homeHref}" class="${isPortal ? 'active' : ''}">主页</a></li>
       ${gameLinks}
     </ul>
+    <button class="nav-daily-btn" title="每日仙令" aria-label="每日仙令">📜<span class="nav-badge hidden" aria-hidden="true"></span></button>
     <button class="nav-settings-btn" title="设置">⚙</button>
   `;
   document.body.prepend(nav);
@@ -276,11 +295,129 @@ function initNav(activePage) {
     });
   }
 
+  // 每日仙令
+  const dailyBtn = nav.querySelector('.nav-daily-btn');
+  const badgeEl = nav.querySelector('.nav-badge');
+  function refreshDailyBadge() {
+    if (!window.DailyMissions) return;
+    const cnt = DailyMissions.getClaimableCount();
+    if (badgeEl) {
+      badgeEl.textContent = cnt > 99 ? '99+' : String(cnt);
+      badgeEl.classList.toggle('hidden', cnt <= 0);
+    }
+  }
+  refreshDailyBadge();
+  window.addEventListener('focus', refreshDailyBadge);
+  window.addEventListener('storage', refreshDailyBadge);
+  if (dailyBtn) {
+    dailyBtn.addEventListener('click', () => {
+      refreshDailyBadge();
+      openDailyMissionsModal(activePage);
+    });
+  }
+
   // 设置按钮
   const settingsBtn = nav.querySelector('.nav-settings-btn');
   settingsBtn.addEventListener('click', () => {
     if (window._settingsModal) window._settingsModal.open();
   });
+}
+
+function openDailyMissionsModal(activePage) {
+  if (!window.DailyMissions) return;
+  const existing = document.getElementById('daily-missions-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.id = 'daily-missions-modal';
+
+  const activeGame = activePage && activePage !== 'portal' ? activePage : null;
+  const gameNameMap = {};
+  (window.NAV_GAMES || NAV_GAMES || []).forEach(g => { gameNameMap[g.id] = g.name; });
+
+  function refreshNavBadge() {
+    const badgeEl = document.querySelector('.nav .nav-badge');
+    if (!badgeEl) return;
+    const cnt = DailyMissions.getClaimableCount();
+    badgeEl.textContent = cnt > 99 ? '99+' : String(cnt);
+    badgeEl.classList.toggle('hidden', cnt <= 0);
+  }
+
+  function render() {
+    const d = DailyMissions.getOrCreateToday();
+    const missions = Array.isArray(d.missions) ? d.missions : [];
+    const claimed = Array.isArray(d.claimed) ? d.claimed : [];
+    const stats = Storage.get('cross_game_stats', {});
+    const points = stats.xianyuan_points || 0;
+
+    const indices = missions.map((_, i) => i);
+    if (activeGame) {
+      indices.sort((a, b) => {
+        const ga = missions[a].game === activeGame ? 0 : 1;
+        const gb = missions[b].game === activeGame ? 0 : 1;
+        return ga - gb;
+      });
+    }
+
+    const listHtml = indices.map((i) => {
+      const m = missions[i];
+      const progress = Math.max(0, DailyMissions.getProgress(m, d));
+      const done = progress >= m.target;
+      const isClaimed = claimed.includes(i);
+      const displayProgress = done ? '<span class="done">已完成</span>' : `${Math.min(progress, m.target)}/${m.target}`;
+      const tag = activeGame && m.game !== activeGame
+        ? `<span class="daily-game-tag">${escapeHtml(gameNameMap[m.game] || m.game)}</span>`
+        : '';
+
+      return `
+        <div class="daily-modal-item${done ? ' completed' : ''}">
+          <div class="daily-modal-icon">${m.icon}</div>
+          <div class="daily-modal-main">
+            <div class="daily-modal-title">${escapeHtml(m.name)} ${tag}</div>
+            <div class="daily-modal-desc">${escapeHtml(m.desc)}</div>
+            <div class="daily-modal-progress">${displayProgress} · +${m.reward}仙缘</div>
+            <div class="daily-mission-bar"><div class="daily-mission-bar-fill" style="width:${Math.min(100, Math.floor((progress / m.target) * 100))}%"></div></div>
+          </div>
+          <button class="btn btn-gold btn-sm daily-claim-btn" data-idx="${i}" ${done && !isClaimed ? '' : 'disabled'}>${isClaimed ? '已领取' : (done ? '领取' : '未完成')}</button>
+        </div>
+      `;
+    }).join('');
+
+    overlay.innerHTML = `
+      <div class="modal daily-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">每日仙令</h3>
+          <button class="modal-close" aria-label="关闭">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="daily-modal-points">仙缘点：<strong id="daily-modal-points">${points}</strong></div>
+          <div class="daily-modal-list">${listHtml || '<div style="color:var(--text-muted);text-align:center;padding:12px;">暂无任务</div>'}</div>
+          <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:10px;">提示：任务进度来自“跨游戏统计”，在任意游戏游玩都会自动更新。</div>
+        </div>
+      </div>
+    `;
+
+    overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+  }
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+    const btn = e.target.closest('.daily-claim-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx);
+    const res = DailyMissions.claim(idx);
+    if (res.ok) {
+      if (typeof SoundManager !== 'undefined') SoundManager.play('purchase');
+      showToast('获得 ' + res.reward + ' 仙缘点！', 'success');
+      refreshNavBadge();
+      render();
+    }
+  });
+
+  document.body.appendChild(overlay);
+  refreshNavBadge();
+  render();
 }
 
 /* --- 粒子系统 --- */
@@ -354,6 +491,15 @@ class SettingsModal {
     this.overlay = document.createElement('div');
     this.overlay.className = 'modal-overlay';
 
+    const profile = loadPlayerProfile();
+    const profileHTML = `
+      <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 14px; padding-bottom: 14px;">
+        <label class="form-label">玩家昵称</label>
+        <input type="text" class="form-input" data-profile="name" maxlength="12" value="${escapeHtml(profile.name || '')}" placeholder="用于排行榜显示">
+        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 6px;">跨游戏通用（最多 12 字）</div>
+      </div>
+    `;
+
     let fieldsHTML = '';
     this.schema.forEach(f => {
       let input = '';
@@ -387,7 +533,7 @@ class SettingsModal {
           <h3 class="modal-title">设置</h3>
           <button class="modal-close">&times;</button>
         </div>
-        <div class="modal-body">${fieldsHTML}</div>
+        <div class="modal-body">${profileHTML}${fieldsHTML}</div>
         <div style="border-top: 1px solid var(--border-color); margin: 16px 0; padding-top: 16px;">
           <label class="form-label">数据管理</label>
           <div style="display: flex; gap: 8px; margin-top: 6px;">
@@ -443,6 +589,9 @@ class SettingsModal {
 
   open() {
     // 同步当前值到表单
+    const profileNameEl = this.overlay.querySelector('[data-profile="name"]');
+    if (profileNameEl) profileNameEl.value = loadPlayerProfile().name || '';
+
     this.schema.forEach(f => {
       const el = this.overlay.querySelector(`[data-key="${f.key}"]`);
       if (!el) return;
@@ -461,6 +610,16 @@ class SettingsModal {
   }
 
   save() {
+    const profileNameEl = this.overlay.querySelector('[data-profile="name"]');
+    if (profileNameEl) {
+      const name = String(profileNameEl.value || '').trim().slice(0, 12);
+      const profile = loadPlayerProfile();
+      if ((profile.name || '') !== name) {
+        profile.name = name;
+        savePlayerProfile(profile);
+      }
+    }
+
     this.schema.forEach(f => {
       const el = this.overlay.querySelector(`[data-key="${f.key}"]`);
       if (!el) return;
@@ -653,7 +812,12 @@ function updateLeaderboard(gameKey, score, extra = {}) {
   const key = `leaderboard_${gameKey}`;
   const board = Storage.get(key, []);
   if (!Array.isArray(board)) return;
-  board.push({ score, date: Date.now(), ...extra });
+  const entry = { score, date: Date.now(), ...extra };
+  if (!entry.name) {
+    const autoName = getPlayerName();
+    if (autoName) entry.name = autoName;
+  }
+  board.push(entry);
   board.sort((a, b) => b.score - a.score);
   Storage.set(key, board.slice(0, CONSTANTS.LEADERBOARD_MAX_ENTRIES));
 }
@@ -841,6 +1005,142 @@ window.CrossGameRewards = (function() {
       const rewards = this.getRewardsForGame(gameKey);
       return rewards.filter(r => r.eligible && !r.claimed).length;
     }
+  };
+})();
+
+// ========== 每日仙令（可在任意页面生成/领取）==========
+window.DailyMissions = (function() {
+  const DAILY_KEY = 'daily_missions';
+  const STATS_KEY = 'cross_game_stats';
+
+  function seededRandom(seed) {
+    let s = seed;
+    return function () {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return s / 0x7fffffff;
+    };
+  }
+
+  function getTodaySeed() {
+    const now = new Date();
+    return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+  }
+
+  function shuffle(arr, rng) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function isMaxLikeStat(statKey) {
+    return statKey.includes('max_') || statKey.includes('_gold') || statKey.includes('_best');
+  }
+
+  const MISSION_TEMPLATES = [
+    { game: 'cultivation', icon: '🧘', name: '静心打坐', desc: '在修仙之路中打坐修炼', statKey: 'cultivation_meditate_count', target: 1, reward: 10 },
+    { game: 'cultivation', icon: '⚔️', name: '斩妖除魔', desc: '在修仙之路中击败3个敌人', statKey: 'cultivation_kills', target: 3, reward: 15 },
+    { game: 'cultivation', icon: '💊', name: '炼丹一炉', desc: '在修仙之路中炼制1颗丹药', statKey: 'cultivation_pills_crafted', target: 1, reward: 10 },
+    { game: 'knife', icon: '🗡️', name: '试剑江湖', desc: '在转转刀中进行1局', statKey: 'knife_games_played', target: 1, reward: 10 },
+    { game: 'knife', icon: '💥', name: '十波挑战', desc: '在转转刀中存活到第10波', statKey: 'knife_max_wave', target: 10, reward: 20 },
+    { game: 'cardtower', icon: '🃏', name: '攀塔一试', desc: '挑战斩仙塔1次', statKey: 'cardtower_runs', target: 1, reward: 10 },
+    { game: 'cardbattle', icon: '⚔️', name: '灵卡交锋', desc: '进行1场灵卡对决', statKey: 'cardbattle_games', target: 1, reward: 10 },
+    { game: 'cardcollect', icon: '📖', name: '翻阅仙录', desc: '在仙卡录中抽卡1次', statKey: 'cardcollect_pulls', target: 1, reward: 10 },
+    { game: 'guigu', icon: '⛩️', name: '探索鬼谷', desc: '在鬼谷八荒中探索3个地点', statKey: 'guigu_explored', target: 3, reward: 15 },
+    { game: 'lifesim', icon: '🌙', name: '轮回一生', desc: '在仙途模拟器中活过30岁', statKey: 'lifesim_max_age', target: 30, reward: 15 },
+    { game: 'cultivation', icon: '💰', name: '灵石满袋', desc: '修仙之路中累计拥有500灵石', statKey: 'cultivation_gold', target: 500, reward: 15 },
+    { game: 'guigu', icon: '🗡️', name: '鬼谷斩敌', desc: '在鬼谷八荒中击败2个敌人', statKey: 'guigu_kills', target: 2, reward: 15 },
+    { game: 'guigu', icon: '🐴', name: '骑乘远行', desc: '在鬼谷八荒中骑乘坐骑移动', statKey: 'guigu_mount_rides', target: 1, reward: 10 },
+    { game: 'guigu', icon: '📋', name: '完成悬赏', desc: '在鬼谷八荒中完成1个悬赏', statKey: 'guigu_bounties_done', target: 1, reward: 20 },
+    { game: 'cardbattle', icon: '🏟️', name: '竞技场三胜', desc: '灵卡对决竞技场连胜3场', statKey: 'cardbattle_arena_best', target: 3, reward: 25 },
+    { game: 'cardtower', icon: '🏔️', name: '灵塔十层', desc: '斩仙塔探索到第10层', statKey: 'cardtower_max_floor', target: 10, reward: 20 },
+    { game: 'knife', icon: '💰', name: '淘金猎人', desc: '转转刀单局获得50金币', statKey: 'knife_run_gold', target: 50, reward: 15 },
+    { game: 'lifesim', icon: '🎮', name: '试炼高手', desc: '仙途模拟器试炼小游戏得分6+', statKey: 'lifesim_minigame_score', target: 6, reward: 15 }
+  ];
+
+  function getOrCreateToday() {
+    const seed = getTodaySeed();
+    const todayStr = String(seed);
+    const saved = Storage.get(DAILY_KEY, {});
+    if (saved && saved.seed === todayStr && Array.isArray(saved.missions)) return saved;
+
+    const rng = seededRandom(seed);
+    const shuffled = shuffle(MISSION_TEMPLATES.slice(), rng);
+    const picked = [];
+    const usedGames = {};
+    for (const m of shuffled) {
+      if (picked.length >= 4) break;
+      if (usedGames[m.game]) continue;
+      usedGames[m.game] = true;
+      picked.push({ ...m });
+    }
+
+    const stats = Storage.get(STATS_KEY, {});
+    const baselines = {};
+    picked.forEach(m => {
+      baselines[m.statKey] = stats[m.statKey] || 0;
+    });
+
+    const d = { seed: todayStr, missions: picked, baselines, claimed: [] };
+    Storage.set(DAILY_KEY, d);
+    return d;
+  }
+
+  function getProgress(m, dailyData) {
+    const d = dailyData || getOrCreateToday();
+    const stats = Storage.get(STATS_KEY, {});
+    const baseline = (d.baselines || {})[m.statKey] || 0;
+    const current = stats[m.statKey] || 0;
+    return isMaxLikeStat(m.statKey) ? current : (current - baseline);
+  }
+
+  function claim(idx) {
+    const d = getOrCreateToday();
+    if (!d || !Array.isArray(d.missions)) return { ok: false, reason: 'no_missions' };
+    if (!Array.isArray(d.claimed)) d.claimed = [];
+    if (d.claimed.includes(idx)) return { ok: false, reason: 'claimed' };
+
+    const m = d.missions[idx];
+    if (!m) return { ok: false, reason: 'bad_index' };
+
+    const stats = Storage.get(STATS_KEY, {});
+    const baseline = (d.baselines || {})[m.statKey] || 0;
+    const current = stats[m.statKey] || 0;
+    const progress = isMaxLikeStat(m.statKey) ? current : (current - baseline);
+    if (progress < m.target) return { ok: false, reason: 'not_done' };
+
+    d.claimed.push(idx);
+    if (!d.baselines) d.baselines = {};
+    d.baselines[m.statKey] = current;
+    Storage.set(DAILY_KEY, d);
+
+    stats.xianyuan_points = (stats.xianyuan_points || 0) + (m.reward || 0);
+    Storage.set(STATS_KEY, stats);
+
+    return { ok: true, reward: m.reward || 0, points: stats.xianyuan_points };
+  }
+
+  function getClaimableCount(filterGame) {
+    const d = getOrCreateToday();
+    const claimed = Array.isArray(d.claimed) ? d.claimed : [];
+    let count = 0;
+    d.missions.forEach((m, i) => {
+      if (filterGame && m.game !== filterGame) return;
+      if (claimed.includes(i)) return;
+      const prog = getProgress(m, d);
+      if (prog >= m.target) count++;
+    });
+    return count;
+  }
+
+  return {
+    DAILY_KEY,
+    getOrCreateToday,
+    getProgress,
+    claim,
+    getClaimableCount,
+    isMaxLikeStat,
   };
 })();
 

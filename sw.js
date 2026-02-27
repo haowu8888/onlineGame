@@ -1,6 +1,6 @@
 // 仙界游坊 Service Worker - 离线缓存 / PWA 增强
 // 注意：更新此文件时请同步更新 CACHE_VERSION，确保老缓存能被正确清理。
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `xianjieyoufang-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `xianjieyoufang-runtime-${CACHE_VERSION}`;
 const CDN_CACHE = `xianjieyoufang-cdn-${CACHE_VERSION}`;

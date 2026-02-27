@@ -464,8 +464,17 @@ class GuiguGame {
       activeBounties:[],bountyBoard:[],bountyRefreshDay:0,
       activeNpcQuests:[],completedNpcQuests:[],
       // 坐骑系统 (Phase 4H)
-      ownedMounts:[],activeMount:null
+      ownedMounts:[],activeMount:null,
+      mountFeed:0,mountRides:0,bountiesDone:0
     };
+
+    const ggBonuses = Storage.get('xianyuan_guigu_bonuses', { mountFeed: 0 });
+    if ((ggBonuses.mountFeed || 0) > 0) {
+      this.state.mountFeed += ggBonuses.mountFeed;
+      ggBonuses.mountFeed = 0;
+      Storage.set('xianyuan_guigu_bonuses', ggBonuses);
+    }
+
     this.generateMap();
     this.generateNPCs();
     this.revealFog(7,7,2);
@@ -492,6 +501,17 @@ class GuiguGame {
       if(!this.state.bountyRefreshDay) this.state.bountyRefreshDay=0;
       if(!this.state.activeNpcQuests) this.state.activeNpcQuests=[];
       if(!this.state.completedNpcQuests) this.state.completedNpcQuests=[];
+      if(this.state.mountFeed===undefined) this.state.mountFeed=0;
+      if(this.state.mountRides===undefined) this.state.mountRides=0;
+      if(this.state.bountiesDone===undefined) this.state.bountiesDone=0;
+
+      const ggBonuses = Storage.get('xianyuan_guigu_bonuses', { mountFeed: 0 });
+      if ((ggBonuses.mountFeed || 0) > 0) {
+        this.state.mountFeed += ggBonuses.mountFeed;
+        ggBonuses.mountFeed = 0;
+        Storage.set('xianyuan_guigu_bonuses', ggBonuses);
+        showToast('仙缘兑换生效：坐骑亲密度提升！', 'success', 2000);
+      }
       this.recalcStats();return true;
     }
     return false;
@@ -902,7 +922,18 @@ class GuiguGame {
     this.updateBountyProgress('explore',1);
     this.updateNpcQuestProgress('explore',1);
     let exploreDays=TIME_COSTS.explore;
-    if(s.activeMount){const mt=MOUNTS_MAP[s.activeMount];if(mt)exploreDays=Math.max(1,Math.round(exploreDays*(1-mt.speedBonus)));}
+    if(s.activeMount){
+      const mt=MOUNTS_MAP[s.activeMount];
+      if(mt){
+        // mountFeed: each 10 adds ~1.5% speed (cap 15%)
+        const extra=Math.min(0.15,(s.mountFeed||0)*0.0015);
+        const spd=Math.min(0.7,mt.speedBonus+extra);
+        exploreDays=Math.max(1,Math.round(exploreDays*(1-spd)));
+
+        s.mountRides=(s.mountRides||0)+1;
+        if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_mount_rides',s.mountRides);
+      }
+    }
     this.advanceDays(exploreDays);
     const cell=s.map[y][x];
     const terrain=TERRAIN[cell.terrain];
@@ -1698,6 +1729,7 @@ class GuiguUI {
     this.createStep=0;
     this.createConfig={};
     this._domCache={};
+    this._createOptionListenerBound=false;
     this.init();
   }
 
@@ -1861,22 +1893,26 @@ class GuiguUI {
       this.game.createCharacter(cfg);
       this.startGame();
     });
-    // Option selection via event delegation
-    el.addEventListener('click',e=>{
-      const o=e.target.closest('.spirit-root-option');
-      if(o){cfg.spiritRoot=o.dataset.id;this._renderCreateStep();return}
-      const so=e.target.closest('.sect-option');
-      if(so){cfg.sect=so.dataset.id;this._renderCreateStep();return}
-      const to=e.target.closest('.talent-option');
-      if(to){
-        const id=to.dataset.id;
-        if(cfg.talents.includes(id))cfg.talents=cfg.talents.filter(t=>t!==id);
-        else if(cfg.talents.length<2)cfg.talents.push(id);
-        this._renderCreateStep();return;
-      }
-      const po=e.target.closest('.personality-option');
-      if(po){cfg.personality=po.dataset.id;this._renderCreateStep();return}
-    });
+    // Option selection via event delegation (bind once to avoid duplicate toggles)
+    if(!this._createOptionListenerBound){
+      this._createOptionListenerBound=true;
+      el.addEventListener('click',e=>{
+        const curCfg=this.createConfig;
+        const o=e.target.closest('.spirit-root-option');
+        if(o){curCfg.spiritRoot=o.dataset.id;this._renderCreateStep();return}
+        const so=e.target.closest('.sect-option');
+        if(so){curCfg.sect=so.dataset.id;this._renderCreateStep();return}
+        const to=e.target.closest('.talent-option');
+        if(to){
+          const id=to.dataset.id;
+          if(curCfg.talents.includes(id))curCfg.talents=curCfg.talents.filter(t=>t!==id);
+          else if(curCfg.talents.length<2)curCfg.talents.push(id);
+          this._renderCreateStep();return;
+        }
+        const po=e.target.closest('.personality-option');
+        if(po){curCfg.personality=po.dataset.id;this._renderCreateStep();return}
+      });
+    }
   }
 
   /* === 开始游戏 === */
@@ -2782,6 +2818,12 @@ class GuiguUI {
     el.querySelectorAll('.bounty-claim-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
         if(this.game.claimBounty(btn.dataset.bid)){
+          const s=this.game.state;
+          if(s){
+            s.bountiesDone=(s.bountiesDone||0)+1;
+            if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_bounties_done',s.bountiesDone);
+            this.game.saveGame();
+          }
           showToast('悬赏完成！','success');
           this.renderBountyPanel();
         }
@@ -2798,6 +2840,12 @@ class GuiguUI {
     el.querySelectorAll('.nq-claim-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
         if(this.game.claimNpcQuest(btn.dataset.nid,btn.dataset.tid)){
+          const s=this.game.state;
+          if(s){
+            s.bountiesDone=(s.bountiesDone||0)+1;
+            if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_bounties_done',s.bountiesDone);
+            this.game.saveGame();
+          }
           showToast('委托完成！好感提升！','success');
           this.renderBountyPanel();
         }
@@ -3163,6 +3211,12 @@ class GuiguUI {
       overlay.querySelectorAll('.npc-quest-claim').forEach(btn=>{
         btn.addEventListener('click',()=>{
           if(this.game.claimNpcQuest(btn.dataset.nid,btn.dataset.tid)){
+            const s=this.game.state;
+            if(s){
+              s.bountiesDone=(s.bountiesDone||0)+1;
+              if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_bounties_done',s.bountiesDone);
+              this.game.saveGame();
+            }
             showToast('委托完成！好感提升！','success');
             overlay.querySelector('.modal-body').innerHTML=render();
             bindActs();

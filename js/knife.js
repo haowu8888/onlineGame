@@ -647,12 +647,18 @@
         });
       }
 
-      // 仙缘兑换: 永久加成
-      var knifeBonuses = Storage.get('xianyuan_knife_bonuses', { hp: 0 });
+      // 仙缘兑换：永久加成 / 下局一次性加成
+      var knifeBonuses = Storage.get('xianyuan_knife_bonuses', { hp: 0, heal_next: 0, goldMul: 1 });
       if (knifeBonuses.hp > 0) {
         this.player.hp += knifeBonuses.hp;
         this.player.maxHp += knifeBonuses.hp;
       }
+      if (knifeBonuses.heal_next > 0) {
+        this.player.hp = Math.min(this.player.maxHp, this.player.hp + knifeBonuses.heal_next);
+        knifeBonuses.heal_next = 0;
+        Storage.set('xianyuan_knife_bonuses', knifeBonuses);
+      }
+      this._xianyuanGoldMul = knifeBonuses.goldMul || 1;
 
       this.state = 'playing';
       if (typeof CrossGameAchievements !== 'undefined') {
@@ -1081,10 +1087,10 @@
       filterAlive(this.goldPickups);
 
       if (!this.player.alive) {
-        // 挑战修饰符金币加成
+        // 挑战修饰符金币加成 + 仙缘兑换加成
         let goldMul = 1;
         for (const mod of this.activeModifiers) goldMul *= (mod.goldMul || 1);
-        const finalGold = Math.floor(this.runGold * goldMul);
+        const finalGold = Math.floor(this.runGold * goldMul * (this._xianyuanGoldMul || 1));
         // Save gold earned during this run
         if (finalGold > 0) {
           this.player.goldEarned = finalGold;
@@ -1894,6 +1900,7 @@
         CrossGameAchievements.trackStat('knife_max_wave', this.game.wave);
         CrossGameAchievements.trackStat('knife_max_kills', this.game.player.kills);
         CrossGameAchievements.trackStat('knife_kills', this.game.player.kills);
+        CrossGameAchievements.trackStat('knife_run_gold', this.game.player.goldEarned || 0);
       }
     }
 

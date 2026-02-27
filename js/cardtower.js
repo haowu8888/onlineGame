@@ -2295,6 +2295,7 @@
     }
 
     init() {
+      initNav('cardtower');
       initParticles('#particles', 20);
       this.ui.showScreen('start');
       this.ui.renderLeaderboard();
@@ -2321,12 +2322,19 @@
         });
       }
 
-      // 仙缘兑换: 永久加成
-      var towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0 });
+      // 仙缘兑换：永久加成 / 下局一次性加成
+      var towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0, extraRelicChoices: 0 });
       if (towerBonuses.hp > 0) {
         this.state.hp += towerBonuses.hp;
         this.state.maxHp += towerBonuses.hp;
       }
+      if (towerBonuses.heal_next > 0) {
+        this.state.hp = Math.min(this.state.maxHp, this.state.hp + towerBonuses.heal_next);
+        towerBonuses.heal_next = 0;
+      }
+      this.state._xianyuanExtraRelicChoices = Math.max(0, towerBonuses.extraRelicChoices || 0);
+      if (towerBonuses.extraRelicChoices) towerBonuses.extraRelicChoices = 0;
+      Storage.set('xianyuan_tower_bonuses', towerBonuses);
 
       this.ui.showScreen('game');
       this.ui.logMessage('仙塔之旅开始...', '');
@@ -2346,6 +2354,13 @@
 
     startCurrentNode() {
       const s = this.state;
+
+      // Daily/achievement stat: node reached (1-based, 4 nodes per floor)
+      if (typeof CrossGameAchievements !== 'undefined') {
+        const nodeNum = s.floorIndex * 4 + s.nodeIndex + 1;
+        CrossGameAchievements.trackStat('cardtower_max_floor', nodeNum);
+      }
+
       const floor = FLOORS[s.floorIndex];
       if (!floor) {
         // All floors cleared -- victory!
@@ -2475,13 +2490,15 @@
         this.ui.showRestShop();
         return;
       }
-      // Shuffle and pick 3
+      // Shuffle and pick 3 (+ 仙缘兑换额外选项)
       const shuffled = [...available];
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
-      const choices = shuffled.slice(0, 3);
+      const extraChoices = Math.min(3, Math.max(0, s._xianyuanExtraRelicChoices || 0));
+      const choices = shuffled.slice(0, 3 + extraChoices);
+      if (extraChoices > 0) s._xianyuanExtraRelicChoices = 0;
       this.pendingRelicChoices = choices;
       this.ui.showRelicReward(choices);
     }

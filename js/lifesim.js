@@ -3076,6 +3076,9 @@
       document.body.appendChild(overlay);
 
       const finishMinigame = (score, maxScore) => {
+        if (typeof CrossGameAchievements !== 'undefined') {
+          CrossGameAchievements.trackStat('lifesim_minigame_score', score);
+        }
         const pct = score / maxScore;
         let reward = '';
         if (pct >= 0.8) {
