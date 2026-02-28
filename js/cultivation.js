@@ -92,6 +92,17 @@
       });
     },
 
+    showForgeAnimation() {
+      if (!_animationsEnabled()) return Promise.resolve();
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'alchemy-process-overlay';
+        overlay.innerHTML = '<div class="forge-anim">⚒️</div><div class="forge-sparks">✨✨✨</div><div class="alchemy-process-text">炼器中...</div>';
+        document.body.appendChild(overlay);
+        setTimeout(() => { overlay.remove(); resolve(); }, 1500);
+      });
+    },
+
     lootCard(icon, text) {
       const card = document.createElement('div');
       card.className = 'loot-card';
@@ -985,6 +996,7 @@
         totalForges: 0,
         hasForgedEpic: false,
         // 第四期新系统
+        sectExp: 0,
         sectContribution: 0,
         sectTrainingEnd: 0,
         sectTrainingMul: 1,
@@ -1002,6 +1014,8 @@
         npcFavor: {},
         npcDailyTalks: {},
         npcDailyGifts: {},
+        npcDailyRumors: {},
+        npcDailyPractice: {},
         npcTeachings: [],
         adventureProgress: {},
         adventureCompleted: [],
@@ -1061,6 +1075,7 @@
       if (this.data.hasForgedEpic === undefined) this.data.hasForgedEpic = false;
       // 四期新系统迁移
       if (this.data.inventory.capture_talisman === undefined) this.data.inventory.capture_talisman = 0;
+      if (this.data.sectExp === undefined) this.data.sectExp = 0;
       if (this.data.sectContribution === undefined) this.data.sectContribution = 0;
       if (this.data.sectTrainingEnd === undefined) this.data.sectTrainingEnd = 0;
       if (this.data.sectTrainingMul === undefined) this.data.sectTrainingMul = 1;
@@ -1077,6 +1092,8 @@
       if (!this.data.npcFavor) this.data.npcFavor = {};
       if (!this.data.npcDailyTalks) this.data.npcDailyTalks = {};
       if (!this.data.npcDailyGifts) this.data.npcDailyGifts = {};
+      if (!this.data.npcDailyRumors) this.data.npcDailyRumors = {};
+      if (!this.data.npcDailyPractice) this.data.npcDailyPractice = {};
       if (!this.data.npcTeachings) this.data.npcTeachings = [];
       if (!this.data.adventureProgress) this.data.adventureProgress = {};
       if (!this.data.adventureCompleted) this.data.adventureCompleted = [];
@@ -2396,6 +2413,7 @@
       for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
       const selected = shuffled.slice(0, 3);
       const realmMul = 1 + this.data.realm * 0.5;
+      const rewardSectExp = 10 + this.data.realm * 5;
       this.data.dailyQuests = selected.map(qt => ({
         id: qt.id,
         name: qt.name,
@@ -2405,6 +2423,7 @@
         progress: 0,
         rewardGold: Math.floor(qt.rewardGold * realmMul),
         rewardExp: Math.floor(qt.rewardExp * realmMul),
+        rewardSectExp,
         claimed: false,
       }));
       this.data.questProgress = {};
@@ -2441,9 +2460,10 @@
       this.data.gold += quest.rewardGold;
       this.data.exp += quest.rewardExp;
       this.data.totalExp += quest.rewardExp;
-      // 额外宗门贡献
-      const contrib = 10 + this.data.realm * 5;
-      this.data.sectContribution = (this.data.sectContribution || 0) + contrib;
+      // 宗门经验 + 贡献
+      const sectExp = quest.rewardSectExp !== undefined ? quest.rewardSectExp : (10 + this.data.realm * 5);
+      this.data.sectExp = (this.data.sectExp || 0) + sectExp;
+      this.data.sectContribution = (this.data.sectContribution || 0) + sectExp;
       this.save();
       return true;
     }
@@ -2552,6 +2572,7 @@
       const keptRebirthCount = d.rebirthCount + 1;
       const keptTribulationPassed = d.tribulationPassed;
       // 保留宗门数据
+      const keptSectExp = Math.floor((d.sectExp || 0) * 0.5);
       const keptSectContribution = Math.floor((d.sectContribution || 0) * 0.5);
       const keptSectShopPurchased = [...(d.sectShopPurchased || [])];
       const keptSectPermBonuses = { ...(d.sectPermBonuses || {}) };
@@ -2596,6 +2617,7 @@
       d.totalForges = 0;
       d.hasForgedEpic = false;
       // 宗门：贡献保留50%，永久加成和已购商品完整保留，修炼室/大比状态重置
+      d.sectExp = keptSectExp;
       d.sectContribution = keptSectContribution;
       d.sectShopPurchased = keptSectShopPurchased;
       d.sectPermBonuses = keptSectPermBonuses;
@@ -2612,6 +2634,8 @@
       d.npcFavor = keptNpcFavor;
       d.npcDailyTalks = {};
       d.npcDailyGifts = {};
+      d.npcDailyRumors = {};
+      d.npcDailyPractice = {};
       d.npcTeachings = keptNpcTeachings;
       d.adventureProgress = {};
       d.adventureCompleted = keptAdventureCompleted;
@@ -2957,6 +2981,68 @@
       return { success: true, dialogue, favorGain: gain, remaining: 3 - talked - 1 };
     }
 
+    askNpcRumor(npcId) {
+      const npc = NPC_DATA_MAP[npcId];
+      if (!npc) return { success: false, reason: 'NPC不存在' };
+      if (this._getNpcFavor(npcId) < 20) return { success: false, reason: '好感度不足(需要认识)' };
+      const today = this._getTodayKey();
+      if (!this.data.npcDailyRumors) this.data.npcDailyRumors = {};
+      const key = `${npcId}_${today}`;
+      const used = this.data.npcDailyRumors[key] || 0;
+      if (used >= 2) return { success: false, reason: '今日打听次数已满(2/2)' };
+      this.data.npcDailyRumors[key] = used + 1;
+
+      const favorGain = 1;
+      const insightGain = randomInt(1, 3);
+      this._addFavor(npcId, favorGain);
+      this.data.insight = (this.data.insight || 0) + insightGain;
+
+      // Prefer location-specific hints (available adventure)
+      const adventures = this.getAvailableAdventures();
+      let rumor = '';
+      if (adventures.length > 0) {
+        const adv = pick(adventures);
+        const loc = MAP_LOCATIONS.find(l => l.id === adv.triggerLocation);
+        rumor = `听说“${loc ? loc.name : '此地'}”近日异象频现，或许有奇遇：${adv.name}。`;
+      } else {
+        const reachable = MAP_LOCATIONS.filter(l => this.data.realm >= l.minRealm);
+        const loc = pick(reachable);
+        rumor = pick([
+          `有人说${loc.name}的灵气最近格外浓郁，适合修炼。`,
+          `坊间传闻：高境界突破前多积累悟道值，成功率会更稳。`,
+          `小道消息：切磋与送礼都能提升好感度，关系好能学到真东西。`,
+        ]);
+      }
+
+      this.save();
+      return { success: true, rumor, favorGain, insightGain, remaining: 2 - used - 1 };
+    }
+
+    practiceWithNpc(npcId) {
+      const npc = NPC_DATA_MAP[npcId];
+      if (!npc) return { success: false, reason: 'NPC不存在' };
+      if (this._getNpcFavor(npcId) < 40) return { success: false, reason: '好感度不足(需要友好)' };
+      const today = this._getTodayKey();
+      if (!this.data.npcDailyPractice) this.data.npcDailyPractice = {};
+      const key = `${npcId}_${today}`;
+      if (this.data.npcDailyPractice[key]) return { success: false, reason: '今日已请教过一次' };
+
+      const cost = 100 + this.data.realm * 60;
+      if (this.data.gold < cost) return { success: false, reason: '灵石不足' };
+      this.data.gold -= cost;
+      this.data.npcDailyPractice[key] = true;
+
+      const expGain = Math.floor(this.getExpRate() * 20);
+      const insightGain = randomInt(1, 2);
+      const favorGain = 2;
+      this.data.exp += expGain;
+      this.data.totalExp += expGain;
+      this.data.insight = (this.data.insight || 0) + insightGain;
+      this._addFavor(npcId, favorGain);
+      this.save();
+      return { success: true, cost, expGain, insightGain, favorGain };
+    }
+
     giveGiftToNpc(npcId, itemId) {
       const npc = NPC_DATA_MAP[npcId];
       if (!npc) return { success: false, reason: 'NPC不存在' };
@@ -3188,6 +3274,8 @@
       this._initStatusBarCache();
       this.eventPaused = false;
       this._autoBattleInterval = null;
+      this._worldMapCollapsed = false;
+      this._worldScrollToActions = false;
       // Cache frequently-accessed panel elements
       this._panels = {};
 
@@ -3956,8 +4044,9 @@
         const craftBtns = detailEl.querySelectorAll('[data-craft]');
         craftBtns.forEach(btn => {
           if (!this.game.canCraft(r.id)) return;
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', async () => {
             if (!selectedRecipe) return;
+            await Effects.showCauldronAnimation();
             const countStr = btn.dataset.craft;
             let count = countStr === 'all' ? 99 : parseInt(countStr);
             let success = 0, fail = 0;
@@ -4028,8 +4117,9 @@
         const forgeBtns = detailEl.querySelectorAll('[data-forge-craft]');
         forgeBtns.forEach(btn => {
           if (!this.game.canForge(r.id)) return;
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', async () => {
             if (!selectedForge) return;
+            await Effects.showForgeAnimation();
             const countStr = btn.dataset.forgeCraft;
             let count = countStr === 'all' ? 99 : parseInt(countStr);
             let success = 0, fail = 0, bestQuality = '', bestEnhance = 0;
@@ -4488,9 +4578,14 @@
       const d = this.game.data;
       const sect = SECTS_MAP[d.sect];
       const contribution = d.sectContribution || 0;
+      const sectExp = d.sectExp || 0;
 
       let html = `<h3 style="color:var(--gold);margin-bottom:4px;">${sect.icon} ${sect.name} - 宗门</h3>`;
-      html += `<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">贡献值：<strong style="color:var(--gold);">${contribution}</strong></p>`;
+      html += `<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">
+        宗门经验：<strong style="color:var(--cyan);">${sectExp}</strong>
+        <span style="margin:0 6px;color:var(--text-muted);">|</span>
+        贡献值：<strong style="color:var(--gold);">${contribution}</strong>
+      </p>`;
       html += '<div class="sect-panel-grid">';
 
       // 1. 捐赠区域
@@ -4762,7 +4857,10 @@
 
       const render = () => {
         overlay.innerHTML = `<div class="event-modal" style="max-width:480px;">
-          <h3 style="color:var(--gold);margin-bottom:8px;">灵气吐纳</h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+            <h3 style="color:var(--gold);margin:0;">灵气吐纳</h3>
+            <button class="btn btn-outline btn-sm" id="med-exit" style="padding:4px 10px;">✕</button>
+          </div>
           <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">点击灵气光环当其到达最佳区域（金色圈内），获得修炼加成</p>
           <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">
             <span>得分: <strong style="color:var(--gold);">${mg.score}</strong></span>
@@ -4773,7 +4871,14 @@
           <div class="meditation-arena" id="med-arena" style="position:relative;width:100%;height:260px;background:radial-gradient(circle,rgba(74,218,212,0.05) 0%,rgba(13,17,23,0.4) 70%);border-radius:var(--radius-md);border:1px solid var(--border-color);overflow:hidden;cursor:pointer;"></div>
           <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted);text-align:center;" id="med-feedback"></div>
         </div>`;
-        document.body.appendChild(overlay);
+        if (!overlay.isConnected) document.body.appendChild(overlay);
+
+        overlay.querySelector('#med-exit')?.addEventListener('click', () => {
+          mg.active = false;
+          if (mg.spawnTimer) clearTimeout(mg.spawnTimer);
+          overlay.remove();
+          this.renderCultivatePanel();
+        });
 
         const arena = overlay.querySelector('#med-arena');
         let spawnCount = 0;
@@ -4901,6 +5006,8 @@
 
           overlay.querySelector('#med-close').addEventListener('click', () => {
             overlay.remove();
+            this.game.save();
+            this.renderStatusBar();
             this.renderCultivatePanel();
           });
         };
@@ -5000,7 +5107,7 @@
           <div class="quest-desc">${q.desc}</div>
           <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${pct}%"></div></div>
           <div class="quest-progress-text">${q.progress}/${q.target}</div>
-          <div class="quest-reward">奖励: ${q.rewardGold}灵石 ${q.rewardExp}修为</div>
+          <div class="quest-reward">奖励: ${q.rewardGold}灵石 ${q.rewardExp}修为 宗门经验+${q.rewardSectExp || (10 + d.realm * 5)}</div>
           ${q.claimed ? '<div class="quest-status">已领取</div>' : done ? `<button class="btn btn-gold btn-xs quest-claim-btn" data-quest="${i}">领取</button>` : ''}
         </div>`;
       }
@@ -5083,161 +5190,8 @@
           callback(btn.dataset.pill === 'none' ? null : btn.dataset.pill);
         });
       });
-      document.getElementById('pill-cancel').addEventListener('click', () => modal.remove());
+      modal.querySelector('#pill-cancel')?.addEventListener('click', () => modal.remove());
       modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-    }
-
-    // --- 天劫小游戏 ---
-    _showMeditationMinigame() {
-      const overlay = document.createElement('div');
-      overlay.className = 'event-modal-overlay';
-      const d = this.game.data;
-      const rate = this.game.getExpRate();
-
-      // 游戏参数
-      const GAME_TIME = 20; // 20秒
-      const ORB_INTERVAL = 600; // ms between orbs
-      const COLS = 5;
-      const BAD_CHANCE = 0.2 + d.realm * 0.02;
-
-      let score = 0;
-      let combo = 0;
-      let maxCombo = 0;
-      let timeLeft = GAME_TIME;
-      let orbs = [];
-      let orbId = 0;
-      let running = false;
-      let orbTimer = null;
-      let tickTimer = null;
-      let playerCol = 2;
-
-      const render = () => {
-        const orbsHtml = orbs.map(o => {
-          const leftPct = (o.col / COLS * 100) + (100 / COLS / 2) - 5;
-          return `<div class="mg-orb ${o.bad ? 'mg-orb-bad' : 'mg-orb-good'}" style="left:${leftPct}%;top:${o.y}%">${o.bad ? '💀' : '✨'}</div>`;
-        }).join('');
-
-        const colPct = (playerCol / COLS * 100) + (100 / COLS / 2) - 6;
-        const comboText = combo >= 3 ? ` x${combo}连` : '';
-
-        overlay.innerHTML = `<div class="event-modal" style="max-width:400px;">
-          <h3 style="color:var(--gold);margin-bottom:8px;">灵气吐纳</h3>
-          <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:8px;">
-            <span>灵气：<strong style="color:#4adad4;">${score}</strong></span>
-            <span>连击：<strong style="color:${combo>=5?'#ff4444':combo>=3?'#ffa500':'#ccc'}">${combo}${comboText}</strong></span>
-            <span>时间：<strong style="color:${timeLeft<=5?'#ff4444':'#ccc'}">${timeLeft}s</strong></span>
-          </div>
-          <div class="mg-field" style="position:relative;width:100%;height:300px;background:linear-gradient(180deg,#0a0f1a,#1a2a3a);border-radius:8px;overflow:hidden;border:1px solid var(--border-color);">
-            ${orbsHtml}
-            <div class="mg-catcher" style="position:absolute;bottom:8px;left:${colPct}%;width:12%;height:30px;background:linear-gradient(#ffd700,#d4a44a);border-radius:6px;text-align:center;line-height:30px;font-size:1.2rem;transition:left 0.1s;">🧘</div>
-            <div style="position:absolute;bottom:42px;left:0;right:0;height:1px;border-top:1px dashed rgba(255,215,0,0.2);"></div>
-          </div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">← → 或 A D 移动 | 接住✨灵气，躲避💀心魔</div>
-        </div>`;
-      };
-
-      const spawnOrb = () => {
-        if (!running) return;
-        const col = Math.floor(Math.random() * COLS);
-        const bad = Math.random() < BAD_CHANCE;
-        orbs.push({ id: orbId++, col, y: -5, bad });
-      };
-
-      const updateOrbs = () => {
-        if (!running) return;
-        const catchZone = 88;
-        orbs = orbs.filter(o => {
-          o.y += 3.5;
-          if (o.y >= catchZone && o.y <= catchZone + 12 && o.col === playerCol) {
-            if (o.bad) {
-              combo = 0;
-              score = Math.max(0, score - 3);
-              if (typeof SoundManager !== 'undefined') SoundManager.play('fail');
-            } else {
-              combo++;
-              maxCombo = Math.max(maxCombo, combo);
-              const pts = combo >= 5 ? 3 : combo >= 3 ? 2 : 1;
-              score += pts;
-              if (typeof SoundManager !== 'undefined') SoundManager.play('success');
-            }
-            return false;
-          }
-          if (o.y > 105) {
-            if (!o.bad) combo = 0; // miss good orb breaks combo
-            return false;
-          }
-          return true;
-        });
-        render();
-      };
-
-      const endGame = () => {
-        running = false;
-        clearInterval(orbTimer);
-        clearInterval(tickTimer);
-        document.removeEventListener('keydown', onKey);
-
-        const expBonus = Math.floor(score * rate * 2);
-        const insightBonus = Math.floor(score * 0.3);
-        d.exp += expBonus;
-        d.totalExp += expBonus;
-        d.insight = (d.insight || 0) + insightBonus;
-
-        overlay.innerHTML = `<div class="event-modal" style="max-width:380px;">
-          <h3 style="color:var(--gold);margin-bottom:12px;">吐纳完毕</h3>
-          <div style="text-align:center;">
-            <div style="font-size:2rem;margin-bottom:8px;">🧘</div>
-            <div style="margin-bottom:6px;">收集灵气：<strong style="color:#4adad4;">${score}</strong></div>
-            <div style="margin-bottom:6px;">最高连击：<strong style="color:#ffa500;">${maxCombo}</strong></div>
-            <div style="margin-bottom:6px;">获得修为：<strong style="color:var(--gold);">+${formatNumber(expBonus)}</strong></div>
-            <div style="margin-bottom:12px;">获得悟道：<strong style="color:#a855f7;">+${insightBonus}</strong></div>
-          </div>
-          <button class="btn btn-gold btn-sm" id="mg-close">确定</button>
-        </div>`;
-
-        overlay.querySelector('#mg-close').addEventListener('click', () => {
-          overlay.remove();
-          this.game.save();
-          this.renderStatusBar();
-          this.renderCultivatePanel();
-        });
-      };
-
-      const onKey = (e) => {
-        if (!running) return;
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-          playerCol = Math.max(0, playerCol - 1);
-          render();
-        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-          playerCol = Math.min(COLS - 1, playerCol + 1);
-          render();
-        }
-      };
-
-      // Touch support
-      overlay.addEventListener('click', (e) => {
-        if (!running) return;
-        const field = overlay.querySelector('.mg-field');
-        if (!field) return;
-        const rect = field.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const col = Math.floor(x / rect.width * COLS);
-        if (col >= 0 && col < COLS) { playerCol = col; render(); }
-      });
-
-      document.addEventListener('keydown', onKey);
-      document.body.appendChild(overlay);
-
-      // Start countdown
-      running = true;
-      render();
-      orbTimer = setInterval(spawnOrb, ORB_INTERVAL);
-      tickTimer = setInterval(() => {
-        if (!running) return;
-        updateOrbs();
-        timeLeft--;
-        if (timeLeft <= 0) endGame();
-      }, 200);
     }
 
     _showBreakthroughTrial(onSuccess) {
@@ -5504,24 +5458,34 @@
         </div>
       </div>`;
 
-      // Region Map
-      const regions = ['凡人域', '修仙界', '秘境', '仙域', '特殊'];
-      for (const region of regions) {
-        const locs = MAP_LOCATIONS.filter(l => l.region === region);
-        html += `<div class="world-region"><div class="world-region-title">${region}</div><div class="world-region-grid">`;
-        for (const loc of locs) {
-          const locked = d.realm < loc.minRealm;
-          const isCurrent = d.currentLocation === loc.id;
-          const canReach = curLoc && curLoc.connectedTo.includes(loc.id);
-          const cls = isCurrent ? 'current' : (locked ? 'locked' : '');
-          html += `<div class="world-node ${cls}" data-loc="${loc.id}">
-            <div class="world-node-icon">${loc.icon}</div>
-            <div class="world-node-name">${loc.name}</div>
-            ${locked ? `<div class="world-node-lock">🔒 需${REALMS[loc.minRealm].name}</div>` : ''}
-            ${!locked && !isCurrent && !canReach ? '<div class="world-node-lock" style="color:var(--text-muted)">不相邻</div>' : ''}
-          </div>`;
+      // Map toolbar + Region Map
+      html += `<div style="display:flex;justify-content:flex-end;margin:8px 0 12px;">
+        <button class="btn btn-outline btn-sm" id="btn-world-map-toggle">${this._worldMapCollapsed ? '展开地点列表' : '收起地点列表'}</button>
+      </div>`;
+
+      if (!this._worldMapCollapsed) {
+        const regions = ['凡人域', '修仙界', '秘境', '仙域', '特殊'];
+        for (const region of regions) {
+          const locs = MAP_LOCATIONS.filter(l => l.region === region);
+          html += `<div class="world-region"><div class="world-region-title">${region}</div><div class="world-region-grid">`;
+          for (const loc of locs) {
+            const locked = d.realm < loc.minRealm;
+            const isCurrent = d.currentLocation === loc.id;
+            const canReach = curLoc && curLoc.connectedTo.includes(loc.id);
+            const cls = isCurrent ? 'current' : (locked ? 'locked' : '');
+            html += `<div class="world-node ${cls}" data-loc="${loc.id}">
+              <div class="world-node-icon">${loc.icon}</div>
+              <div class="world-node-name">${loc.name}</div>
+              ${locked ? `<div class="world-node-lock">🔒 需${REALMS[loc.minRealm].name}</div>` : ''}
+              ${!locked && !isCurrent && !canReach ? '<div class="world-node-lock" style="color:var(--text-muted)">不相邻</div>' : ''}
+            </div>`;
+          }
+          html += '</div></div>';
         }
-        html += '</div></div>';
+      } else {
+        html += `<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px;text-align:right;">
+          地点列表已收起（需要更换地点请展开）
+        </div>`;
       }
 
       // Actions Panel - Card Style
@@ -5617,12 +5581,22 @@
       panel.innerHTML = html;
 
       // Event listeners
+      const toggleBtn = panel.querySelector('#btn-world-map-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          this._worldMapCollapsed = !this._worldMapCollapsed;
+          this.renderWorldPanel();
+        });
+      }
+
       panel.querySelectorAll('.world-node:not(.locked)').forEach(node => {
         node.addEventListener('click', () => {
           const locId = node.dataset.loc;
           if (locId === d.currentLocation) return;
           const result = this.game.travelTo(locId);
           if (result.success) {
+            this._worldMapCollapsed = true;
+            this._worldScrollToActions = true;
             this.renderWorldPanel();
             this.renderStatusBar();
             showToast(`到达 ${MAP_LOCATIONS.find(l => l.id === locId).name}`, 'info');
@@ -5693,6 +5667,11 @@
           }
         });
       }
+
+      if (this._worldScrollToActions) {
+        this._worldScrollToActions = false;
+        setTimeout(() => panel.querySelector('.world-actions')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+      }
     }
 
     // ==================== 世界教程弹窗 ====================
@@ -5725,6 +5704,9 @@
       const today = this.game._getTodayKey();
       const talksUsed = (d.npcDailyTalks && d.npcDailyTalks[`${npcId}_${today}`]) || 0;
       const giftGiven = d.npcDailyGifts && d.npcDailyGifts[`${npcId}_${today}`];
+      const rumorsUsed = (d.npcDailyRumors && d.npcDailyRumors[`${npcId}_${today}`]) || 0;
+      const practiceUsed = d.npcDailyPractice && d.npcDailyPractice[`${npcId}_${today}`];
+      const practiceCost = 100 + d.realm * 60;
       const hasTeaching = npc.teachSkill && !((d.npcTeachings || []).includes(npc.teachSkill.id));
       const alreadyLearned = npc.teachSkill && (d.npcTeachings || []).includes(npc.teachSkill.id);
       const isCompanion = d.companion && d.companion.npcId === npcId;
@@ -5751,6 +5733,10 @@
           <div class="npc-action-row">
             <button class="btn btn-cyan btn-sm" id="npc-talk-btn" ${talksUsed >= 3 ? 'disabled' : ''}>💬 对话 (${3 - talksUsed}/3)</button>
             <button class="btn btn-gold btn-sm" id="npc-gift-btn" ${favor < 20 || giftGiven ? 'disabled' : ''}>🎁 送礼 ${favor < 20 ? '(需认识)' : giftGiven ? '(今日已送)' : ''}</button>
+          </div>
+          <div class="npc-action-row">
+            <button class="btn btn-outline btn-sm" id="npc-rumor-btn" ${favor < 20 || rumorsUsed >= 2 ? 'disabled' : ''}>🕵️ 打听传闻 (${2 - rumorsUsed}/2)</button>
+            <button class="btn btn-outline btn-sm" id="npc-practice-btn" ${favor < 40 || practiceUsed || d.gold < practiceCost ? 'disabled' : ''}>🧠 请教修炼 ${favor < 40 ? '(需友好)' : practiceUsed ? '(今日已请教)' : d.gold < practiceCost ? '(灵石不足)' : `(${practiceCost}灵石)`}</button>
           </div>
           <div class="npc-action-row">
             ${npc.sparPower > 0 ? `<button class="btn btn-outline btn-sm" id="npc-spar-btn" ${favor < 40 ? 'disabled' : ''}>⚔️ 切磋 ${favor < 40 ? '(需友好)' : ''}</button>` : ''}
@@ -5782,6 +5768,33 @@
         } else {
           showToast(result.reason, 'warning');
         }
+      });
+
+      overlay.querySelector('#npc-rumor-btn')?.addEventListener('click', () => {
+        const result = this.game.askNpcRumor(npcId);
+        if (!result.success) { showToast(result.reason, 'warning'); return; }
+        dialogueArea.innerHTML = `<div class="npc-dialogue">"${escapeHtml(result.rumor)}"</div>
+          <div style="font-size:0.75rem;color:var(--cyan);margin-top:4px;">悟道 +${result.insightGain} | 好感度 +${result.favorGain}</div>`;
+        const used = (this.game.data.npcDailyRumors && this.game.data.npcDailyRumors[`${npcId}_${today}`]) || 0;
+        const rumorBtn = overlay.querySelector('#npc-rumor-btn');
+        if (rumorBtn) {
+          rumorBtn.textContent = `🕵️ 打听传闻 (${Math.max(0, 2 - used)}/2)`;
+          rumorBtn.disabled = used >= 2;
+        }
+        this.renderStatusBar();
+      });
+
+      overlay.querySelector('#npc-practice-btn')?.addEventListener('click', () => {
+        const result = this.game.practiceWithNpc(npcId);
+        if (!result.success) { showToast(result.reason, 'warning'); return; }
+        dialogueArea.innerHTML = `<div class="npc-dialogue">"${escapeHtml(npc.name)}指点了你几句修炼要诀，你对灵气运转的理解更深了。"</div>
+          <div style="font-size:0.75rem;color:var(--gold);margin-top:4px;">修为 +${formatNumber(result.expGain)} | 悟道 +${result.insightGain} | 好感度 +${result.favorGain}（花费${result.cost}灵石）</div>`;
+        const pracBtn = overlay.querySelector('#npc-practice-btn');
+        if (pracBtn) {
+          pracBtn.textContent = '🧠 请教修炼 (今日已请教)';
+          pracBtn.disabled = true;
+        }
+        this.renderStatusBar();
       });
 
       overlay.querySelector('#npc-gift-btn')?.addEventListener('click', () => {
@@ -6039,9 +6052,26 @@
         <div class="event-icon">${event.icon}</div>
         <div class="event-title">${event.name}</div>
         <div class="event-desc">${event.desc}</div>
-        <div class="event-choices">${event.options.map((o, i) => `<button class="event-choice-btn" data-choice="${i}">${o.text}</button>`).join('')}</div>
+        <div class="event-choices">
+          ${event.options.map((o, i) => `<button class="event-choice-btn" data-choice="${i}">${o.text}</button>`).join('')}
+          ${fromInbox ? '' : '<button class="event-choice-btn" id="event-defer" style="opacity:0.85;">稍后处理（加入事件簿）</button>'}
+        </div>
       </div>`;
       document.body.appendChild(overlay);
+
+      const deferBtn = overlay.querySelector('#event-defer');
+      if (deferBtn) {
+        deferBtn.addEventListener('click', () => {
+          if (!this.game.data.eventInbox) this.game.data.eventInbox = [];
+          this.game.data.eventInbox.push({ id: event.id, name: event.name, icon: event.icon, time: Date.now() });
+          this.game.save();
+          this._updateInboxBadge();
+          overlay.remove();
+          this.eventPaused = false;
+          showToast('已加入事件簿，可稍后处理', 'info');
+          this.renderStatusBar();
+        });
+      }
 
       overlay.querySelectorAll('[data-choice]').forEach(btn => {
         btn.addEventListener('click', () => {

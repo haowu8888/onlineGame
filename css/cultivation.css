@@ -1113,6 +1113,34 @@
   100% { transform: scaleY(1.2) scaleX(0.9); opacity: 1; }
 }
 
+/* --- 炼器动画 --- */
+.forge-anim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  animation: forgeHammer 0.28s ease-in-out infinite alternate;
+  margin: 20px auto;
+}
+
+@keyframes forgeHammer {
+  0% { transform: rotate(-8deg) translateY(0); }
+  100% { transform: rotate(10deg) translateY(-6px); }
+}
+
+.forge-sparks {
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  margin-top: -10px;
+  animation: forgeSpark 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes forgeSpark {
+  0% { transform: scale(0.9); opacity: 0.65; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
 /* --- 炼丹成功/失败 --- */
 .alchemy-success {
   animation: alchemySuccess 0.6s ease-out;
