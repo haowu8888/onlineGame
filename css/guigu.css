@@ -27,7 +27,7 @@
 .spirit-root-option.selected, .sect-option.selected, .talent-option.selected, .personality-option.selected {
   border-color: var(--gold); box-shadow: 0 0 12px rgba(212,164,74,0.25); background: rgba(212,164,74,0.08);
 }
-.talent-option.disabled { opacity: 0.4; pointer-events: none; }
+.talent-option.disabled { opacity: 0.4; cursor: not-allowed; }
 .option-icon { font-size: 1.5rem; margin-bottom: 4px; }
 .option-name { color: var(--gold); font-weight: bold; font-size: 0.9rem; margin-bottom: 4px; }
 .option-desc { color: var(--text-secondary); font-size: 0.75rem; line-height: 1.4; }
@@ -127,8 +127,9 @@
 .breakthrough-section h3 { color: var(--gold); margin-bottom: 12px; }
 .breakthrough-info { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; }
 .breakthrough-btn { width: 100%; padding: 12px; background: var(--gradient-gold); color: var(--bg-primary); border: none; border-radius: var(--radius-md); font-size: 1rem; font-weight: 600; font-family: var(--font-display); cursor: pointer; transition: all var(--transition-fast); }
-.breakthrough-btn:hover:not(:disabled) { box-shadow: var(--shadow-gold); transform: translateY(-1px); }
-.breakthrough-btn:disabled { opacity: 0.4; cursor: not-allowed; background: var(--bg-card); color: var(--text-muted); }
+.breakthrough-btn:hover:not(:disabled):not([aria-disabled="true"]) { box-shadow: var(--shadow-gold); transform: translateY(-1px); }
+.breakthrough-btn:disabled,
+.breakthrough-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; background: var(--bg-card); color: var(--text-muted); }
 .cult-log { margin-top: 16px; max-height: 200px; overflow-y: auto; background: var(--bg-primary); border-radius: var(--radius-md); padding: 8px; }
 .cult-log-entry { padding: 3px 0; font-size: 0.75rem; color: var(--text-secondary); border-bottom: 1px dashed rgba(255,255,255,0.03); }
 
@@ -245,7 +246,7 @@
 .npc-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
 .npc-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: all var(--transition-fast); }
 .npc-card:hover { border-color: var(--gold-dark); transform: translateY(-2px); box-shadow: 0 0 12px rgba(212, 164, 74, 0.15); }
-.npc-card.dead { opacity: 0.4; filter: grayscale(0.8); pointer-events: none; }
+.npc-card.dead { opacity: 0.4; filter: grayscale(0.8); cursor: not-allowed; }
 .npc-card .npc-name { font-weight: bold; color: var(--text-primary); margin-bottom: 4px; }
 .npc-card .npc-realm { font-size: 0.8rem; color: var(--purple-light); }
 .npc-card .npc-age { font-size: 0.75rem; color: var(--text-muted); }
@@ -409,9 +410,10 @@
 .battle-btn.btn-skill { background: rgba(74,218,212,0.15); border-color: var(--cyan); color: var(--cyan-light); }
 .battle-btn.btn-potion { background: rgba(74,212,106,0.15); border-color: var(--green); color: var(--green-light); }
 .battle-btn.btn-flee { background: rgba(160,147,125,0.15); border-color: var(--text-secondary); color: var(--text-secondary); }
-.battle-btn:hover:not(:disabled) { filter: brightness(1.3); transform: translateY(-1px); }
-.battle-btn:active:not(:disabled) { transform: scale(0.93); }
-.battle-btn:disabled { opacity: 0.35; cursor: not-allowed; filter: grayscale(0.5) contrast(0.8); }
+.battle-btn:hover:not(:disabled):not([aria-disabled="true"]) { filter: brightness(1.3); transform: translateY(-1px); }
+.battle-btn:active:not(:disabled):not([aria-disabled="true"]) { transform: scale(0.93); }
+.battle-btn:disabled,
+.battle-btn[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; filter: grayscale(0.5) contrast(0.8); }
 .battle-result { text-align: center; padding: 16px; }
 .battle-result h3 { font-size: 1.3rem; margin-bottom: 12px; }
 .battle-result.victory h3 { color: var(--gold); }
@@ -465,8 +467,9 @@
 .npc-dialogue-box { background: var(--bg-primary); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px; font-size: 0.9rem; min-height: 60px; color: var(--text-secondary); line-height: 1.5; border-left: 3px solid var(--cyan); }
 .npc-modal-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .npc-action-btn { padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--bg-primary); cursor: pointer; transition: all var(--transition-fast); font-size: 0.85rem; font-family: var(--font-main); color: var(--text-primary); text-align: center; }
-.npc-action-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(212,164,74,0.06); }
-.npc-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.npc-action-btn:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--gold); background: rgba(212,164,74,0.06); }
+.npc-action-btn:disabled,
+.npc-action-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 .npc-action-btn .action-cost { font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 2px; }
 
 /* --- 死亡弹窗 --- */
@@ -491,16 +494,6 @@
 @keyframes meditatePulse {
   0%, 100% { box-shadow: 0 0 20px rgba(212,164,74,0.2); }
   50% { box-shadow: 0 0 60px rgba(212,164,74,0.5), 0 0 100px rgba(212,164,74,0.2); }
-}
-@keyframes screenShake {
-  0%, 100% { transform: translate(0); }
-  25% { transform: translate(-4px, 2px); }
-  50% { transform: translate(4px, -2px); }
-  75% { transform: translate(-2px, 4px); }
-}
-@keyframes floatUp {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-60px); }
 }
 @keyframes realmUp {
   0% { transform: scale(0.5); opacity: 0; }
@@ -546,14 +539,15 @@
 /* --- 按钮 --- */
 .btn { padding: 8px 16px; border-radius: var(--radius-md); border: none; cursor: pointer; font-family: var(--font-main); font-size: 0.85rem; transition: all var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .btn-gold { background: var(--gradient-gold); color: var(--bg-primary); font-weight: 600; }
-.btn-gold:hover:not(:disabled) { box-shadow: var(--shadow-gold); transform: translateY(-1px); }
+.btn-gold:hover:not(:disabled):not([aria-disabled="true"]) { box-shadow: var(--shadow-gold); transform: translateY(-1px); }
 .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
-.btn-outline:hover:not(:disabled) { border-color: var(--gold); }
+.btn-outline:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--gold); }
 .btn-danger { background: rgba(212,74,74,0.15); border: 1px solid var(--red); color: var(--red-light); }
-.btn-danger:hover:not(:disabled) { background: rgba(212,74,74,0.25); }
+.btn-danger:hover:not(:disabled):not([aria-disabled="true"]) { background: rgba(212,74,74,0.25); }
 .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
 .btn-lg { padding: 12px 24px; font-size: 1.1rem; }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled,
+.btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
 
 /* --- 表单 --- */
 .form-input { width: 100%; padding: 8px 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-main); font-size: 0.9rem; }
@@ -696,12 +690,13 @@
   transition: all var(--transition-fast);
   text-align: center;
 }
-.btn-teleport:hover:not(:disabled) {
+.btn-teleport:hover:not(:disabled):not([aria-disabled="true"]) {
   background: rgba(74,218,212,0.2);
   box-shadow: 0 0 10px rgba(74,218,212,0.2);
   transform: translateY(-1px);
 }
-.btn-teleport:disabled {
+.btn-teleport:disabled,
+.btn-teleport[aria-disabled="true"] {
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -733,6 +728,13 @@
   transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
+}
+.action-card.disabled {
+  cursor: not-allowed;
+}
+.action-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 .action-card:hover {
   transform: translateY(-2px);

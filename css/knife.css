@@ -528,7 +528,7 @@
 
 .mobile-skill-btn.locked {
   opacity: 0.3;
-  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .mobile-skill-btn.cooldown {

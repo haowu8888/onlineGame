@@ -30,7 +30,7 @@
   const MAX_ATTR = 999;
 
   // 各境界突破所需修为
-  const REALM_EXP = [0, 100, 250, 500, 1000, 2000, 0];
+  const REALM_EXP = [0, 90, 220, 450, 900, 1800, 0];
 
   // 传承系统
   const LEGACY_REWARDS = [
@@ -626,6 +626,7 @@
       // 新增青年事件
       { id: 'a7', icon: '🏺', title: '古墓探险', desc: '你发现了一座远古修士的坟墓。', choices: [{ text: '进入探索', effect: g => { const luck = g.getAttrWithTalent('luk'); if (luck >= 5) { g.data.attrs.spr += 1; g.data.gold += 100; return '你在古墓中得到了传承！灵根+1，金币+100'; } if (luck >= 3) { g.data.gold += 30; return '古墓中只有些普通物品。金币+30'; } g.data.attrs.str -= 1; return '古墓中的机关让你受了伤。体质-1'; } }, { text: '封印古墓', effect: g => { g.data.attrs.cha += 1; return '你将古墓封好，以免危害他人。魅力+1'; } }] },
       { id: 'a8', icon: '🌋', title: '火山爆发', desc: '附近的火山突然喷发，灵气大涌！', choices: [{ text: '借势修炼', effect: g => { if (g.getAttrWithTalent('spr') >= 5) { g.data.attrs.spr += 2; return '你在极端灵气环境中突破极限！灵根+2'; } g.data.attrs.spr += 1; return '你吸收了些许灵气。灵根+1'; } }, { text: '帮助村民撤离', effect: g => { g.data.attrs.cha += 2; const friendName = pick(NPC_NAMES_FEMALE); g.addRelationship(friendName, 'friend', 60); return `你救助了不少村民，${friendName}对你感恩戴德。魅力+2`; } }] },
+      { id: 'a18', icon: '🪨', title: '悟道石碑', desc: '山谷中出现一块刻满符文的石碑。', condition: d => d.realm >= 1, choices: [{ text: '静心参悟', effect: g => { const exp = 20 + g.getAttrWithTalent('spr') * 2; if (g.data.realm >= 1 && g.data.realm < 6) g.data.cultivationExp = Math.min((g.data.cultivationExp || 0) + exp, REALM_EXP[g.data.realm]); if (g.getAttrWithTalent('int') >= 6) { g.data.attrs.spr += 1; return `你参悟出一丝玄妙。灵根+1，修为+${exp}`; } return `你有所感悟。修为+${exp}`; } }, { text: '拓印卖给坊市', effect: g => { const gold = g.hasTalent('merchant_eye') ? 120 : 80; g.data.gold += gold; return `你将石碑拓印卖出。金币+${gold}`; } }] },
       { id: 'a9', icon: '💒', title: '宗门联姻', desc: '宗门安排了一桩联姻，对方是另一门派的优秀弟子。', condition: d => d.realm >= 1 && !d.companion, choices: [{ text: '接受联姻', effect: g => { const name = pick(NPC_NAMES_FEMALE); g.data.companion = true; g.addRelationship(name, 'companion', 50); g.data.gold += 100; return `你与${name}结为道侣，两门结好。金币+100`; } }, { text: '婉拒', effect: g => { g.data.attrs.int += 1; return '你以修道为重，婉拒了联姻。智力+1'; } }] },
       { id: 'a10', icon: '☸️', title: '佛道之辩', desc: '路遇一位高僧，邀你论道。', choices: [{ text: '与之辩论', effect: g => { if (g.getAttrWithTalent('int') >= 7) { g.data.attrs.int += 2; return '你在辩论中胜出，思维更加敏锐。智力+2'; } g.data.attrs.int += 1; return '虽然没有胜出，但你受到启发。智力+1'; } }, { text: '虚心求教', effect: g => { g.data.attrs.spr += 1; return '高僧传授你一段佛门心法，灵根有所增益。灵根+1'; } }] },
       { id: 'a11', icon: '😤', title: '宿敌出现', desc: '一位与你实力相当的修士处处与你作对。', condition: d => d.realm >= 1, choices: [{ text: '正面对抗', effect: g => { const rivalName = pick(NPC_NAMES_MALE); g.addRelationship(rivalName, 'rival', -50); if (g.getAttrWithTalent('str') >= 6) { g.data.attrs.str += 1; return `你击退了${rivalName}，但他发誓报仇。体质+1`; } return `你不敌${rivalName}，铩羽而归。`; } }, { text: '化敌为友', effect: g => { if (g.getAttrWithTalent('cha') >= 6) { const rivalName = pick(NPC_NAMES_MALE); g.addRelationship(rivalName, 'friend', 40); return `你以德服人，${rivalName}成为了你的好友。`; } return '对方不为所动，依旧敌视你。'; } }] },
@@ -1614,7 +1615,7 @@
         const isLast = this._createStep === 3;
         return `<div class="ls-wizard-nav">
           ${isFirst ? '' : '<button class="btn btn-outline btn-sm" id="btn-wizard-prev">上一步</button>'}
-          ${isLast ? '<button class="btn btn-gold btn-sm" id="btn-start-game">开始投胎</button>' : `<button class="btn btn-gold btn-sm" id="btn-wizard-next" ${canNext ? '' : 'disabled'}>下一步</button>`}
+          ${isLast ? '<button class="btn btn-gold btn-sm" id="btn-start-game">开始投胎</button>' : `<button class="btn btn-gold btn-sm" id="btn-wizard-next" aria-disabled="${canNext ? 'false' : 'true'}" ${canNext ? '' : 'data-disabled-reason="请输入道号"'}>下一步</button>`}
         </div>`;
       };
 
@@ -1829,7 +1830,7 @@
             nameInput.addEventListener('input', () => {
               charName = nameInput.value.trim();
               const nb = document.getElementById('btn-wizard-next');
-              if (nb) nb.disabled = charName.length === 0;
+              if (nb) nb.setAttribute('aria-disabled', charName.length === 0 ? 'true' : 'false');
             });
             nameInput.focus();
           }
@@ -3340,6 +3341,7 @@
         ];
         let score = 0, rounds = 0, maxRounds = 3;
         const selected = [];
+        let showRecipes = false;
 
         const checkRecipe = (sel) => {
           const ids = sel.map(s => s.id).sort();
@@ -3350,6 +3352,7 @@
         };
 
         const renderAlchemy = (msg) => {
+          const curRecipe = checkRecipe(selected);
           overlay.innerHTML = `<div style="background:var(--bg-card,#1a1f2e);border-radius:12px;padding:24px;max-width:420px;">
             <h3 style="text-align:center;color:var(--gold,#ffd700);margin-bottom:4px;">炼丹术</h3>
             <div style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">选择2-3种材料投入丹炉 | 第${rounds+1}/${maxRounds}炉 | 得分:${score}</div>
@@ -3367,9 +3370,31 @@
                 </button>`;
               }).join('')}
             </div>
+            ${showRecipes ? `
+              <div style="margin-bottom:12px;border:1px solid rgba(212,164,74,0.2);border-radius:10px;padding:10px;background:var(--bg-darker,#0f172a);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <div style="font-size:0.8rem;color:var(--text-muted);">丹方（点击可自动选材）</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">顺序无关</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr;gap:6px;">
+                  ${recipes.map(r => {
+                    const isActive = curRecipe && curRecipe.name === r.name;
+                    const icons = r.combo.map(id => (ingredients.find(i => i.id === id) || {}).icon || '❔').join(' + ');
+                    return `<button class="mg-alch-recipe" data-combo="${r.combo.join(',')}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;border:1px solid ${isActive ? 'var(--gold)' : 'rgba(212,164,74,0.2)'};background:${isActive ? '#ffd70015' : 'transparent'};cursor:pointer;text-align:left;">
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:1.1rem;">${r.icon}</span>
+                        <span style="color:var(--text-primary);font-size:0.85rem;">${r.name}</span>
+                      </div>
+                      <div style="color:var(--text-muted);font-size:0.85rem;">${icons}</div>
+                    </button>`;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
             <div style="display:flex;gap:8px;justify-content:center;">
-              <button class="btn btn-outline btn-sm" id="mg-alch-clear" ${selected.length===0?'disabled':''}>清空</button>
-              <button class="btn btn-gold btn-sm" id="mg-alch-brew" ${selected.length<2?'disabled':''}>开炉炼丹</button>
+              <button class="btn btn-outline btn-sm" id="mg-alch-clear" aria-disabled="${selected.length===0?'true':'false'}" ${selected.length===0?'data-disabled-reason=\"未选择材料\"':''}>清空</button>
+              <button class="btn btn-outline btn-sm" id="mg-alch-recipes">${showRecipes ? '隐藏丹方' : '查看丹方'}</button>
+              <button class="btn btn-gold btn-sm" id="mg-alch-brew" aria-disabled="${selected.length<2?'true':'false'}" ${selected.length<2?'data-disabled-reason=\"至少选择2种材料\"':''}>开炉炼丹</button>
             </div>
           </div>`;
 
@@ -3383,23 +3408,51 @@
             });
           });
 
+          const recipesBtn = overlay.querySelector('#mg-alch-recipes');
+          if (recipesBtn) recipesBtn.addEventListener('click', () => {
+            showRecipes = !showRecipes;
+            renderAlchemy();
+          });
+
+          overlay.querySelectorAll('.mg-alch-recipe').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const ids = (btn.dataset.combo || '').split(',').map(s => s.trim()).filter(Boolean);
+              selected.length = 0;
+              ids.forEach(id => {
+                const ing = ingredients.find(i => i.id === id);
+                if (ing) selected.push(ing);
+              });
+              renderAlchemy();
+            });
+          });
+
           const clearBtn = overlay.querySelector('#mg-alch-clear');
-          if (clearBtn) clearBtn.addEventListener('click', () => { selected.length = 0; renderAlchemy(); });
+          if (clearBtn) clearBtn.addEventListener('click', () => {
+            if (clearBtn.getAttribute('aria-disabled') === 'true') return;
+            selected.length = 0;
+            renderAlchemy();
+          });
 
           const brewBtn = overlay.querySelector('#mg-alch-brew');
           if (brewBtn) brewBtn.addEventListener('click', () => {
             const recipe = checkRecipe(selected);
-            rounds++;
-            if (recipe) {
-              score += recipe.score;
-              selected.length = 0;
-              if (rounds >= maxRounds) { finishMinigame(score, maxRounds * 3); }
-              else { renderAlchemy(`炼成 ${recipe.icon}${recipe.name}！+${recipe.score}分`); }
-            } else {
-              selected.length = 0;
-              if (rounds >= maxRounds) { finishMinigame(score, maxRounds * 3); }
-              else { renderAlchemy('炼丹失败！材料不匹配...'); }
-            }
+            if (brewBtn.getAttribute('aria-disabled') === 'true') return;
+            brewBtn.setAttribute('aria-disabled', 'true');
+            brewBtn.dataset.disabledReason = '炼制中...';
+            brewBtn.textContent = '炼制中...';
+            setTimeout(() => {
+              rounds++;
+              if (recipe) {
+                score += recipe.score;
+                selected.length = 0;
+                if (rounds >= maxRounds) { finishMinigame(score, maxRounds * 3); }
+                else { renderAlchemy(`炼成 ${recipe.icon}${recipe.name}！+${recipe.score}分`); }
+              } else {
+                selected.length = 0;
+                if (rounds >= maxRounds) { finishMinigame(score, maxRounds * 3); }
+                else { renderAlchemy('炼丹失败！材料不匹配...'); }
+              }
+            }, 450);
           });
         };
         renderAlchemy();
@@ -3411,8 +3464,10 @@
       if (existing) existing.remove();
       const modal = document.createElement('div');
       modal.id = 'history-modal';
-      modal.className = 'modal-overlay';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;';
+      // `.modal-overlay` (shared.css) needs `.active` or it will be invisible/non-interactive.
+      modal.className = 'modal-overlay active';
+      modal.style.zIndex = '3000';
+      modal.style.padding = '20px';
       const logs = this.game.log || [];
       let logHtml = logs.length === 0 ? '<p style="color:var(--text-muted)">暂无历程记录</p>' :
         logs.map((entry, i) => `<div style="padding:6px 0;border-bottom:1px solid rgba(212,164,74,0.1);font-size:0.85rem;color:var(--text-secondary)"><span style="color:var(--gold);margin-right:8px">${i + 1}.</span>${typeof entry === 'string' ? entry : entry.text || JSON.stringify(entry)}</div>`).join('');
@@ -3451,7 +3506,7 @@
           <div class="ls-ngplus-desc">${perk.desc}</div>
           <div class="ls-ngplus-level">Lv.${curLevel}/${perk.maxLevel}</div>
           <div class="ls-ngplus-bar"><div class="ls-ngplus-bar-fill" style="width:${(curLevel / perk.maxLevel) * 100}%"></div></div>
-          ${isMax ? '<div class="ls-ngplus-status">已满级</div>' : `<button class="btn ${canBuy ? 'btn-purple' : 'btn-outline'} btn-xs" data-ng-perk="${perk.id}" ${canBuy ? '' : 'disabled'}>升级 (${nextCost}点)</button>`}
+          ${isMax ? '<div class="ls-ngplus-status">已满级</div>' : `<button class="btn ${canBuy ? 'btn-purple' : 'btn-outline'} btn-xs" data-ng-perk="${perk.id}" aria-disabled="${canBuy?'false':'true'}" ${canBuy?'':`data-disabled-reason="轮回点不足"`}>升级 (${nextCost}点)</button>`}
         </div>`;
       }
       html += '</div>';
@@ -3530,6 +3585,20 @@
   initNav('lifesim');
   initParticles('#particles', 15);
   new LifeSimUI();
+
+  if (!window._lifesimHotkeysBound) {
+    window._lifesimHotkeysBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+      const btn = document.getElementById('btn-qte-proceed') || document.getElementById('btn-continue');
+      if (btn) {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+  }
 
   // 新手引导
   if (typeof GuideSystem !== 'undefined') {

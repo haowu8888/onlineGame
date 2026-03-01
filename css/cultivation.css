@@ -446,13 +446,13 @@
   transition: all var(--transition-fast);
 }
 
-.skill-btn:hover:not(.on-cd):not(:disabled) {
+.skill-btn:hover:not(.on-cd):not(:disabled):not([aria-disabled="true"]) {
   background: rgba(74, 122, 212, 0.15);
   border-color: var(--blue-light);
   box-shadow: 0 0 10px rgba(106, 154, 244, 0.25);
 }
 
-.skill-btn:active:not(.on-cd):not(:disabled) {
+.skill-btn:active:not(.on-cd):not(:disabled):not([aria-disabled="true"]) {
   transform: scale(0.93);
 }
 
@@ -474,7 +474,7 @@
   color: #4ad46a;
 }
 
-.pet-skill-btn:hover:not(:disabled) {
+.pet-skill-btn:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--green);
   box-shadow: 0 0 8px rgba(74, 212, 106, 0.3);
 }
@@ -1620,12 +1620,13 @@
   overflow: hidden;
 }
 
-.capture-btn:hover:not(:disabled) {
+.capture-btn:hover:not(:disabled):not([aria-disabled="true"]) {
   box-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
   transform: scale(1.05);
 }
 
-.capture-btn:disabled {
+.capture-btn:disabled,
+.capture-btn[aria-disabled="true"] {
   opacity: 0.4;
   cursor: not-allowed;
   border-color: var(--border-color);
@@ -2151,12 +2152,13 @@
   transition: all var(--transition-fast);
 }
 
-.world-action-btn:hover:not(:disabled) {
+.world-action-btn:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--gold);
   background: rgba(212, 164, 74, 0.08);
 }
 
-.world-action-btn:disabled {
+.world-action-btn:disabled,
+.world-action-btn[aria-disabled="true"] {
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -2191,7 +2193,7 @@
 .world-action-card.disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .wac-icon {
@@ -2512,12 +2514,13 @@
   text-align: left;
 }
 
-.adventure-choice-btn:hover:not(:disabled) {
+.adventure-choice-btn:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--gold);
   background: rgba(212, 164, 74, 0.08);
 }
 
-.adventure-choice-btn:disabled {
+.adventure-choice-btn:disabled,
+.adventure-choice-btn[aria-disabled="true"] {
   opacity: 0.4;
   cursor: not-allowed;
   color: var(--text-muted);
@@ -2682,12 +2685,13 @@
   width: 100%;
 }
 
-.companion-dual-btn:hover:not(:disabled) {
+.companion-dual-btn:hover:not(:disabled):not([aria-disabled="true"]) {
   box-shadow: 0 0 16px rgba(255, 105, 180, 0.5);
   transform: scale(1.02);
 }
 
-.companion-dual-btn:disabled {
+.companion-dual-btn:disabled,
+.companion-dual-btn[aria-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;
   background: var(--bg-card) !important;

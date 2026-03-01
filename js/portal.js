@@ -367,6 +367,16 @@
     }
 
     const totalPower = calcTotalPower();
+    if (stats.total_power !== totalPower) {
+      stats.total_power = totalPower;
+      Storage.set('cross_game_stats', stats);
+      if (window.CrossGameAchievements) {
+        const newlyUnlocked = CrossGameAchievements.checkNew();
+        newlyUnlocked.forEach(a => {
+          showToast(`成就解锁：${a.icon} ${a.name}`, 'success', 4000);
+        });
+      }
+    }
 
     const cards = [
       { icon: '🔮', value: formatNumber(totalPower), label: '修仙总力', cls: 'power-card' },
@@ -431,10 +441,12 @@
         const progress = Math.max(0, DailyMissions.getProgress(m, d));
         const done = progress >= m.target;
         const isClaimed = claimed.includes(i);
+        const isClaimable = done && !isClaimed;
         const fill = Math.min(100, Math.floor((Math.min(progress, m.target) / m.target) * 100));
         const progressText = done ? '<span class="done">已完成</span>' : Math.min(progress, m.target) + '/' + m.target;
+        const ariaLabel = escapeHtml(m.name) + (done ? '，已完成' : '，未完成');
 
-        return '<div class="daily-mission-card' + (done ? ' completed' : '') + '" data-idx="' + i + '">' +
+        return '<div class="daily-mission-card' + (done ? ' completed' : '') + '" data-idx="' + i + '" role="button" tabindex="0" aria-disabled="' + (isClaimable ? 'false' : 'true') + '" aria-label="' + ariaLabel + '">' +
           '<div class="daily-mission-icon">' + m.icon + '</div>' +
           '<div class="daily-mission-info">' +
             '<div class="daily-mission-name">' + escapeHtml(m.name) + '</div>' +
@@ -469,6 +481,14 @@
       refreshNavBadge();
       updateExchangePoints(res.points);
       showToast('获得 ' + res.reward + ' 仙缘点！', 'success');
+    });
+
+    grid.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.daily-mission-card');
+      if (!card) return;
+      e.preventDefault();
+      card.click();
     });
   })();
 
@@ -533,7 +553,8 @@
         var cost = getItemCost(item);
         var count = purchased[item.id] || 0;
         var countLabel = item.repeatable && count > 0 ? ' (已买' + count + '次)' : '';
-        return '<div class="exchange-item' + (soldOut ? ' sold-out' : '') + '" data-id="' + item.id + '">' +
+        var ariaLabel = escapeHtml(item.name) + (soldOut ? '，已兑换' : '，可兑换');
+        return '<div class="exchange-item' + (soldOut ? ' sold-out' : '') + '" data-id="' + item.id + '" role="button" tabindex="0" aria-disabled="' + (soldOut ? 'true' : 'false') + '" aria-label="' + ariaLabel + '">' +
           '<div class="exchange-item-icon">' + item.icon + '</div>' +
           '<div class="exchange-item-name">' + escapeHtml(item.name) + '</div>' +
           '<div class="exchange-item-desc">' + escapeHtml(item.desc) + countLabel + '</div>' +
@@ -650,6 +671,14 @@
       renderGrid();
       if (typeof SoundManager !== 'undefined') SoundManager.play('purchase');
       showToast('兑换成功: ' + item.name, 'success');
+    });
+
+    grid.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var card = e.target.closest('.exchange-item');
+      if (!card) return;
+      e.preventDefault();
+      card.click();
     });
   })();
 

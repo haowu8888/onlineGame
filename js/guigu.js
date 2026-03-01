@@ -400,8 +400,8 @@ const NPC_QUEST_TEMPLATES=[
 ];
 
 const SHOP_ITEMS=[
-  {id:'shop01',name:'回灵丹',price:50,type:'potion',effect:{healHp:50},desc:'恢复50气血'},
-  {id:'shop02',name:'聚气丹',price:60,type:'potion',effect:{healSp:40},desc:'恢复40灵力'},
+  {id:'shop01',name:'回灵丹',price:40,type:'potion',effect:{healHp:50},desc:'恢复50气血'},
+  {id:'shop02',name:'聚气丹',price:50,type:'potion',effect:{healSp:40},desc:'恢复40灵力'},
   {id:'shop03',name:'灵草',price:20,type:'material',matId:'mat001',desc:'基础灵草'},
   {id:'shop04',name:'铁矿石',price:25,type:'material',matId:'mat002',desc:'基础矿石'},
   {id:'shop05',name:'火灵石',price:80,type:'material',matId:'mat003',desc:'火灵力之石'},
@@ -409,8 +409,9 @@ const SHOP_ITEMS=[
   {id:'shop07',name:'铁剑',price:100,type:'equipment',eqId:'eq001',desc:'基础武器'},
   {id:'shop08',name:'布衣',price:80,type:'equipment',eqId:'eq002',desc:'基础护甲'},
   {id:'shop09',name:'木戒',price:60,type:'equipment',eqId:'eq003',desc:'基础饰品'},
-  {id:'shop10',name:'大回灵丹',price:200,type:'potion',effect:{healHp:200},desc:'恢复200气血'},
-  {id:'shop11',name:'大聚气丹',price:250,type:'potion',effect:{healSp:180},desc:'恢复180灵力'}
+  {id:'shop10',name:'大回灵丹',price:180,type:'potion',effect:{healHp:200},desc:'恢复200气血'},
+  {id:'shop11',name:'大聚气丹',price:220,type:'potion',effect:{healSp:180},desc:'恢复180灵力'},
+  {id:'shop12',name:'悟道露',price:120,type:'potion',effect:{expBoost:120},desc:'立刻获得120经验'}
 ];
 
 
@@ -519,6 +520,28 @@ class GuiguGame {
 
   saveGame(){
     if(this.state){this.state.lastOnline=Date.now();Storage.setImmediate('guigu_save_'+this.slotIndex,this.state)}
+  }
+
+  _getDayKey(){
+    const s=this.state;
+    if(!s)return 0;
+    return (s.day||1)+(s.month||1)*30+(s.year||1)*360;
+  }
+
+  _ensureNpcDaily(){
+    const s=this.state;if(!s)return;
+    const k=this._getDayKey();
+    if(!s.npcDaily||s.npcDaily.dayKey!==k){
+      s.npcDaily={dayKey:k,gift:{},rumor:{},invite:{}};
+    }
+  }
+
+  getNpcDailyCount(npcId,kind){
+    const s=this.state;if(!s)return 0;
+    this._ensureNpcDaily();
+    const d=s.npcDaily&&s.npcDaily[kind];
+    if(!d)return 0;
+    return d[npcId]||0;
   }
 
   deleteSave(idx){Storage.remove('guigu_save_'+idx)}
@@ -1294,6 +1317,7 @@ class GuiguGame {
     const s=this.state;if(!s)return null;
     const npc=s.npcs.find(n=>n.id===npcId);
     if(!npc||!npc.alive)return null;
+    this._ensureNpcDaily();
     const rel=s.relations[npcId]||0;
     const pers=PERSONALITIES_MAP[s.personality];
     const relMul=pers?pers.npcRelMul:1;
@@ -1308,13 +1332,21 @@ class GuiguGame {
       this.updateBountyProgress('npc_favor',s.relations[npcId]);
       this.updateNpcQuestProgress('npc_talk',1);
     }else if(action==='gift'&&giftIdx!==undefined){
-      const item=s.inventory[giftIdx];
-      if(item){
-        const val=item.tier?item.tier*10:5;
-        const gain=Math.floor((10+val)*relMul);
-        s.relations[npcId]=(rel+gain);
-        s.inventory.splice(giftIdx,1);
-        result={type:'gift',gain,itemName:item.name};
+      const giftUsed=this.getNpcDailyCount(npcId,'gift');
+      if(giftUsed>=1){
+        result={type:'gift',success:false,msg:'今日已赠礼'};
+      }else{
+        const item=s.inventory[giftIdx];
+        if(item){
+          const val=item.tier?item.tier*10:5;
+          const gain=Math.floor((10+val)*relMul);
+          s.relations[npcId]=(rel+gain);
+          s.inventory.splice(giftIdx,1);
+          s.npcDaily.gift[npcId]=1;
+          result={type:'gift',gain,itemName:item.name};
+        }else{
+          result={type:'gift',success:false,msg:'无效的礼物'};
+        }
       }
     }else if(action==='spar'){
       // Simple spar - compare realms
@@ -1355,6 +1387,50 @@ class GuiguGame {
         s.relations[npcId]=(rel+15);
         this.addCultLog('与'+npc.name+'开始双修，修炼经验×1.5，持续30天');
         result={type:'dualCultivate',success:true,partner:npc.name};
+      }
+    }else if(action==='rumor'){
+      const used=this.getNpcDailyCount(npcId,'rumor');
+      if(rel<20){
+        result={type:'rumor',success:false,msg:'好感度不足（需≥20）'};
+      }else if(used>=2){
+        result={type:'rumor',success:false,msg:'今日已打听得够多了'};
+      }else if(s.gold<20){
+        result={type:'rumor',success:false,msg:'灵石不足（需20）'};
+      }else{
+        s.gold-=20;
+        s.npcDaily.rumor[npcId]=used+1;
+        const px=s.position.x,py=s.position.y;
+        const tx=clamp(px+randomInt(-4,4),0,14);
+        const ty=clamp(py+randomInt(-4,4),0,14);
+        this.revealFog(tx,ty,2);
+        const hint=pick([
+          '村子附近可能有灵草出没',
+          '山谷中敌人增多，小心为上',
+          '坊市商人最近进了新货',
+          '传闻有异兽窟出现在这片区域',
+        ]);
+        result={type:'rumor',success:true,text:hint};
+      }
+    }else if(action==='invite'){
+      const used=this.getNpcDailyCount(npcId,'invite');
+      if(rel<40){
+        result={type:'invite',success:false,msg:'好感度不足（需≥40）'};
+      }else if(used>=1){
+        result={type:'invite',success:false,msg:'今日已结伴一次'};
+      }else if(s.sp<20){
+        result={type:'invite',success:false,msg:'灵力不足（需20）'};
+      }else{
+        s.sp-=20;
+        s.npcDaily.invite[npcId]=1;
+        const expGain=Math.floor(80*(npc.realm+1));
+        s.exp+=expGain;
+        let loot='';
+        if(Math.random()<0.35){
+          this.addItem({name:'灵草',type:'material',matId:'mat001',count:1,tier:1});
+          loot='灵草';
+        }
+        this.addCultLog('与'+npc.name+'结伴历练，经验+'+expGain+(loot?'，获得'+loot:''));
+        result={type:'invite',success:true,exp:expGain,loot};
       }
     }
     this.advanceDays(TIME_COSTS.npcInteract);
@@ -1747,6 +1823,7 @@ class GuiguUI {
       {key:'effects',label:'特效',type:'checkbox',default:true,checkLabel:'启用战斗特效'}
     ],'guigu_settings',()=>{});
     this.renderSlotSelection();
+    this._bindHotkeys();
     // Bind game events
     this.game.on('timeAdvanced',()=>this.refreshUI());
     this.game.on('meditated',()=>this.renderCultivatePanel());
@@ -1779,7 +1856,7 @@ class GuiguUI {
     let html='<h2>鬼谷八荒</h2><p style="text-align:center;color:var(--text-secondary);margin-bottom:20px">选择存档</p><div class="slot-grid">';
     slots.forEach((s,i)=>{
       if(s.exists){
-        html+=`<div class="save-slot"><div class="slot-info"><div class="slot-name">${s.name}</div><div class="slot-realm">${s.realm}</div><div class="slot-details">年龄 ${s.age}</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-action="load" data-slot="${i}">继续</button><button class="btn btn-danger btn-sm" data-action="delete" data-slot="${i}">删除</button></div></div>`;
+        html+=`<div class="save-slot"><div class="slot-info"><div class="slot-name">${escapeHtml(s.name)}</div><div class="slot-realm">${escapeHtml(String(s.realm))}</div><div class="slot-details">年龄 ${s.age}</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-action="load" data-slot="${i}">继续</button><button class="btn btn-danger btn-sm" data-action="delete" data-slot="${i}">删除</button></div></div>`;
       }else{
         html+=`<div class="save-slot"><div class="slot-info"><span class="slot-empty">空存档 ${i+1}</span></div><div class="slot-actions"><button class="btn btn-outline btn-sm" data-action="new" data-slot="${i}">新游戏</button></div></div>`;
       }
@@ -1904,6 +1981,7 @@ class GuiguUI {
         if(so){curCfg.sect=so.dataset.id;this._renderCreateStep();return}
         const to=e.target.closest('.talent-option');
         if(to){
+          if(to.classList.contains('disabled')){showToast('只能选择2个天赋','info');return}
           const id=to.dataset.id;
           if(curCfg.talents.includes(id))curCfg.talents=curCfg.talents.filter(t=>t!==id);
           else if(curCfg.talents.length<2)curCfg.talents.push(id);
@@ -1987,6 +2065,32 @@ class GuiguUI {
       if(!btn)return;
       this.currentTab=btn.dataset.tab;
       tabs.querySelectorAll('.guigu-tab').forEach(t=>t.classList.toggle('active',t===btn));
+      document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===this.currentTab));
+      this.renderCurrentPanel();
+    });
+  }
+
+  _bindHotkeys(){
+    if(this._hotkeyBound)return;
+    this._hotkeyBound=true;
+    document.addEventListener('keydown',e=>{
+      if(e.altKey||e.ctrlKey||e.metaKey)return;
+      const activeTag=document.activeElement?document.activeElement.tagName:'';
+      if(['INPUT','TEXTAREA','SELECT'].includes(activeTag))return;
+      if(!this.game.state)return;
+      const tabsEl=this._getEl('guigu-tabs');
+      if(!tabsEl||this._getEl('guigu-game').style.display==='none')return;
+      if(e.key!=='['&&e.key!==']')return;
+      const tabs=[...tabsEl.querySelectorAll('.guigu-tab')];
+      if(!tabs.length)return;
+      const currentIdx=tabs.findIndex(t=>t.dataset.tab===this.currentTab);
+      const dir=e.key===']'?1:-1;
+      const nextIdx=(currentIdx+dir+tabs.length)%tabs.length;
+      const nextTab=tabs[nextIdx];
+      if(!nextTab)return;
+      e.preventDefault();
+      this.currentTab=nextTab.dataset.tab;
+      tabs.forEach(t=>t.classList.toggle('active',t===nextTab));
       document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===this.currentTab));
       this.renderCurrentPanel();
     });
@@ -2147,7 +2251,7 @@ class GuiguUI {
       </div>
       <div class="breakthrough-section">
         <h3>突破 → ${s.realm<7?REALMS[s.realm+1].name:'已达巅峰'}</h3>
-        ${canBreak?`<div class="breakthrough-info">成功率约 ${Math.floor(REALMS[s.realm+1].breakRate*100)}%（基础）${s.heartDemon>30?'<br>心魔过高，需通过心魔试炼':''}</div><button class="btn breakthrough-btn" id="btn-break">尝试突破</button>`:'<div class="breakthrough-info">经验不足，继续修炼</div><button class="btn breakthrough-btn" disabled>经验不足</button>'}
+        ${canBreak?`<div class="breakthrough-info">成功率约 ${Math.floor(REALMS[s.realm+1].breakRate*100)}%（基础）${s.heartDemon>30?'<br>心魔过高，需通过心魔试炼':''}</div><button class="btn breakthrough-btn" id="btn-break">尝试突破</button>`:'<div class="breakthrough-info">经验不足，继续修炼</div><button class="btn breakthrough-btn" id="btn-break-disabled" aria-disabled="true" data-disabled-reason="经验不足">经验不足</button>'}
       </div>
       <div class="enlightenment-section"><h3>悟道</h3>${pathsHtml}</div>
       <div class="cult-log"><h4 style="color:var(--gold-light);margin-bottom:8px">修炼日志</h4>${logHtml}</div>`;
@@ -2170,6 +2274,10 @@ class GuiguUI {
       if(r.success)showToast('突破成功！'+r.realm,'success');
       else showToast(r.msg||'突破失败','error');
       this.refreshUI();
+    });
+    document.getElementById('btn-break-disabled')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast('经验不足，继续修炼', 'info');
     });
   }
 
@@ -2358,7 +2466,7 @@ class GuiguUI {
     if(t.cls==='town'&&dist>0){
       const cost=dist*50;
       const canAfford=s.gold>=cost;
-      teleportHtml=`<div class="map-detail-actions"><button class="btn-teleport" id="btn-fast-travel" data-tx="${cx}" data-ty="${cy}" ${canAfford?'':`disabled`}>传送至${cell.locName||t.name}<span class="teleport-cost">花费 ${cost} 灵石（距离 ${dist}）${canAfford?'':'- 灵石不足'}</span></button></div>`;
+      teleportHtml=`<div class="map-detail-actions"><button class="btn-teleport" id="btn-fast-travel" data-tx="${cx}" data-ty="${cy}" aria-disabled="${canAfford?'false':'true'}" ${canAfford?'':`data-disabled-reason="灵石不足"`}>传送至${cell.locName||t.name}<span class="teleport-cost">花费 ${cost} 灵石（距离 ${dist}）${canAfford?'':'- 灵石不足'}</span></button></div>`;
     }
     sidebar.className='map-detail-sidebar';
     sidebar.innerHTML=`
@@ -2381,6 +2489,10 @@ class GuiguUI {
     const tpBtn=document.getElementById('btn-fast-travel');
     if(tpBtn){
       tpBtn.addEventListener('click',()=>{
+        if (tpBtn.getAttribute('aria-disabled') === 'true') {
+          showToast(tpBtn.dataset.disabledReason || '灵石不足', 'warning');
+          return;
+        }
         const tx=parseInt(tpBtn.dataset.tx),ty=parseInt(tpBtn.dataset.ty);
         const r=this.game.fastTravel(tx,ty);
         if(r&&r.error){showToast(r.error,'error');return}
@@ -2417,8 +2529,10 @@ class GuiguUI {
 
     let cardsHtml='<div class="action-card-grid">';
     actionCards.forEach(card=>{
-      const disabledStyle=card.available?'':'opacity:0.4;pointer-events:none;';
-      cardsHtml+=`<div class="action-card diff-${card.diff.cls}" data-action="${card.id}" style="${disabledStyle}">
+      const disabledCls=card.available?'':'disabled';
+      const disabledStyle=card.available?'':'opacity:0.4;';
+      const disabledReason = card.available ? '' : (card.id==='battle'?'此处暂无可战斗的目标':card.id==='gather'?'此地暂无可采集资源':'当前不可用');
+      cardsHtml+=`<div class="action-card diff-${card.diff.cls} ${disabledCls}" data-action="${card.id}" data-disabled="${card.available?'0':'1'}" data-disabled-reason="${disabledReason}" style="${disabledStyle}">
         <div class="action-card-icon">${card.icon}</div>
         <div class="action-card-name">${card.name}</div>
         <div class="action-card-desc">${card.desc}</div>
@@ -2436,10 +2550,14 @@ class GuiguUI {
 
     el.innerHTML=`<div class="panel-title">历练</div><div class="location-header"><h3>${curTerrain.icon} ${curTerrain.name}</h3><p>危险等级: ${'★'.repeat(curTerrain.danger)||'安全'} <span class="action-card-badge ${diff.badge}" style="margin-left:8px">${diff.label}</span></p></div>${cardsHtml}<div class="monster-list" id="adventure-monster-list" style="display:none">${monHtml}</div>`;
 
-    // Card action handlers
-    el.addEventListener('click',e=>{
+    // Card action handlers (avoid duplicate listeners on re-render)
+    el.onclick=(e)=>{
       const card=e.target.closest('.action-card[data-action]');
       if(card){
+        if (card.dataset.disabled === '1') {
+          showToast(card.dataset.disabledReason || '当前不可用', 'info');
+          return;
+        }
         const action=card.dataset.action;
         if(action==='battle'){
           // Show/toggle monster list
@@ -2496,7 +2614,7 @@ class GuiguUI {
         const mon=MONSTERS_MAP[fBtn.dataset.mid];
         if(mon){this.game.startBattle(mon);this.showBattleModal()}
       }
-    });
+    };
   }
 
   /* === NPC面板 === */
@@ -2517,15 +2635,17 @@ class GuiguUI {
     }).join('');
 
     el.innerHTML=`<div class="panel-title">人物</div><div class="npc-filters">${filterHtml}</div><div class="npc-list">${listHtml||'<p style="color:var(--text-muted);text-align:center">暂未认识任何修士</p>'}</div>`;
-    el.addEventListener('click',e=>{
+    el.onclick=(e)=>{
       const fb=e.target.closest('.npc-filter-btn');
       if(fb){this.npcFilter=fb.dataset.filter;this.renderNPCPanel();return}
       const nc=e.target.closest('.npc-card');
       if(nc){
         const npc=s.npcs.find(n=>n.id===nc.dataset.nid);
-        if(npc&&npc.alive)this.showNPCInteractionModal(npc.id);
+        if(!npc) return;
+        if(npc.alive) this.showNPCInteractionModal(npc.id);
+        else showToast('此修士已陨落', 'info');
       }
-    });
+    };
   }
 
   /* === 炼制面板 === */
@@ -2544,14 +2664,15 @@ class GuiguUI {
     });
     html+='</div>';
     el.innerHTML=html;
-    el.addEventListener('click',e=>{
+    // Avoid duplicate listeners on re-render
+    el.onclick=(e)=>{
       const b=e.target.closest('.craft-btn');
       if(!b)return;
       const r=this.game.craftItem(b.dataset.rid);
       if(r&&r.success)showToast('炼制成功: '+r.item.name,'success');
       else showToast(r?r.msg:'炼制失败','error');
       this.refreshUI();
-    });
+    };
   }
 
   /* === 坊市面板 === */
@@ -2579,7 +2700,7 @@ class GuiguUI {
       if(!s.inventory.length)content='<p style="color:var(--text-muted);text-align:center;padding:20px">背包为空</p>';
     }
     el.innerHTML=`<div class="panel-title">坊市</div>${tabs}${content}`;
-    el.addEventListener('click',e=>{
+    el.onclick=(e)=>{
       const mt=e.target.closest('.market-tab');
       if(mt){this.currentMarketTab=mt.dataset.mt;this.renderMarketPanel();return}
       const bb=e.target.closest('.buy-btn');
@@ -2594,7 +2715,7 @@ class GuiguUI {
         if(r)showToast('出售了 '+r.sold+'，获得'+r.gain+'灵石','success');
         this.refreshUI();
       }
-    });
+    };
   }
 
   /* === 洞府面板 === */
@@ -2616,10 +2737,10 @@ class GuiguUI {
     });
     facHtml+='</div>';
     el.innerHTML=`<div class="panel-title">洞府</div>${facHtml}`;
-    el.addEventListener('click',e=>{
+    el.onclick=(e)=>{
       const b=e.target.closest('.upgrade-btn');
       if(b&&this.game.upgradeFacility(b.dataset.fid)){showToast('升级成功','success');this.refreshUI()}
-    });
+    };
   }
 
   /* === 功法面板 === */
@@ -2634,7 +2755,7 @@ class GuiguUI {
       const skills=SKILLS[path];
       pathsHtml+=`<div class="skill-path"><div class="path-header"><h4>${names[path]} (${v}/100)</h4><span style="color:var(--text-muted);font-size:0.8rem">${this.game.getEnlightenmentLevel(v)}</span></div><div class="path-bar path-${path}"><div class="path-fill" style="width:${v}%"></div></div><div class="skill-nodes">${skills.map(sk=>{
         const ul=v>=sk.reqLevel;
-        return`<div class="skill-node ${ul?'unlocked':'locked'}"><div class="skill-icon">${ul?'✨':'🔒'}</div><div class="skill-name">${sk.name}</div><div class="skill-req">需${sk.reqLevel}</div></div>`;
+        return`<div class="skill-node ${ul?'unlocked':'locked'}" data-path="${path}" data-req="${sk.reqLevel}"><div class="skill-icon">${ul?'✨':'🔒'}</div><div class="skill-name">${sk.name}</div><div class="skill-req">需${sk.reqLevel}</div></div>`;
       }).join('')}</div></div>`;
     });
     pathsHtml+='</div>';
@@ -2651,10 +2772,17 @@ class GuiguUI {
     });
     eqHtml+='</div></div>';
     el.innerHTML=`<div class="panel-title">功法与装备</div>${pathsHtml}${eqHtml}`;
-    el.addEventListener('click',e=>{
+    el.onclick=(e)=>{
       const b=e.target.closest('.unequip-btn');
       if(b){this.game.unequipItem(b.dataset.slot);this.refreshUI()}
-    });
+      const locked=e.target.closest('.skill-node.locked');
+      if(locked){
+        const path=locked.dataset.path||'';
+        const req=parseInt(locked.dataset.req||'0');
+        const cur=s.enlightenment[path]||0;
+        showToast(`未解锁：悟道 ${cur}/${req}`,'info');
+      }
+    };
   }
 
   /* === 宗门面板 === */
@@ -2697,7 +2825,7 @@ class GuiguUI {
     }).join('')+'</div>':'<div class="inv-empty">空空如也</div>';
 
     el.innerHTML=`<div class="panel-title">乾坤袋</div><div class="inv-tabs">${tabHtml}</div>${gridHtml}`;
-    el.addEventListener('click',e=>{
+    el.onclick=(e)=>{
       const tab=e.target.closest('.inv-tab');
       if(tab){this.currentInvTab=tab.dataset.it;this.renderInventoryPanel();return}
       const it=e.target.closest('.inv-item');
@@ -2708,7 +2836,7 @@ class GuiguUI {
         if(item.type==='equipment'){this.game.equipItem(idx);showToast('装备了 '+item.name,'success');this.refreshUI()}
         else if(item.type==='potion'){this.game.useItem(idx);this.refreshUI()}
       }
-    });
+    };
   }
 
   /* === 成就面板 === */
@@ -2723,6 +2851,10 @@ class GuiguUI {
     });
     html+='</div>';
     el.innerHTML=html;
+    el.onclick=(e)=>{
+      const card=e.target.closest('.achievement-card');
+      if(card&&card.classList.contains('locked')) showToast('未解锁：继续完成条件', 'info');
+    };
   }
 
   /* === 悬赏榜面板 === */
@@ -2951,6 +3083,10 @@ class GuiguUI {
 
   closeModal(){
     document.getElementById('game-modal')?.remove();
+    if(this._battleKeyHandler){
+      document.removeEventListener('keydown',this._battleKeyHandler);
+      this._battleKeyHandler=null;
+    }
   }
 
   /* === 战斗弹窗 === */
@@ -2977,7 +3113,7 @@ class GuiguUI {
       const comboText=bs.combo>=3?`<div style="text-align:center;color:#f0c040;font-weight:bold">${bs.combo} 连击！x${bs.combo>=7?'1.5':bs.combo>=5?'1.2':'1.1'}</div>`:'';
 
       return`<div class="battle-field">
-        <div class="battle-entity player-entity"><div class="entity-name">${s.name} ${pElTag}</div><div class="entity-realm">${REALMS[s.realm].name}</div><div class="entity-hp-text">HP: ${s.hp}/${s.maxHp}</div><div class="entity-hp-bar"><div class="bar-fill" style="width:${phP}%"></div></div><div class="entity-sp-text">SP: ${s.sp}/${s.maxSp}</div><div class="entity-sp-bar"><div class="bar-fill" style="width:${psP}%"></div></div><div class="entity-stats">ATK:${s.atk} DEF:${s.def}</div></div>
+        <div class="battle-entity player-entity"><div class="entity-name">${escapeHtml(s.name)} ${pElTag}</div><div class="entity-realm">${REALMS[s.realm].name}</div><div class="entity-hp-text">HP: ${s.hp}/${s.maxHp}</div><div class="entity-hp-bar"><div class="bar-fill" style="width:${phP}%"></div></div><div class="entity-sp-text">SP: ${s.sp}/${s.maxSp}</div><div class="entity-sp-bar"><div class="bar-fill" style="width:${psP}%"></div></div><div class="entity-stats">ATK:${s.atk} DEF:${s.def}</div></div>
         <div class="battle-entity monster-entity"><div class="entity-name">${mon.name} ${mElTag}</div><div class="entity-realm">${REALMS[mon.realmMin].name}级</div><div class="entity-hp-text">HP: ${mon.currentHp}/${mon.hp}</div><div class="entity-hp-bar"><div class="bar-fill" style="width:${mhP}%"></div></div><div class="entity-stats">ATK:${mon.atk} DEF:${mon.def}</div></div>
       </div>
       ${comboText}
@@ -2991,6 +3127,7 @@ class GuiguUI {
     };
 
     const overlay=this.showModal('战斗 - '+mon.name,render(),'');
+    this._bindBattleHotkeys(overlay);
     const bindActions=()=>{
       overlay.querySelectorAll('.battle-btn[data-act],.battle-btn[data-skill]').forEach(btn=>{
         btn.addEventListener('click',()=>{
@@ -3021,6 +3158,34 @@ class GuiguUI {
       });
     };
     bindActions();
+  }
+
+  _bindBattleHotkeys(overlay){
+    if(this._battleKeyHandler)document.removeEventListener('keydown',this._battleKeyHandler);
+    this._battleKeyHandler=(e)=>{
+      const activeTag=document.activeElement?document.activeElement.tagName:'';
+      if(['INPUT','TEXTAREA','SELECT'].includes(activeTag))return;
+      const modal=document.getElementById('game-modal');
+      if(!modal||modal!==overlay)return;
+      if(e.key==='Enter'||e.key===' '){
+        const closeBtn=document.getElementById('battle-close');
+        if(closeBtn){e.preventDefault();closeBtn.click();return;}
+      }
+      const key=e.key.toLowerCase();
+      const actionMap={a:'attack',p:'potion',f:'flee'};
+      if(actionMap[key]){
+        const btn=overlay.querySelector(`[data-act="${actionMap[key]}"]`);
+        if(btn&&!btn.disabled){e.preventDefault();btn.click();}
+        return;
+      }
+      if(['1','2','3','4'].includes(key)){
+        const idx=parseInt(key,10)-1;
+        const skillBtns=overlay.querySelectorAll('.battle-btn[data-skill]');
+        const btn=skillBtns[idx];
+        if(btn&&!btn.disabled){e.preventDefault();btn.click();}
+      }
+    };
+    document.addEventListener('keydown',this._battleKeyHandler);
   }
 
   /* === 心魔试炼弹窗 === */
@@ -3147,6 +3312,20 @@ class GuiguUI {
       const playerSex=s.sex||'male';
       const dc=s.dualCultivation||{partnerId:null,daysLeft:0};
       const canDual=relNow>=60&&npcSex!==playerSex&&!(dc.partnerId&&dc.daysLeft>0);
+      const dualReason = relNow < 60 ? '好感度不足（需≥60）' : (npcSex===playerSex ? '需要异性方可双修' : (dc.partnerId&&dc.daysLeft>0 ? '已有双修对象' : ''));
+      const canApprentice = relNow >= 80 && npc.realm > s.realm;
+      const apprenticeReason = relNow < 80 ? '好感度不足（需≥80）' : (npc.realm <= s.realm ? '对方境界不高于你' : '');
+
+      const giftUsed = this.game.getNpcDailyCount(npcId,'gift');
+      const rumorUsed = this.game.getNpcDailyCount(npcId,'rumor');
+      const inviteUsed = this.game.getNpcDailyCount(npcId,'invite');
+      const hasGift = (s.inventory||[]).length > 0;
+      const canGift = hasGift && giftUsed < 1;
+      const giftReason = !hasGift ? '背包无可赠礼物品' : (giftUsed >= 1 ? '今日已赠礼' : '');
+      const canRumor = relNow >= 20 && rumorUsed < 2 && s.gold >= 20;
+      const rumorReason = relNow < 20 ? '好感度不足（需≥20）' : (rumorUsed >= 2 ? '今日已打听得够多了' : (s.gold < 20 ? '灵石不足（需20）' : ''));
+      const canInvite = relNow >= 40 && inviteUsed < 1 && s.sp >= 20;
+      const inviteReason = relNow < 40 ? '好感度不足（需≥40）' : (inviteUsed >= 1 ? '今日已结伴一次' : (s.sp < 20 ? '灵力不足（需20）' : ''));
       const sexLabel=npcSex==='male'?'男':'女';
       // NPC quests
       const availQuests=this.game.getNpcQuests(npcId);
@@ -3166,16 +3345,34 @@ class GuiguUI {
         });
         questHtml+='</div>';
       }
+      const giftPicker = (this._giftPickNpcId === npcId) ? (() => {
+        if (!hasGift) return '<div style="margin-top:10px;color:var(--text-muted);text-align:center">背包为空</div>';
+        const items = (s.inventory||[]).slice(0, 12);
+        let html = '<div style="margin-top:10px;border-top:1px solid var(--border-color);padding-top:10px">';
+        html += '<div style="font-size:0.85rem;color:var(--gold);margin-bottom:6px;font-weight:bold">选择赠礼</div>';
+        html += '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">';
+        items.forEach((it, idx) => {
+          html += `<button class="btn btn-outline btn-sm npc-gift-item" data-idx="${idx}" style="text-align:left;font-size:0.75rem;padding:6px 10px">${escapeHtml(it.name)}<span style="float:right;color:var(--text-muted)">x${it.count||1}</span></button>`;
+        });
+        html += '</div>';
+        html += '<div style="text-align:center;margin-top:8px"><button class="btn btn-outline btn-sm npc-action-btn" data-act="giftCancel">取消</button></div>';
+        html += '</div>';
+        return html;
+      })() : '';
+
       return`<div class="npc-profile"><div class="npc-avatar">👤</div><div class="npc-details"><div class="npc-detail-name">${npc.name} <span style="font-size:0.8rem;color:var(--text-muted)">(${sexLabel})</span></div><div class="npc-detail-realm">${REALMS[npc.realm].name}</div><div class="npc-detail-personality">${PERSONALITIES_MAP[npc.personality]?.name||''}</div></div></div>
         <div style="margin-bottom:12px"><div class="relation-label"><span>${this.game.getNPCRelationLabel(npcId).label}</span><span>${relNow}</span></div><div class="relation-bar"><div class="bar-fill bar-relation" style="width:${relP}%;background:${relNow>=0?'var(--green)':'var(--red)'}"></div></div></div>
         <div class="npc-dialogue-box" id="npc-dialogue">与${npc.name}交谈...</div>
         <div class="npc-modal-actions">
           <button class="npc-action-btn" data-act="talk">交谈</button>
           <button class="npc-action-btn" data-act="spar">切磋</button>
-          <button class="npc-action-btn" data-act="apprentice" ${relNow<80||npc.realm<=s.realm?'disabled':''}><span>拜师</span><span class="action-cost">好感≥80且对方境界更高</span></button>
-          <button class="npc-action-btn" data-act="dualCultivate" ${canDual?'':`disabled`}><span>双修</span><span class="action-cost">${npcSex===playerSex?'需异性':'好感≥60'+(dc.partnerId&&dc.daysLeft>0?'，已有双修':'')}</span></button>
+          <button class="npc-action-btn" data-act="giftPick" aria-disabled="${canGift?'false':'true'}" ${canGift?'':`data-disabled-reason="${escapeHtml(giftReason)}"`}><span>赠礼</span><span class="action-cost">每日1次</span></button>
+          <button class="npc-action-btn" data-act="rumor" aria-disabled="${canRumor?'false':'true'}" ${canRumor?'':`data-disabled-reason="${escapeHtml(rumorReason)}"`}><span>打听消息</span><span class="action-cost">20灵石 / 每日2次</span></button>
+          <button class="npc-action-btn" data-act="invite" aria-disabled="${canInvite?'false':'true'}" ${canInvite?'':`data-disabled-reason="${escapeHtml(inviteReason)}"`}><span>结伴历练</span><span class="action-cost">20灵力 / 每日1次</span></button>
+          <button class="npc-action-btn" data-act="apprentice" aria-disabled="${canApprentice?'false':'true'}" ${canApprentice?'':`data-disabled-reason="${escapeHtml(apprenticeReason)}"`}><span>拜师</span><span class="action-cost">好感≥80且对方境界更高</span></button>
+          <button class="npc-action-btn" data-act="dualCultivate" aria-disabled="${canDual?'false':'true'}" ${canDual?'':`data-disabled-reason="${escapeHtml(dualReason)}"`}><span>双修</span><span class="action-cost">好感≥60且异性</span></button>
           <button class="npc-action-btn" data-act="close">离开</button>
-        </div>${questHtml}`;
+        </div>${giftPicker}${questHtml}`;
     };
 
     const overlay=this.showModal(npc.name,render(),'');
@@ -3184,14 +3381,54 @@ class GuiguUI {
         btn.addEventListener('click',()=>{
           const act=btn.dataset.act;
           if(act==='close'){this.closeModal();this.refreshUI();return}
+          if(act==='giftPick'){
+            this._giftPickNpcId = npcId;
+            const dlg=document.getElementById('npc-dialogue');
+            overlay.querySelector('.modal-body').innerHTML=render();
+            const newDlg=document.getElementById('npc-dialogue');
+            if(newDlg&&dlg)newDlg.textContent=dlg.textContent;
+            bindActs();
+            return;
+          }
+          if(act==='giftCancel'){
+            this._giftPickNpcId = null;
+            const dlg=document.getElementById('npc-dialogue');
+            overlay.querySelector('.modal-body').innerHTML=render();
+            const newDlg=document.getElementById('npc-dialogue');
+            if(newDlg&&dlg)newDlg.textContent=dlg.textContent;
+            bindActs();
+            return;
+          }
           const r=this.game.interactNPC(npcId,act);
           if(!r)return;
           const dlg=document.getElementById('npc-dialogue');
           if(r.type==='talk'&&dlg){dlg.textContent=r.text+' (好感+'+r.gain+')'}
           else if(r.type==='spar'&&dlg){dlg.textContent=r.win?'切磋获胜！获得'+r.exp+'经验 (好感+10)':'切磋落败 (好感-5)'}
-          else if(r.type==='apprentice'&&dlg){dlg.textContent=r.success?'拜师成功！'+r.path+'感悟+'+r.gain:r.msg}
+          else if(r.type==='gift'&&dlg){dlg.textContent=r.gain?('赠送'+r.itemName+'，好感+'+r.gain):(r.msg||'赠礼失败')}
+          else if(r.type==='rumor'&&dlg){dlg.textContent=r.success?('你从'+npc.name+'处得知：'+r.text):(r.msg||'打听失败')}
+          else if(r.type==='invite'&&dlg){dlg.textContent=r.success?('结伴历练，经验+'+r.exp+(r.loot?('，获得'+r.loot):'')):(r.msg||'邀请失败')}
+          else if(r.type==='apprentice'&&dlg){
+            const names={sword:'剑道',alchemy:'丹道',formation:'阵道',body:'体道',beast:'御兽'};
+            dlg.textContent=r.success?('拜师成功！'+(names[r.path]||r.path)+'感悟+'+r.gain):(r.msg||'拜师失败');
+          }
           else if(r.type==='dualCultivate'&&dlg){dlg.textContent=r.success?'与'+r.partner+'开始双修！修炼经验×1.5，持续30天':r.msg}
           // Re-render relation bar
+          if(r.type==='gift') this._giftPickNpcId = null;
+          overlay.querySelector('.modal-body').innerHTML=render();
+          const newDlg=document.getElementById('npc-dialogue');
+          if(newDlg&&dlg)newDlg.textContent=dlg.textContent;
+          bindActs();
+        });
+      });
+      overlay.querySelectorAll('.npc-gift-item').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const idx=parseInt(btn.dataset.idx);
+          const r=this.game.interactNPC(npcId,'gift',idx);
+          const dlg=document.getElementById('npc-dialogue');
+          if(dlg){
+            dlg.textContent=r&&r.gain?('赠送'+r.itemName+'，好感+'+r.gain):(r&&r.msg?r.msg:'赠礼失败');
+          }
+          this._giftPickNpcId = null;
           overlay.querySelector('.modal-body').innerHTML=render();
           const newDlg=document.getElementById('npc-dialogue');
           if(newDlg&&dlg)newDlg.textContent=dlg.textContent;

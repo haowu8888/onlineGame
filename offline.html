@@ -12,7 +12,12 @@
     .offline-icon{font-size:48px;margin-bottom:12px}
     .offline-title{font-family:var(--font-display);font-size:1.4rem;color:var(--gold);margin-bottom:8px}
     .offline-desc{color:var(--text-secondary);margin-bottom:16px}
-    .offline-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .offline-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+    .offline-games{text-align:left;border-top:1px solid var(--border-color);padding-top:16px;margin-top:8px}
+    .offline-games-title{font-size:0.9rem;color:var(--text-secondary);margin-bottom:8px}
+    .offline-games-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+    .offline-games-list a{display:block;padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);font-size:0.85rem;text-align:center;transition:border-color 0.2s}
+    .offline-games-list a:hover{border-color:var(--gold);color:var(--gold)}
   </style>
 </head>
 <body>
@@ -24,6 +29,18 @@
       <div class="offline-actions">
         <a class="btn btn-gold" href="./index.html">返回首页</a>
         <button class="btn btn-outline" onclick="location.reload()">重试</button>
+      </div>
+      <div class="offline-games">
+        <div class="offline-games-title">已缓存的游戏（可离线游玩）：</div>
+        <div class="offline-games-list">
+          <a href="./games/cultivation.html">修仙之路</a>
+          <a href="./games/lifesim.html">仙途模拟器</a>
+          <a href="./games/guigu.html">鬼谷八荒</a>
+          <a href="./games/knife.html">转转刀</a>
+          <a href="./games/cardtower.html">斩仙塔</a>
+          <a href="./games/cardbattle.html">灵卡对决</a>
+          <a href="./games/cardcollect.html">仙卡录</a>
+        </div>
       </div>
     </div>
   </div>

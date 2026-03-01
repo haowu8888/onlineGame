@@ -249,6 +249,27 @@
   padding: 3px 0;
 }
 
+.ct-deck-stat.ct-deck-click {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin: 0 -8px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ct-deck-stat.ct-deck-click:hover {
+  background: rgba(212, 164, 74, 0.06);
+}
+
+.ct-deck-stat.ct-deck-click:active {
+  background: rgba(212, 164, 74, 0.1);
+}
+
+.ct-deck-stat.ct-deck-click:focus-visible {
+  outline: 2px solid rgba(212, 164, 74, 0.6);
+  outline-offset: 2px;
+}
+
 .ct-deck-stat-val {
   color: var(--cyan);
   font-weight: bold;
@@ -690,7 +711,7 @@
   letter-spacing: 1px;
 }
 
-#ct-btn-end-turn:hover:not(:disabled) {
+#ct-btn-end-turn:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--gold);
   color: var(--gold);
   box-shadow: 0 0 16px rgba(212, 164, 74, 0.2);
@@ -892,8 +913,8 @@
 }
 
 @keyframes hitFlash {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(2) saturate(0.5); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .ct-player-hit {

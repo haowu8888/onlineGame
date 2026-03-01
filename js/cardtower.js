@@ -533,6 +533,7 @@
     { id:'spirit_brush', name:'灵笔', desc:'每回合多抽1张牌', icon:'🖊️', setId:'talisman', effect:{drawBonus:1} },
     { id:'thorn_ring', name:'荆棘戒', desc:'受到攻击时反弹3伤害', icon:'💍', setId:'iron', effect:{autoThorns:3} },
     { id:'iron_bell', name:'铁钟', desc:'每回合获得3护甲', icon:'🔔', setId:'iron', effect:{autoBlock:3} },
+    { id:'stone_talisman', name:'镇元符', desc:'战斗开始获得8护甲', icon:'🧿', setId:'iron', effect:{startBlock:8} },
     { id:'blood_jade', name:'血玉', desc:'击杀敌人回复5HP', icon:'🔴', setId:'venom', effect:{killHeal:5} },
     { id:'qi_stone', name:'气运石', desc:'战斗开始获得1灵力', icon:'🪨', setId:'talisman', effect:{startEnergy:1} },
     { id:'ancient_scroll', name:'古卷', desc:'卡牌奖励多1张选择', icon:'📜', setId:'talisman', effect:{rewardExtra:1} },
@@ -707,8 +708,8 @@
     }
     reset() {
       const cls = this.chosenClass ? CLASSES.find(c => c.id === this.chosenClass) : null;
-      this.hp = cls ? cls.statMod.hp : 80;
-      this.maxHp = cls ? cls.statMod.maxHp : 80;
+      this.hp = cls ? cls.statMod.hp : 85;
+      this.maxHp = cls ? cls.statMod.maxHp : 85;
       this.floorIndex = 0;
       this.nodeIndex = 0;
       this.enemiesKilled = 0;
@@ -1698,9 +1699,79 @@
       }
       this.els.btnStart.parentNode.appendChild(dailyBtn);
       dailyBtn.addEventListener('click', () => this._showClassSelection(true));
+
+      // Codex button (cards/relics)
+      var codexBtn = document.createElement('button');
+      codexBtn.className = 'btn btn-outline btn-lg';
+      codexBtn.textContent = '图鉴';
+      codexBtn.style.marginLeft = '12px';
+      this.els.btnStart.parentNode.appendChild(codexBtn);
+      codexBtn.addEventListener('click', () => this._showCodex());
+
       this.els.btnRestart.addEventListener('click', () => this.game.restartGame());
       this.els.btnEndTurn.addEventListener('click', () => this.game.battle.endPlayerTurn());
       this.els.btnSkipReward.addEventListener('click', () => this.game.skipReward());
+      document.addEventListener('keydown', (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+        if (!this.els.gameScreen.classList.contains('active')) return;
+
+        const key = e.key.toLowerCase();
+        if (key === 'e') {
+          if (this.game.state.gameOver || !this.game.battle.playerTurn) return;
+          e.preventDefault();
+          this.game.battle.endPlayerTurn();
+          return;
+        }
+
+        if (['1', '2', '3'].includes(key)) {
+          const idx = parseInt(key, 10) - 1;
+          if (this.els.cardReward.classList.contains('active')) {
+            const card = this.els.rewardCards.querySelectorAll('.ct-card')[idx];
+            if (card) { e.preventDefault(); card.click(); }
+            return;
+          }
+          if (this.els.relicReward.classList.contains('active')) {
+            const relic = this.els.relicChoices.querySelectorAll('.ct-relic-choice')[idx];
+            if (relic) { e.preventDefault(); relic.click(); }
+            return;
+          }
+          if (this.els.upgradeOverlay.classList.contains('active')) {
+            const card = this.els.upgradeCards.querySelectorAll('.ct-card')[idx];
+            if (card) { e.preventDefault(); card.click(); }
+            return;
+          }
+          if (this.els.eventOverlay.classList.contains('active')) {
+            const choice = this.els.eventChoices.querySelectorAll('.ct-event-choice')[idx];
+            if (choice) { e.preventDefault(); choice.click(); }
+            return;
+          }
+          if (this.els.restShop.classList.contains('active')) {
+            const choice = this.els.restChoices.querySelectorAll('.ct-rest-choice')[idx];
+            if (choice) { e.preventDefault(); choice.click(); }
+            return;
+          }
+        }
+
+        if (key === '0' && this.els.cardRemoval.classList.contains('active')) {
+          if (this.els.btnSkipRemoval) { e.preventDefault(); this.els.btnSkipRemoval.click(); }
+        }
+      });
+
+      // Pile viewer (deck/draw/discard)
+      this.els.deckInfo.addEventListener('click', (e) => {
+        const stat = e.target.closest('.ct-deck-click');
+        if (!stat) return;
+        const pile = stat.dataset.pile;
+        this._openPileViewer(pile);
+      });
+      this.els.deckInfo.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const stat = e.target.closest('.ct-deck-click');
+        if (!stat) return;
+        e.preventDefault();
+        this._openPileViewer(stat.dataset.pile);
+      });
 
       // Event delegation for hand card clicks (avoids re-adding listeners every render)
       this.els.handArea.addEventListener('click', (e) => {
@@ -1758,6 +1829,87 @@
 
       // Skip card removal
       this.els.btnSkipRemoval.addEventListener('click', () => this.game.skipCardRemoval());
+    }
+
+    _showCodex() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;overflow-y:auto;';
+      const cardIds = Object.keys(CARDS);
+      const cardsHtml = cardIds.map(id => {
+        const c = CARDS[id];
+        const typeName = c.type === 'attack' ? '攻击' : c.type === 'defense' ? '防御' : '法术';
+        const upHint = (c.upAtk || c.upBlk || c.upDraw || c.upHeal || c.upEnergy || c.upPoison || c.upThorns || c.upArmorBreak || c.upDiscount || c.upVulnerable || c.upApplyWeak || c.upStrength || c.upDrawNext) ? '（可强化）' : '';
+        return `<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div style="font-size:1.4rem">${c.art || '🃏'}</div>
+            <div style="flex:1;">
+              <div style="font-weight:bold;color:var(--gold);">${escapeHtml(c.name)} ${upHint}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${typeName} · 费用 ${c.cost}</div>
+            </div>
+          </div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);white-space:pre-line;">${escapeHtml(c.desc || '')}</div>
+        </div>`;
+      }).join('');
+
+      const relicsHtml = RELICS.map(r => {
+        return `<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div style="font-size:1.4rem">${r.icon || '📿'}</div>
+            <div style="flex:1;">
+              <div style="font-weight:bold;color:var(--gold);">${escapeHtml(r.name)}</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">${escapeHtml(r.desc || '')}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      overlay.innerHTML = `<div style="background:var(--bg-dark,#0f172a);border:1px solid var(--border-color);border-radius:14px;padding:18px;max-width:860px;width:92%;margin:20px auto;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
+          <div style="font-size:1.2rem;font-weight:bold;color:var(--gold);">📖 图鉴</div>
+          <button class="btn btn-outline btn-sm" id="ct-codex-close">关闭</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn btn-gold btn-sm" id="ct-codex-tab-cards">卡牌</button>
+          <button class="btn btn-outline btn-sm" id="ct-codex-tab-relics">法宝</button>
+          <button class="btn btn-outline btn-sm" id="ct-codex-tab-keywords">关键词</button>
+        </div>
+        <div id="ct-codex-body"></div>
+      </div>`;
+      document.body.appendChild(overlay);
+
+      const body = overlay.querySelector('#ct-codex-body');
+      const render = (tab) => {
+        overlay.querySelector('#ct-codex-tab-cards').className = 'btn ' + (tab === 'cards' ? 'btn-gold' : 'btn-outline') + ' btn-sm';
+        overlay.querySelector('#ct-codex-tab-relics').className = 'btn ' + (tab === 'relics' ? 'btn-gold' : 'btn-outline') + ' btn-sm';
+        overlay.querySelector('#ct-codex-tab-keywords').className = 'btn ' + (tab === 'keywords' ? 'btn-gold' : 'btn-outline') + ' btn-sm';
+
+        if (tab === 'cards') {
+          body.innerHTML = `<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:10px;">收录全部卡牌（部分为职业专属）。</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">${cardsHtml}</div>`;
+          return;
+        }
+        if (tab === 'relics') {
+          body.innerHTML = `<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:10px;">法宝在旅途中随机获得，部分可组成套装。</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">${relicsHtml}</div>`;
+          return;
+        }
+        const kw = Object.keys(KEYWORD_TOOLTIPS).sort();
+        body.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">${kw.map(k => {
+          return `<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px 12px;">
+            <div style="font-weight:bold;color:var(--gold);margin-bottom:4px;">${escapeHtml(k)}</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary);">${escapeHtml(KEYWORD_TOOLTIPS[k])}</div>
+          </div>`;
+        }).join('')}</div>`;
+      };
+
+      render('cards');
+
+      overlay.querySelector('#ct-codex-tab-cards').addEventListener('click', () => render('cards'));
+      overlay.querySelector('#ct-codex-tab-relics').addEventListener('click', () => render('relics'));
+      overlay.querySelector('#ct-codex-tab-keywords').addEventListener('click', () => render('keywords'));
+
+      overlay.querySelector('#ct-codex-close').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     }
 
     showScreen(name) {
@@ -1840,6 +1992,79 @@
       });
     }
 
+    _openPileViewer(pile) {
+      const s = this.game.state;
+      if (!s) return;
+      let title = '牌组';
+      let cards = s.deck || [];
+      if (pile === 'draw') { title = '抽牌堆'; cards = s.drawPile || []; }
+      if (pile === 'discard') { title = '弃牌堆'; cards = s.discardPile || []; }
+      this._showPileModal(title, cards);
+    }
+
+    _showPileModal(title, cards) {
+      // Prevent stacking multiple pile viewers when users click quickly.
+      document.querySelectorAll('.modal-overlay[data-ct-pile="1"]').forEach(el => el.remove());
+
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay active';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.dataset.ctPile = '1';
+
+      // Group same cards for readability
+      const grouped = {};
+      (cards || []).forEach(c => {
+        const key = (c.id || c.name || '') + (c.upgraded ? '_u' : '');
+        grouped[key] = grouped[key] || { card: c, count: 0 };
+        grouped[key].count += 1;
+      });
+      const items = Object.values(grouped).sort((a, b) => {
+        const ca = a.card, cb = b.card;
+        return (ca.cost || 0) - (cb.cost || 0) || String(ca.name || '').localeCompare(String(cb.name || ''), 'zh-CN');
+      });
+
+      const listHtml = items.length === 0 ?
+        '<div style="text-align:center;color:var(--text-muted);padding:14px;">空</div>' :
+        items.map(it => {
+          const c = it.card;
+          const typeClass = `card-${c.type === 'defense' ? 'defense' : c.type}`;
+          const tagsHtml = renderTagChips(getCardTags(c), 6);
+          return `<div style="border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 12px;background:rgba(0,0,0,0.12);margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(74,218,212,0.12);border:1px solid rgba(74,218,212,0.25);color:#6aafff;font-weight:bold;">${c.cost}</div>
+                <div>
+                  <div style="color:var(--text-primary);font-weight:bold;">${escapeHtml(c.name || '未知卡牌')}${c.upgraded ? '<span style="color:var(--gold);margin-left:6px;">+</span>' : ''}</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);">数量 x${it.count} · ${c.type === 'attack' ? '攻击' : c.type === 'defense' ? '防御' : '法术'}</div>
+                </div>
+              </div>
+              <div style="font-size:1.5rem;opacity:0.9;">${escapeHtml(String(c.art || '🃏'))}</div>
+            </div>
+            ${tagsHtml}
+            <div style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary);line-height:1.4;">${cardDescResolved(c)}</div>
+          </div>`;
+        }).join('');
+
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:720px;">
+          <div class="modal-header">
+            <h3 class="modal-title">${escapeHtml(title)} <span style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;">(${cards.length})</span></h3>
+            <button class="modal-close">×</button>
+          </div>
+          <div class="modal-body">${listHtml}</div>
+          <div class="modal-footer" style="justify-content:center;">
+            <button class="btn btn-outline btn-sm" id="ct-pile-close">关闭</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      const close = () => overlay.remove();
+      overlay.querySelector('.modal-close').addEventListener('click', close);
+      overlay.querySelector('#ct-pile-close').addEventListener('click', close);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    }
+
     renderAll() {
       this.renderTowerMap();
       this.renderDeckInfo();
@@ -1888,9 +2113,9 @@
     renderDeckInfo() {
       const s = this.game.state;
       this.els.deckInfo.innerHTML = `
-        <div class="ct-deck-stat"><span>牌组</span><span class="ct-deck-stat-val">${s.deck.length}</span></div>
-        <div class="ct-deck-stat"><span>抽牌堆</span><span class="ct-deck-stat-val">${s.drawPile.length}</span></div>
-        <div class="ct-deck-stat"><span>弃牌堆</span><span class="ct-deck-stat-val">${s.discardPile.length}</span></div>
+        <div class="ct-deck-stat ct-deck-click" data-pile="deck" role="button" tabindex="0"><span>牌组</span><span class="ct-deck-stat-val">${s.deck.length}</span></div>
+        <div class="ct-deck-stat ct-deck-click" data-pile="draw" role="button" tabindex="0"><span>抽牌堆</span><span class="ct-deck-stat-val">${s.drawPile.length}</span></div>
+        <div class="ct-deck-stat ct-deck-click" data-pile="discard" role="button" tabindex="0"><span>弃牌堆</span><span class="ct-deck-stat-val">${s.discardPile.length}</span></div>
       `;
     }
 
@@ -1985,7 +2210,19 @@
         const discounted = effectiveCost < card.cost;
         const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
         const tagsHtml = renderTagChips(getCardTags(card), 3);
-        return `<div class="ct-card ${typeClass} ${canPlay ? '' : 'cant-play'} ${card.upgraded ? 'upgraded' : ''}" data-uid="${card.uid}">
+        let disabledAttrs = '';
+        if (!canPlay) {
+          let reason = '当前不可用';
+          if (!battleMgr.playerTurn) {
+            reason = '对手回合';
+          } else if (s.energy < effectiveCost) {
+            reason = `灵力不足（需要 ${effectiveCost}）`;
+          } else if (card.requiresExhaust && s.hand.filter(c => c.uid !== card.uid).length === 0) {
+            reason = '需要额外献祭一张手牌';
+          }
+          disabledAttrs = ` aria-disabled="true" data-disabled-reason="${escapeHtml(reason)}"`;
+        }
+        return `<div class="ct-card ${typeClass} ${canPlay ? '' : 'cant-play'} ${card.upgraded ? 'upgraded' : ''}" data-uid="${card.uid}"${disabledAttrs}>
           <div class="ct-card-cost ${discounted ? 'discounted' : ''}">${effectiveCost}</div>
           <div class="ct-card-art">${card.art}</div>
           <div class="ct-card-name">${card.name}</div>
@@ -1997,7 +2234,13 @@
     }
 
     renderEndTurnButton() {
-      this.els.btnEndTurn.disabled = !this.game.battle.playerTurn;
+      const canEnd = !!this.game.battle.playerTurn;
+      this.els.btnEndTurn.setAttribute('aria-disabled', canEnd ? 'false' : 'true');
+      if (!canEnd) {
+        this.els.btnEndTurn.dataset.disabledReason = '对手回合';
+      } else {
+        delete this.els.btnEndTurn.dataset.disabledReason;
+      }
     }
 
     /* --- Battle Log --- */

@@ -14,7 +14,7 @@
     baseBladeSpeed: 0.05,
     bladeDmg: 1,
     bladeHitCD: 12,            // 刀刃对同一敌人的打击冷却（帧）
-    xpPerLevel: [10, 18, 28, 40, 55, 72, 92, 115, 140, 170],
+    xpPerLevel: [10, 16, 24, 36, 52, 72, 92, 115, 140, 170],
     enemySpawnInterval: 60,    // 帧（更快刷怪→割草感）
     enemySpawnMin: 20,
     waveEnemyBase: 10,
@@ -113,6 +113,16 @@
     { id: 'vampire_blade',   name: '吸血剑意', desc: '击杀回复1HP',      icon: '🩸', max: 5, effect: (p) => { p.vampireBlade++; } },
     { id: 'enlightenment',   name: '悟道加速', desc: '经验获取 +20%',    icon: '📖', max: 3, effect: (p) => { p.xpMultiplier += 0.2; } },
     { id: 'agile_move',      name: '灵巧身法', desc: '10%闪避几率',      icon: '💨', max: 3, effect: (p) => { p.dodgeChance = Math.min(0.3, p.dodgeChance + 0.1); } },
+  ];
+
+  /* ---- 仙缘祝福（波次事件）---- */
+  const BLESSINGS = [
+    { id: 'bless_heal',   name: '回气', desc: '立即回复25%生命', icon: '💚', unique: false, apply: (g) => { if (g.player) g.player.hp = Math.min(g.player.maxHp, g.player.hp + Math.floor(g.player.maxHp * 0.25)); } },
+    { id: 'bless_dmg',    name: '磨刃', desc: '旋刃伤害 +2',     icon: '🗡️', unique: false, apply: (g) => { if (g.player) g.player.bladeDmg += 2; } },
+    { id: 'bless_speed',  name: '身法', desc: '移动速度 +8%',     icon: '💨', unique: false, apply: (g) => { if (g.player) g.player.speed *= 1.08; } },
+    { id: 'bless_magnet', name: '引灵', desc: '拾取范围 +20',     icon: '🧲', unique: false, apply: (g) => { if (g.player) g.player.pickupRange += 20; } },
+    { id: 'bless_wisdom', name: '悟道', desc: '经验获取 +15%',    icon: '📖', unique: false, apply: (g) => { if (g.player) g.player.xpMultiplier += 0.15; } },
+    { id: 'bless_blade',  name: '分刃', desc: '旋刃数量 +1',     icon: '🌀', unique: true,  apply: (g) => { if (g.player) g.player.bladeCount += 1; } },
   ];
 
   /* ---- 辅助函数 ---- */
@@ -599,6 +609,8 @@
       this.spawnTimer = 0;
       this.upgradeQueue = 0;
       this.pendingUpgrades = [];
+      this.pendingBlessings = [];
+      this._blessingsTaken = {};
       this.totalFrames = 0;
       this.spawnInterval = CFG.enemySpawnInterval;
       this.groundDecor = generateGroundDecor(200, 2000);
@@ -701,10 +713,45 @@
         for (let i = 0; i < hazardCount; i++) this.spawnHazard();
       }
 
+      // 仙缘祝福：每6波（非Boss波）触发一次选择
+      if (!this._bossRush && this.wave % CFG.bossEvery !== 0 && this.wave > 1 && this.wave % 6 === 0) {
+        this._triggerBlessingChoice();
+      }
+
       this.spawnInterval = Math.max(
         CFG.enemySpawnMin,
         Math.floor((CFG.enemySpawnInterval - this.wave * 4) * this.diff.spawnMul)
       );
+    }
+
+    _triggerBlessingChoice() {
+      const pool = BLESSINGS.filter(b => !b.unique || !(this._blessingsTaken && this._blessingsTaken[b.id]));
+      if (pool.length === 0) return;
+      const choices = [];
+      const copy = [...pool];
+      while (choices.length < 3 && copy.length > 0) {
+        const idx = Math.floor(Math.random() * copy.length);
+        choices.push(copy.splice(idx, 1)[0]);
+      }
+      this.pendingBlessings = choices;
+      if (this.pendingBlessings.length > 0) {
+        this.state = 'blessing';
+      }
+    }
+
+    applyBlessing(idx) {
+      const b = this.pendingBlessings && this.pendingBlessings[idx];
+      if (!b) return;
+      try {
+        b.apply(this);
+        this._blessingsTaken[b.id] = (this._blessingsTaken[b.id] || 0) + 1;
+        this.pendingBlessings = [];
+        this.state = 'playing';
+      } catch (e) {
+        console.error('[KnifeGame] applyBlessing error:', e);
+        this.pendingBlessings = [];
+        this.state = 'playing';
+      }
     }
 
     spawnBoss() {
@@ -1591,6 +1638,7 @@
       this.timeEl = document.getElementById('hud-time');
       this.upgradePanel = document.getElementById('upgrade-panel');
       this.upgradeCards = document.getElementById('upgrade-cards');
+      this.upgradeTitle = this.upgradePanel ? this.upgradePanel.querySelector('.upgrade-title') : null;
       this.overlay = document.getElementById('knife-overlay');
       this.overlayTitle = document.getElementById('knife-overlay-title');
       this.overlayDesc = document.getElementById('knife-overlay-desc');
@@ -1728,14 +1776,28 @@
 
       // Mobile skill buttons
       document.querySelectorAll('.mobile-skill-btn').forEach(btn => {
-        btn.addEventListener('touchstart', (e) => {
-          e.preventDefault();
+        const tryActivate = (e) => {
+          if (e && e.cancelable) e.preventDefault();
+          if (this.game.state !== 'playing') {
+            showToast('请先开始游戏', 'info', 1200);
+            return;
+          }
           const idx = parseInt(btn.dataset.skillIdx);
           const skill = this.game.skills[idx];
+          if (!skill) {
+            showToast('请先开始游戏', 'info', 1200);
+            return;
+          }
           if (skill && skill.unlocked && skill.currentCooldown <= 0) {
             this.game.activateSkill(idx);
+          } else if (skill && !skill.unlocked) {
+            showToast(`未解锁：${skill.name}（升级时选择“习得：${skill.name}”）`, 'info', 2500);
+          } else if (skill && skill.currentCooldown > 0) {
+            showToast(`${skill.name}冷却中`, 'info', 1200);
           }
-        }, { passive: false });
+        };
+        btn.addEventListener('touchstart', tryActivate, { passive: false });
+        btn.addEventListener('click', tryActivate);
       });
 
       this.overlayBtn.addEventListener('click', () => {
@@ -1974,6 +2036,8 @@
     _hideOverlay() { this.overlay.classList.remove('active'); }
 
     _showUpgradePanel() {
+      if (this.upgradeTitle) this.upgradeTitle.textContent = '武功精进 - 选择一项强化';
+      if (this.upgradePanel) this.upgradePanel.classList.remove('blessing');
       const cards = this.game.pendingUpgrades;
       let html = '';
       cards.forEach((u, i) => {
@@ -1994,6 +2058,33 @@
           this.game.applyUpgrade(idx);
           this.upgradePanel.classList.remove('active');
           showToast(cards[idx].name + ' +1', 'success', 1500);
+        });
+      });
+    }
+
+    _showBlessingPanel() {
+      if (this.upgradeTitle) this.upgradeTitle.textContent = '仙缘祝福 - 选择一项加持';
+      if (this.upgradePanel) this.upgradePanel.classList.add('blessing');
+      const cards = this.game.pendingBlessings || [];
+      let html = '';
+      cards.forEach((b, i) => {
+        html += `<div class="upgrade-card" data-idx="${i}">
+          <div class="upgrade-icon">${b.icon}</div>
+          <div class="upgrade-name">${b.name}</div>
+          <div class="upgrade-desc">${b.desc}</div>
+          <div class="upgrade-count">波次祝福</div>
+        </div>`;
+      });
+      this.upgradeCards.innerHTML = html;
+      this.upgradePanel.classList.add('active');
+
+      this.upgradeCards.querySelectorAll('.upgrade-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.dataset.idx);
+          const picked = cards[idx];
+          this.game.applyBlessing(idx);
+          this.upgradePanel.classList.remove('active');
+          if (picked) showToast(picked.name + ' 生效', 'success', 1500);
         });
       });
     }
@@ -2039,6 +2130,19 @@
       // 技能栏更新（缓存）
       const skillBar = document.getElementById('skill-bar');
       if (skillBar && this.game.skills) {
+        if (!this._skillBarBound) {
+          this._skillBarBound = true;
+          skillBar.addEventListener('click', (e) => {
+            const slot = e.target.closest('.skill-slot');
+            if (!slot || this.game.state !== 'playing') return;
+            const skillId = slot.dataset.skillId;
+            const idx = this.game.skills.findIndex(s => s.id === skillId);
+            const skill = this.game.skills[idx];
+            if (skill && skill.unlocked && skill.currentCooldown <= 0) {
+              this.game.activateSkill(idx);
+            }
+          });
+        }
         const unlockedKey = this.game.skills.filter(s => s.unlocked).map(s => s.id).join(',');
         if (unlockedKey !== this._lastSkillState) {
           this._lastSkillState = unlockedKey;
@@ -2104,6 +2208,12 @@
         if (this.game.state === 'upgrading' && this.game.pendingUpgrades.length > 0) {
           if (!this.upgradePanel.classList.contains('active')) {
             this._showUpgradePanel();
+          }
+        }
+
+        if (this.game.state === 'blessing' && this.game.pendingBlessings && this.game.pendingBlessings.length > 0) {
+          if (!this.upgradePanel.classList.contains('active')) {
+            this._showBlessingPanel();
           }
         }
 

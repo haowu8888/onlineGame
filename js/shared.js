@@ -1,9 +1,10 @@
 /* ========== 共享逻辑 ========== */
 
 /* --- HTML转义 --- */
+const _escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 function escapeHtml(str) {
   if (typeof str !== 'string') return String(str ?? '');
-  return str.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return str.replace(/[&<>"']/g, c => _escapeMap[c]);
 }
 
 /* --- 常量 --- */
@@ -691,7 +692,7 @@ function showToast(msg, type = 'info', duration = CONSTANTS.TOAST_DEFAULT_DURATI
 
   // 自动音效
   if (typeof SoundManager !== 'undefined') {
-    var snd = type === 'error' ? 'error' : type === 'success' ? 'success' : null;
+    let snd = type === 'error' ? 'error' : type === 'success' ? 'success' : null;
     // 特殊关键词检测
     if (snd === 'success') {
       if (/突破成功|晋升|升级成功|强化成功/.test(msg)) snd = 'levelup';
@@ -734,6 +735,125 @@ function showToast(msg, type = 'info', duration = CONSTANTS.TOAST_DEFAULT_DURATI
   }, duration);
 }
 
+/* --- aria-disabled / disabled-hint: 点击提示 --- */
+document.addEventListener('click', function(e) {
+  var disabledEl = e.target && e.target.closest ? e.target.closest('[aria-disabled="true"]') : null;
+  if (!disabledEl) {
+    disabledEl = e.target && e.target.closest ? e.target.closest('.disabled[data-disabled-reason]') : null;
+  }
+  if (!disabledEl) return;
+
+  var tag = (disabledEl.tagName || '').toUpperCase();
+  if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+  var reason = disabledEl.dataset ? disabledEl.dataset.disabledReason : '';
+  if (!reason) reason = disabledEl.getAttribute('title') || disabledEl.getAttribute('aria-label') || '当前不可用';
+
+  e.preventDefault();
+  e.stopPropagation();
+  showToast(reason, 'info');
+}, true);
+
+/* --- ESC: close topmost standard modal-overlay --- */
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Escape') return;
+  var overlays = Array.from(document.querySelectorAll('.modal-overlay.active'));
+  if (overlays.length === 0) return;
+  var top = overlays[overlays.length - 1];
+  var closeBtn = top.querySelector('.modal-close');
+  if (!closeBtn) {
+    closeBtn = Array.from(top.querySelectorAll('button')).find(function(b) {
+      var t = (b.textContent || '').trim();
+      return t === '×' || t === '关闭' || t === '取消';
+    });
+  }
+  if (closeBtn) closeBtn.click();
+});
+
+/* --- disabled -> aria-disabled: 让“禁用按钮”也能点击提示 --- */
+function _guessDisabledReasonForButton(btn) {
+  try {
+    if (!btn) return '条件不足';
+    var reqEl = btn.querySelector ? btn.querySelector('.adventure-choice-req') : null;
+    if (reqEl && reqEl.textContent && reqEl.textContent.trim()) return reqEl.textContent.trim();
+
+    var id = (btn.id || '').toLowerCase();
+    var cls = btn.classList || { contains: function() { return false; } };
+    var txt = (btn.textContent || '').trim();
+
+    if (cls.contains('upgrade-btn')) return '已满级';
+    if (cls.contains('npc-quest-accept')) return '已接满（3/3）';
+    if (cls.contains('bounty-accept-btn')) {
+      if (txt.includes('已满')) return '已接满（3/3）';
+      if (txt.includes('境界')) return '境界不足';
+      return '条件不足';
+    }
+    if (cls.contains('btn-skill') || (btn.dataset && btn.dataset.skill)) {
+      if (txt.includes('CD') || txt.includes('冷却')) return '技能冷却中';
+      return '真气不足';
+    }
+    if (id.includes('alch') || id.includes('brew')) return '材料不足';
+
+    if (txt.includes('CD') || txt.includes('冷却')) return '技能冷却中';
+    if (txt.includes('满') || txt.includes('已满')) return '已满级';
+    if (txt.includes('不足')) return '条件不足';
+  } catch { /* ignore */ }
+  return '条件不足';
+}
+
+function normalizeDisabledButtons(root) {
+  if (!root || !root.querySelectorAll) return;
+  var btns = root.querySelectorAll('button[disabled]');
+  btns.forEach(function(btn) {
+    var reason = '';
+    if (btn.dataset && btn.dataset.disabledReason) reason = btn.dataset.disabledReason;
+    if (!reason) reason = btn.getAttribute('data-disabled-reason') || '';
+    if (!reason) reason = _guessDisabledReasonForButton(btn);
+
+    btn.removeAttribute('disabled');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.dataset.disabledNormalized = '1';
+    if (btn.dataset) btn.dataset.disabledReason = reason;
+    else btn.setAttribute('data-disabled-reason', reason);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  normalizeDisabledButtons(document);
+  if (!window.MutationObserver) return;
+  var _moTimer = null;
+  var _pendingNodes = [];
+  var mo = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.type === 'attributes' && m.target && m.target.tagName === 'BUTTON') {
+        if (!m.target.hasAttribute('disabled') && m.target.dataset && m.target.dataset.disabledNormalized === '1') {
+          m.target.setAttribute('aria-disabled', 'false');
+          delete m.target.dataset.disabledReason;
+          delete m.target.dataset.disabledNormalized;
+          return;
+        }
+        _pendingNodes.push(m.target.parentNode || document);
+      } else if (m.type === 'childList' && m.addedNodes) {
+        m.addedNodes.forEach(function(n) {
+          if (n && n.nodeType === 1) _pendingNodes.push(n);
+        });
+      }
+    });
+    if (_pendingNodes.length && !_moTimer) {
+      _moTimer = setTimeout(function() {
+        var nodes = _pendingNodes.splice(0);
+        nodes.forEach(function(n) { normalizeDisabledButtons(n); });
+        _moTimer = null;
+      }, 50);
+    }
+  });
+  if (document.body) {
+    mo.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['disabled'] });
+  }
+  // 页面卸载时断开观察器
+  window.addEventListener('pagehide', function() { mo.disconnect(); });
+});
+
 /* --- 工具函数 --- */
 function formatNumber(n) {
   if (n >= 1e12) return (n / 1e12).toFixed(1) + '万亿';
@@ -752,6 +872,39 @@ function clamp(val, min, max) {
 
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/* --- 数学/游戏工具（从 knife.js 提取，供各游戏复用） --- */
+function rnd(min, max) { return Math.random() * (max - min) + min; }
+function dist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+class ObjectPool {
+  constructor(factory, reset, initialSize = 0) {
+    this._factory = factory;
+    this._reset = reset;
+    this._pool = [];
+    for (let i = 0; i < initialSize; i++) this._pool.push(factory());
+  }
+  acquire(...args) {
+    const obj = this._pool.length > 0 ? this._pool.pop() : this._factory();
+    this._reset(obj, ...args);
+    return obj;
+  }
+  release(obj) { this._pool.push(obj); }
+  releaseAll(arr) {
+    for (let i = 0; i < arr.length; i++) {
+      if (!arr[i].alive) this._pool.push(arr[i]);
+    }
+  }
+}
+
+function filterAlive(arr) {
+  let write = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].alive) arr[write++] = arr[i];
+  }
+  arr.length = write;
 }
 
 /* --- 页面加载状态 --- */
@@ -789,6 +942,30 @@ window.EventManager = {
     this._handlers = [];
   }
 };
+// 页面卸载时自动清理事件监听
+window.addEventListener('pagehide', () => { window.EventManager.cleanup(); });
+
+/* --- 定时器管理器（统一管理setTimeout，支持页面卸载时批量清理） --- */
+window.TimerManager = {
+  _timers: new Set(),
+  setTimeout(fn, delay) {
+    const id = setTimeout(() => {
+      this._timers.delete(id);
+      fn();
+    }, delay);
+    this._timers.add(id);
+    return id;
+  },
+  clearTimeout(id) {
+    clearTimeout(id);
+    this._timers.delete(id);
+  },
+  clearAll() {
+    this._timers.forEach(id => clearTimeout(id));
+    this._timers.clear();
+  }
+};
+window.addEventListener('pagehide', () => { window.TimerManager.clearAll(); });
 
 /* --- 音效开关按钮 (自动注入) --- */
 document.addEventListener('DOMContentLoaded', function() {
@@ -1113,10 +1290,10 @@ window.DailyMissions = (function() {
     d.claimed.push(idx);
     if (!d.baselines) d.baselines = {};
     d.baselines[m.statKey] = current;
-    Storage.set(DAILY_KEY, d);
+    Storage.setImmediate(DAILY_KEY, d);
 
     stats.xianyuan_points = (stats.xianyuan_points || 0) + (m.reward || 0);
-    Storage.set(STATS_KEY, stats);
+    Storage.setImmediate(STATS_KEY, stats);
 
     return { ok: true, reward: m.reward || 0, points: stats.xianyuan_points };
   }
@@ -1272,8 +1449,8 @@ window.GuideSystem = (function() {
         '<div class="guide-step-indicator"></div>' +
         '<div class="guide-text"></div>' +
         '<div class="guide-actions">' +
-          '<button class="btn btn-sm guide-skip-btn">\u8df3\u8fc7\u5f15\u5bfc</button>' +
-          '<button class="btn btn-gold btn-sm guide-next-btn">\u4e0b\u4e00\u6b65</button>' +
+          '<button class="btn btn-sm guide-skip-btn">跳过引导</button>' +
+          '<button class="btn btn-gold btn-sm guide-next-btn">下一步</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
@@ -1328,8 +1505,8 @@ window.GuideSystem = (function() {
     var nextBtn = overlay.querySelector('.guide-next-btn');
 
     indicator.textContent = (idx + 1) + ' / ' + steps.length;
-    text.innerHTML = '<strong>' + step.title + '</strong><p>' + step.desc + '</p>';
-    nextBtn.textContent = (idx === steps.length - 1) ? '\u5b8c\u6210' : '\u4e0b\u4e00\u6b65';
+    text.innerHTML = '<strong>' + escapeHtml(step.title) + '</strong><p>' + escapeHtml(step.desc) + '</p>';
+    nextBtn.textContent = (idx === steps.length - 1) ? '完成' : '下一步';
 
     var prevHighlight = document.querySelector('.guide-highlight');
     if (prevHighlight) prevHighlight.classList.remove('guide-highlight');

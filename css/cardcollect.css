@@ -264,7 +264,7 @@
 
 .cc-bench-card.in-team {
   opacity: 0.4;
-  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .cc-bench-card .card-icon {

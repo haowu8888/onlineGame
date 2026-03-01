@@ -35,5 +35,31 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["games", "entertainment"]
+  "categories": ["games", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "修仙之路",
+      "short_name": "修仙",
+      "url": "./games/cultivation.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "转转刀",
+      "short_name": "转刀",
+      "url": "./games/knife.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "鬼谷八荒",
+      "short_name": "鬼谷",
+      "url": "./games/guigu.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "斩仙塔",
+      "short_name": "仙塔",
+      "url": "./games/cardtower.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

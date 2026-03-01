@@ -178,8 +178,8 @@
 
   const OPPONENTS = [
     { name: '练气妖修', hp: 30, portrait: '👺', diff: 0 },
-    { name: '筑基魔修', hp: 40, portrait: '😈', diff: 1 },
-    { name: '金丹魔尊', hp: 50, portrait: '👿', diff: 2 },
+    { name: '筑基魔修', hp: 38, portrait: '😈', diff: 1 },
+    { name: '金丹魔尊', hp: 46, portrait: '👿', diff: 2 },
   ];
 
   const DIFF_NAMES = ['练气', '筑基', '金丹'];
@@ -223,6 +223,7 @@
     {id:'c28',name:'灵兽王',type:'minion',cost:5,atk:5,hp:5,deathrattle:'summon_3_3',maxCopy:1},
     {id:'c29',name:'暗影刺客',type:'minion',cost:2,atk:3,hp:1,charge:true,maxCopy:2},
     {id:'c30',name:'玉面狐仙',type:'minion',cost:4,atk:3,hp:4,battlecry:'draw1',maxCopy:2},
+    {id:'c31',name:'玄阵师',type:'minion',cost:4,atk:3,hp:4,battlecry:'aoe2enemy',maxCopy:1},
     {id:'s06',name:'烈焰风暴',type:'spell',cost:5,effect:'aoe4',desc:'对所有敌方随从造成4点伤害',maxCopy:2},
     {id:'s07',name:'灵力灌注',type:'spell',cost:0,effect:'draw1',desc:'抽一张牌',maxCopy:2},
     {id:'s08',name:'天罚',type:'spell',cost:6,effect:'deal8any',desc:'对任意目标造成8点伤害',maxCopy:1},
@@ -254,18 +255,29 @@
   function getActiveDeckIdx() { return Storage.get('cardbattle_active_deck', -1); }
   function setActiveDeckIdx(idx) { Storage.set('cardbattle_active_deck', idx); }
 
-  function grantRandomCard() {
+  function _getRewardCandidates() {
     const col = getCollection();
-    // Find cards we don't have max copies of
-    const candidates = UNLOCKABLE_CARD_IDS.filter(id => {
+    return UNLOCKABLE_CARD_IDS.filter(id => {
       const cat = CARD_CATALOG_MAP[id];
-      return (col[id] || 0) < cat.maxCopy;
+      return cat && (col[id] || 0) < cat.maxCopy;
     });
-    if (candidates.length === 0) return null;
-    const id = candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  function grantCardById(id) {
+    const cat = CARD_CATALOG_MAP[id];
+    if (!cat) return null;
+    const col = getCollection();
+    if ((col[id] || 0) >= cat.maxCopy) return null;
     col[id] = (col[id] || 0) + 1;
     saveCollection(col);
-    return CARD_CATALOG_MAP[id];
+    return cat;
+  }
+
+  function grantRandomCard() {
+    const candidates = _getRewardCandidates();
+    if (candidates.length === 0) return null;
+    const id = candidates[Math.floor(Math.random() * candidates.length)];
+    return grantCardById(id);
   }
 
   function buildDeckFromList(cardIds) {
@@ -1079,9 +1091,15 @@
         <div class="cb-minion-hp ${isDamaged ? 'damaged' : ''}">${m.hp}</div>
       `;
 
-      // Click handlers
-      if (who === 'player' && G.phase === 'player') {
-        div.addEventListener('click', () => onPlayerMinionClick(idx));
+      // Click handlers (always bind so users get feedback)
+      if (who === 'player') {
+        div.addEventListener('click', () => {
+          if (G.phase !== 'player') {
+            showToast('非你的回合', 'info');
+            return;
+          }
+          onPlayerMinionClick(idx);
+        });
       }
       if (who === 'enemy') {
         div.addEventListener('click', () => onEnemyMinionClick(idx));
@@ -1141,9 +1159,25 @@
         ${statsHTML}
       `;
 
-      if (canPlay && !animating) {
-        div.addEventListener('click', () => onHandCardClick(idx));
-      }
+      div.addEventListener('click', () => {
+        if (animating) {
+          showToast('动画进行中，稍后再试', 'info');
+          return;
+        }
+        if (G.phase !== 'player') {
+          showToast('非你的回合', 'info');
+          return;
+        }
+        if (card.cost > G.playerEnergy) {
+          showToast(`灵力不足（需要${card.cost}）`, 'info');
+          return;
+        }
+        if (!isSpell && G.playerField.length >= MAX_FIELD) {
+          showToast(`战场已满（最多${MAX_FIELD}个随从）`, 'info');
+          return;
+        }
+        onHandCardClick(idx);
+      });
 
       $playerHand.appendChild(div);
     });
@@ -1178,7 +1212,17 @@
     const $hp = document.getElementById('btn-hero-power');
     if ($hp) {
       const canUse = G.phase === 'player' && !G.playerHeroPowerUsed && G.playerEnergy >= 2 && !G.gameOver;
-      $hp.disabled = !canUse;
+      $hp.setAttribute('aria-disabled', canUse ? 'false' : 'true');
+      if (!canUse) {
+        let reason = '当前不可使用';
+        if (G.gameOver) reason = '对局已结束';
+        else if (G.phase !== 'player') reason = '对手回合';
+        else if (G.playerHeroPowerUsed) reason = '本回合已使用';
+        else if (G.playerEnergy < 2) reason = '灵力不足(需要2)';
+        $hp.dataset.disabledReason = reason;
+      } else {
+        delete $hp.dataset.disabledReason;
+      }
       $hp.style.opacity = canUse ? '1' : '0.4';
     }
   }
@@ -1218,14 +1262,17 @@
     if (G.phase === 'player') {
       $turnIndicator.textContent = '你的回合';
       $turnIndicator.classList.remove('enemy-turn');
-      $endTurnBtn.disabled = false;
+      $endTurnBtn.setAttribute('aria-disabled', 'false');
+      delete $endTurnBtn.dataset.disabledReason;
     } else if (G.phase === 'enemy') {
       $turnIndicator.textContent = '对手回合';
       $turnIndicator.classList.add('enemy-turn');
-      $endTurnBtn.disabled = true;
+      $endTurnBtn.setAttribute('aria-disabled', 'true');
+      $endTurnBtn.dataset.disabledReason = '对手回合';
     } else {
       $turnIndicator.textContent = G.winner === 'player' ? '胜利！' : '战败...';
-      $endTurnBtn.disabled = true;
+      $endTurnBtn.setAttribute('aria-disabled', 'true');
+      $endTurnBtn.dataset.disabledReason = '对局已结束';
     }
   }
 
@@ -1417,6 +1464,34 @@
     startEnemyTurn();
   });
 
+  document.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    const activeTag = document.activeElement ? document.activeElement.tagName : '';
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+    if (!G || G.gameOver) return;
+    if (key === 'e' && G.phase === 'player') {
+      e.preventDefault();
+      $endTurnBtn.click();
+      return;
+    }
+    if (key === 'h' && G.phase === 'player') {
+      const btn = document.getElementById('btn-hero-power');
+      if (btn) { e.preventDefault(); btn.click(); }
+      return;
+    }
+    if (key === 'c') {
+      const btn = document.getElementById('btn-cancel');
+      if (btn) { e.preventDefault(); btn.click(); }
+      return;
+    }
+    if (G.phase === 'player' && ['1','2','3','4','5','6','7','8','9'].includes(key)) {
+      const idx = parseInt(key, 10) - 1;
+      const cards = $playerHand.querySelectorAll('.cb-card');
+      const card = cards[idx];
+      if (card) { e.preventDefault(); card.click(); }
+    }
+  });
+
   // Hero power button
   document.getElementById('btn-hero-power').addEventListener('click', () => {
     if (!G || G.phase !== 'player' || G.gameOver || animating) return;
@@ -1473,6 +1548,61 @@
 
   /* ===================== 结果界面 ===================== */
 
+  function _showRewardChoiceModal(choices, onPick) {
+    document.querySelectorAll('.modal-overlay[data-cb-modal="reward"]').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.dataset.cbModal = 'reward';
+
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:560px;">
+        <div class="modal-header">
+          <h3 class="modal-title" style="color:var(--gold);">胜利奖励：选择一张卡牌</h3>
+          <button class="modal-close" id="cb-reward-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="cb-reward-grid">
+            ${choices.map(id => {
+              const c = CARD_CATALOG_MAP[id];
+              if (!c) return '';
+              const art = getArt(c);
+              const stats = c.type === 'minion' ? `${c.atk}/${c.hp}` : '';
+              return `<button class="cb-reward-choice" data-id="${id}">
+                <div class="cb-reward-art">${art}</div>
+                <div class="cb-reward-name">${escapeHtml(c.name)}</div>
+                <div class="cb-reward-meta">${c.type === 'spell' ? '法术' : '随从'} · 费用${c.cost}${stats ? ' · ' + stats : ''}</div>
+                ${c.type === 'spell' && c.desc ? `<div class="cb-reward-desc">${escapeHtml(c.desc)}</div>` : ''}
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content:space-between;gap:12px;">
+          <button class="btn btn-outline btn-sm" id="cb-reward-skip">跳过</button>
+          <div class="cb-reward-tip">提示：战胜对手可从 3 张中选择 1 张加入收藏</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const close = () => {
+      overlay.remove();
+      onPick(null);
+    };
+    overlay.querySelector('#cb-reward-close').addEventListener('click', close);
+    overlay.querySelector('#cb-reward-skip').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+    overlay.querySelectorAll('.cb-reward-choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        overlay.remove();
+        onPick(id);
+      });
+    });
+  }
+
   function showResult() {
     // Arena mode handling
     if (G && G.isArena) { showArenaResult(); return; }
@@ -1502,21 +1632,6 @@
       }
     }
 
-    // Card reward on victory
-    let rewardCard = null;
-    if (won) {
-      rewardCard = grantRandomCard();
-    }
-
-    // Show result screen
-    $battle.style.display = 'none';
-    $result.style.display = '';
-
-    const $title = document.getElementById('result-title');
-    $title.textContent = won ? '胜利！' : '战败...';
-    $title.className = 'cb-result-title ' + (won ? 'win' : 'lose');
-
-    const $stats = document.getElementById('result-stats');
     // Defeat analysis tips
     let analysisHtml = '';
     if (!won && G.tracker) {
@@ -1560,33 +1675,58 @@
           ${encourageText ? `<div style="text-align:center;font-size:0.8rem;color:var(--gold);font-style:italic;margin-top:8px">${encourageText}</div>` : ''}
         </div>`;
     }
-    $stats.innerHTML = `
-      <div class="cb-result-stat">
-        <span class="stat-label">难度</span>
-        <span class="stat-value">${DIFF_NAMES[G.diff]}</span>
-      </div>
-      <div class="cb-result-stat">
-        <span class="stat-label">结果</span>
-        <span class="stat-value">${won ? '胜利' : '战败'}</span>
-      </div>
-      <div class="cb-result-stat">
-        <span class="stat-label">回合数</span>
-        <span class="stat-value">${G.turnCount}</span>
-      </div>
-      ${won ? `<div class="cb-result-stat">
-        <span class="stat-label">剩余生命</span>
-        <span class="stat-value">${G.playerHP}</span>
-      </div>` : ''}
-      <div class="cb-result-stat">
-        <span class="stat-label">得分</span>
-        <span class="stat-value" style="color: var(--gold); font-size: 1.2rem;">${score}</span>
-      </div>
-      ${rewardCard ? `<div class="cb-result-stat">
-        <span class="stat-label">获得卡牌</span>
-        <span class="stat-value" style="color: var(--cyan);">${getArt(rewardCard)} ${rewardCard.name}</span>
-      </div>` : (won ? `<div class="cb-result-stat"><span class="stat-label">卡牌</span><span class="stat-value" style="color:var(--text-muted)">收藏已满</span></div>` : '')}
-      ${analysisHtml}
-    `;
+
+    const renderResultScreen = (rewardCard) => {
+      $battle.style.display = 'none';
+      $result.style.display = '';
+
+      const $title = document.getElementById('result-title');
+      $title.textContent = won ? '胜利！' : '战败...';
+      $title.className = 'cb-result-title ' + (won ? 'win' : 'lose');
+
+      const $stats = document.getElementById('result-stats');
+      $stats.innerHTML = `
+        <div class="cb-result-stat">
+          <span class="stat-label">难度</span>
+          <span class="stat-value">${DIFF_NAMES[G.diff]}</span>
+        </div>
+        <div class="cb-result-stat">
+          <span class="stat-label">结果</span>
+          <span class="stat-value">${won ? '胜利' : '战败'}</span>
+        </div>
+        <div class="cb-result-stat">
+          <span class="stat-label">回合数</span>
+          <span class="stat-value">${G.turnCount}</span>
+        </div>
+        ${won ? `<div class="cb-result-stat">
+          <span class="stat-label">剩余生命</span>
+          <span class="stat-value">${G.playerHP}</span>
+        </div>` : ''}
+        <div class="cb-result-stat">
+          <span class="stat-label">得分</span>
+          <span class="stat-value" style="color: var(--gold); font-size: 1.2rem;">${score}</span>
+        </div>
+        ${rewardCard ? `<div class="cb-result-stat">
+          <span class="stat-label">获得卡牌</span>
+          <span class="stat-value" style="color: var(--cyan);">${getArt(rewardCard)} ${rewardCard.name}</span>
+        </div>` : (won ? `<div class="cb-result-stat"><span class="stat-label">卡牌</span><span class="stat-value" style="color:var(--text-muted)">未选择 / 收藏已满</span></div>` : '')}
+        ${analysisHtml}
+      `;
+    };
+
+    if (won) {
+      const candidates = _getRewardCandidates();
+      const pool = shuffle(candidates).slice(0, 3);
+      if (pool.length > 0) {
+        _showRewardChoiceModal(pool, (pickedId) => {
+          const rewardCard = pickedId ? grantCardById(pickedId) : null;
+          renderResultScreen(rewardCard);
+        });
+        return;
+      }
+    }
+
+    renderResultScreen(null);
   }
 
   /* ===================== 界面切换 ===================== */
@@ -1641,8 +1781,12 @@
   // Difficulty buttons
   $diffBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      if (btn.classList.contains('locked')) return;
       const diff = parseInt(btn.dataset.diff);
+      if (btn.classList.contains('locked')) {
+        const need = diff > 0 ? DIFF_NAMES[diff - 1] : '';
+        showToast(need ? `击败${need}对手解锁` : '尚未解锁', 'info');
+        return;
+      }
       newGame(diff);
       showBattle();
       render();
@@ -1689,17 +1833,77 @@
       const art = getArt(cat);
       const border = cat.type === 'spell' ? 'rgba(154,106,212,0.4)' : 'var(--border-color)';
       const bg = cat.type === 'spell' ? 'linear-gradient(180deg,#2a1e42,#1e1635)' : 'linear-gradient(180deg,#1e2a42,#162035)';
-      html += `<div style="width:95px;min-width:95px;height:130px;background:${bg};border:2px solid ${locked?'rgba(100,100,100,0.3)':border};border-radius:10px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden;${locked?'opacity:0.4':''}">
+      html += `<button class="cb-col-card" data-cid="${cat.id}" style="width:95px;min-width:95px;height:130px;background:${bg};border:2px solid ${locked?'rgba(100,100,100,0.3)':border};border-radius:10px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden;${locked?'opacity:0.4':''};cursor:pointer;padding:0">
         <div style="position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:${cat.type==='spell'?'linear-gradient(135deg,#6a2ad4,#9a5af0)':'linear-gradient(135deg,#2a5ad4,#4a8af0)'};color:#fff;font-size:0.8rem;font-weight:bold;display:flex;align-items:center;justify-content:center">${cat.cost}</div>
         <div style="font-size:1.8rem;margin-top:20px">${art}</div>
         <div style="font-size:0.65rem;color:var(--text-primary);text-align:center;padding:2px 4px;margin-top:4px">${cat.name}</div>
         ${cat.type==='minion'?`<div style="display:flex;justify-content:space-between;width:100%;padding:0 8px;font-size:0.75rem;font-weight:bold;margin-top:auto;padding-bottom:6px"><span style="color:#f0c040">⚔${cat.atk}</span><span style="color:#f06060">❤${cat.hp}</span></div>`:'<div style="font-size:0.5rem;color:var(--text-muted);padding:0 6px;text-align:center;margin-top:2px;flex:1">'+(cat.desc||'')+'</div>'}
         <div style="position:absolute;top:4px;right:4px;font-size:0.65rem;color:${owned>=cat.maxCopy?'var(--green)':'var(--text-muted)'}">${owned}/${cat.maxCopy}</div>
-      </div>`;
+      </button>`;
     });
     html += '</div>';
     $collection.innerHTML = html;
     document.getElementById('col-back').addEventListener('click', showStart);
+
+    $collection.querySelectorAll('.cb-col-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cid = btn.dataset.cid;
+        const owned = col[cid] || 0;
+        if (!owned) {
+          showToast('尚未获得该卡牌', 'info');
+          return;
+        }
+        _showCardDetailModal(cid);
+      });
+    });
+  }
+
+  function _showCardDetailModal(cardId) {
+    const c = CARD_CATALOG_MAP[cardId];
+    if (!c) return;
+    const col = getCollection();
+    const owned = col[cardId] || 0;
+    const tags = [];
+    if (c.taunt) tags.push('嘲讽');
+    if (c.charge) tags.push('冲锋');
+    if (c.divineShield) tags.push('圣盾');
+    if (c.lifesteal) tags.push('吸血');
+    if (c.battlecry) tags.push('战吼');
+    if (c.deathrattle) tags.push('亡语');
+
+    const art = getArt(c);
+    const typeText = c.type === 'spell' ? '法术' : '随从';
+    const stats = c.type === 'minion' ? `<div style="display:flex;gap:12px;justify-content:center;font-weight:bold;margin-top:10px"><span style="color:#f0c040">⚔ ${c.atk}</span><span style="color:#f06060">❤ ${c.hp}</span></div>` : '';
+    const desc = c.type === 'spell' ? (c.desc || '无描述') : (c.desc || '');
+
+    document.querySelectorAll('.modal-overlay[data-cb-modal="carddetail"]').forEach(el => el.remove());
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+    overlay.dataset.cbModal = 'carddetail';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <h3 class="modal-title">${escapeHtml(c.name)} <span style="font-size:0.85rem;color:var(--text-muted)">(${typeText})</span></h3>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div style="text-align:center">
+            <div style="font-size:3rem;line-height:1">${art}</div>
+            <div style="margin-top:8px;color:var(--text-secondary)">费用：<strong style="color:#6aafff">${c.cost}</strong>　拥有：<strong style="color:var(--gold)">${owned}/${c.maxCopy}</strong></div>
+            ${stats}
+          </div>
+          ${tags.length ? `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${tags.map(t => `<span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;border:1px solid var(--border-color);background:rgba(255,255,255,0.03);color:var(--text-secondary)">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+          ${desc ? `<div style="margin-top:14px;color:var(--text-primary);line-height:1.5;background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px">${escapeHtml(desc)}</div>` : ''}
+        </div>
+        <div class="modal-footer" style="justify-content:center">
+          <button class="btn btn-outline btn-sm" id="cb-card-close">关闭</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.querySelector('.modal-close').addEventListener('click', close);
+    overlay.querySelector('#cb-card-close').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   }
 
   function showDeckBuilder() {
@@ -1792,7 +1996,11 @@
     let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <h2 style="font-family:var(--font-display);color:var(--gold);margin:0">编辑: ${escapeHtml(deck.name)}</h2>
       <span style="color:${deck.cards.length===30?'var(--green)':'var(--red)'}; font-weight:bold">${deck.cards.length}/30</span>
-      <button class="btn btn-outline btn-sm" id="de-back">完成</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="btn btn-outline btn-sm" id="de-export">导出</button>
+        <button class="btn btn-outline btn-sm" id="de-import">导入</button>
+        <button class="btn btn-outline btn-sm" id="de-back">完成</button>
+      </div>
     </div>`;
 
     // Deck contents
@@ -1830,7 +2038,8 @@
       if (owned === 0) return;
       const inDeck = deckCount[cat.id] || 0;
       const canAdd = inDeck < owned && deck.cards.length < 30;
-      html += `<div style="background:${canAdd?'var(--bg-card)':'rgba(50,50,50,0.3)'};border:1px solid ${canAdd?'var(--border-color)':'rgba(100,100,100,0.2)'};border-radius:6px;padding:4px 8px;font-size:0.75rem;cursor:${canAdd?'pointer':'not-allowed'};display:flex;align-items:center;gap:4px;${canAdd?'':'opacity:0.5'}" class="${canAdd?'de-add':''}" data-cid="${cat.id}">
+      const disabledReason = deck.cards.length >= 30 ? '套牌已满（30/30）' : (inDeck >= owned ? '已达到拥有上限' : '当前不可用');
+      html += `<div style="background:${canAdd?'var(--bg-card)':'rgba(50,50,50,0.3)'};border:1px solid ${canAdd?'var(--border-color)':'rgba(100,100,100,0.2)'};border-radius:6px;padding:4px 8px;font-size:0.75rem;cursor:${canAdd?'pointer':'not-allowed'};display:flex;align-items:center;gap:4px;${canAdd?'':'opacity:0.5'}" class="de-add-item ${canAdd?'de-add':''}" data-cid="${cat.id}" aria-disabled="${canAdd?'false':'true'}" ${canAdd?'':`data-disabled-reason="${escapeHtml(disabledReason)}"`}>
         <span style="color:#6aafff">${cat.cost}</span>
         <span>${getArt(cat)}</span>
         <span style="color:var(--text-primary)">${cat.name}</span>
@@ -1843,11 +2052,56 @@
 
     $collection.innerHTML = html;
 
+    function exportDeck() {
+      const payload = JSON.stringify({ name: deck.name, cards: deck.cards }, null, 0);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(payload).then(() => {
+          showToast('套牌已复制到剪贴板', 'success');
+        }).catch(() => {
+          prompt('复制以下内容：', payload);
+        });
+      } else {
+        prompt('复制以下内容：', payload);
+      }
+    }
+
+    function importDeck() {
+      const txt = prompt('粘贴套牌JSON（会覆盖当前套牌）:', '');
+      if (!txt) return;
+      try {
+        const obj = JSON.parse(txt);
+        const cards = Array.isArray(obj) ? obj : obj.cards;
+        if (!Array.isArray(cards)) throw new Error('bad cards');
+
+        const deckCountNew = {};
+        const filtered = [];
+        cards.forEach(id => {
+          const cid = String(id);
+          const cat = CARD_CATALOG_MAP[cid];
+          const owned = col[cid] || 0;
+          if (!cat || owned <= 0) return;
+          deckCountNew[cid] = (deckCountNew[cid] || 0) + 1;
+          if (deckCountNew[cid] <= owned && filtered.length < 30) filtered.push(cid);
+        });
+        deck.cards = filtered;
+        if (obj && obj.name && typeof obj.name === 'string') deck.name = obj.name.slice(0, 20);
+        saveDecks(decks);
+        showToast('导入完成（有效卡牌 ' + filtered.length + '/30）', 'success');
+        renderDeckEditor(deckIdx);
+      } catch {
+        showToast('套牌格式错误', 'error');
+      }
+    }
+
+    document.getElementById('de-export').addEventListener('click', exportDeck);
+    document.getElementById('de-import').addEventListener('click', importDeck);
+
     document.getElementById('de-back').addEventListener('click', () => {
       showDeckBuilder();
     });
-    $collection.querySelectorAll('.de-add').forEach(el => {
+    $collection.querySelectorAll('.de-add-item').forEach(el => {
       el.addEventListener('click', () => {
+        if (el.getAttribute('aria-disabled') === 'true') return;
         const cid = el.dataset.cid;
         deck.cards.push(cid);
         saveDecks(decks);

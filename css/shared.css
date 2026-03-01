@@ -49,6 +49,13 @@
   --shadow-gold: 0 0 20px rgba(212, 164, 74, 0.3);
   --shadow-cyan: 0 0 20px rgba(74, 218, 212, 0.3);
 
+  /* 常用半透明色（减少各文件重复 rgba） */
+  --glow-gold: rgba(212, 164, 74, 0.3);
+  --glow-gold-strong: rgba(212, 164, 74, 0.5);
+  --glow-cyan: rgba(74, 218, 212, 0.3);
+  --glow-red: rgba(212, 74, 74, 0.3);
+  --glow-purple: rgba(154, 106, 212, 0.3);
+
   /* 边框 */
   --border-color: rgba(212, 164, 74, 0.2);
   --border-glow: rgba(212, 164, 74, 0.5);
@@ -374,6 +381,13 @@ input, select, textarea {
 }
 
 .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn[aria-disabled="true"],
+.btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
@@ -904,7 +918,7 @@ input, select, textarea {
 }
 
 .daily-game-tag {
-  font-family: var(--font-body);
+  font-family: var(--font-main);
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 999px;
@@ -949,7 +963,7 @@ input, select, textarea {
 }
 
 /* --- 全局按钮 :active 状态 --- */
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled):not([aria-disabled="true"]) {
   transform: scale(0.96);
 }
 
@@ -958,8 +972,8 @@ input, select, textarea {
   outline-offset: 2px;
 }
 
-.btn-gold:active:not(:disabled),
-.btn-cyan:active:not(:disabled) {
+.btn-gold:active:not(:disabled):not([aria-disabled="true"]),
+.btn-cyan:active:not(:disabled):not([aria-disabled="true"]) {
   filter: brightness(0.9);
 }
 
@@ -1281,4 +1295,61 @@ input, select, textarea {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* --- 共享战斗动画（减少各游戏CSS重复） --- */
+@keyframes damageFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
+}
+
+@keyframes cardPlay {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px) scale(0.5); opacity: 0; }
+}
+
+@keyframes hitFlash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* --- 游戏页通用响应式布局 --- */
+@media (max-width: 768px) {
+  .game-container,
+  .game-main,
+  .game-wrap {
+    padding: 8px;
+  }
+  .game-panel,
+  .game-card {
+    padding: 12px;
+  }
+  .game-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .game-title, h2 {
+    font-size: 1.2rem;
+  }
+  .btn { font-size: 0.85rem; padding: 6px 14px; }
+}
+
+@media (max-width: 480px) {
+  .game-container,
+  .game-main,
+  .game-wrap {
+    padding: 4px;
+  }
+  .game-panel,
+  .game-card {
+    padding: 8px;
+    border-radius: var(--radius-sm);
+  }
+  .game-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 6px;
+  }
+  .btn { font-size: 0.8rem; padding: 5px 10px; }
+  .modal { width: 95vw; max-width: none; margin: 8px; }
 }

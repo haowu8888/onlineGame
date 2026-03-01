@@ -1,6 +1,6 @@
 // 仙界游坊 Service Worker - 离线缓存 / PWA 增强
 // 注意：更新此文件时请同步更新 CACHE_VERSION，确保老缓存能被正确清理。
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v28';
 const CACHE_NAME = `xianjieyoufang-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `xianjieyoufang-runtime-${CACHE_VERSION}`;
 const CDN_CACHE = `xianjieyoufang-cdn-${CACHE_VERSION}`;
@@ -58,7 +58,8 @@ async function precacheAll(cache) {
         if (!res || !(res.ok || res.type === 'opaque')) throw new Error('bad response');
         await cache.put(req, res);
         return true;
-      } catch {
+      } catch (err) {
+        console.warn('[SW] 缓存失败:', asset, err.message || err);
         return false;
       }
     })
@@ -81,8 +82,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
+      const validNames = new Set([CACHE_NAME, RUNTIME_CACHE, CDN_CACHE]);
       await Promise.all(keys
-        .filter((key) => !key.includes(CACHE_VERSION))
+        .filter((key) => key.startsWith('xianjieyoufang-') && !validNames.has(key))
         .map((key) => caches.delete(key))
       );
       await self.clients.claim();
@@ -150,11 +152,12 @@ self.addEventListener('fetch', (event) => {
 
   // 其它同源资源：缓存优先 + 后台更新
   event.respondWith((async () => {
-    const cached = await caches.match(event.request);
+    const runtimeCache = await caches.open(RUNTIME_CACHE);
+    const precache = await caches.open(CACHE_NAME);
+    const cached = await runtimeCache.match(event.request) || await precache.match(event.request);
     const fetchPromise = fetch(event.request).then(async (res) => {
       if (res && res.ok) {
-        const cache = await caches.open(RUNTIME_CACHE);
-        cache.put(event.request, res.clone());
+        runtimeCache.put(event.request, res.clone());
       }
       return res;
     }).catch(() => null);
@@ -163,6 +166,6 @@ self.addEventListener('fetch', (event) => {
       event.waitUntil(fetchPromise);
       return cached;
     }
-    return (await fetchPromise) || cached || new Response('', { status: 504 });
+    return (await fetchPromise) || new Response('', { status: 504 });
   })());
 });

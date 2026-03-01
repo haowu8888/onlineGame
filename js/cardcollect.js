@@ -6,7 +6,8 @@
   const ICONS = [
     '🧑', '🏹', '🛡️', '🌿', '📜', '👦', '🐾', '🔨', '📖', '🥋',
     '💂', '🧒', '⚔️', '💪', '🧪', '⚡', '🦊', '🔮', '🗡️', '☠️',
-    '🛠️', '💊', '🌀', '🌩️', '🧙', '🗿', '🦋', '🏺', '👑', '✨'
+    '🛠️', '💊', '🌀', '🌩️', '🧙', '🗿', '🦋', '🏺', '👑', '✨',
+    '🐉'
   ];
 
   // ===== 角色数据 =====
@@ -45,6 +46,7 @@
     // 圣 (2)
     { id: 29, name: '剑尊', quality: '圣', role: 'ATK', atk: 120, hp: 350, skillName: '一剑破万法', skillDesc: '对单体造成毁灭伤害并溅射全体', skillType: 'devastate' },
     { id: 30, name: '仙帝', quality: '圣', role: 'SUP', atk: 80, hp: 500, skillName: '天道轮回', skillDesc: '全队满血+复活所有+提升攻击力', skillType: 'ultimate' },
+    { id: 31, name: '天机真人', quality: '仙', role: 'SUP', atk: 60, hp: 260, skillName: '天机妙术', skillDesc: '提升全队攻击力15%持续2回合', skillType: 'atkBuff' },
   ];
 
   // O(1) lookup map for character data by id
@@ -90,7 +92,7 @@
 
   const QUALITY_ORDER = { '凡': 0, '灵': 1, '仙': 2, '圣': 3 };
   const QUALITY_CSS = { '凡': 'fan', '灵': 'ling', '仙': 'xian', '圣': 'sheng' };
-  const QUALITY_RATES = { '凡': 0.40, '灵': 0.35, '仙': 0.20, '圣': 0.05 };
+  const QUALITY_RATES = { '凡': 0.38, '灵': 0.37, '仙': 0.20, '圣': 0.05 };
   // O(1) lookup map for gacha pools by quality
   const QUALITY_POOL = Object.fromEntries(
     Object.keys(QUALITY_RATES).map(q => [q, CHARACTER_DATA.filter(c => c.quality === q)])
@@ -199,6 +201,8 @@
     owned: {}, // { charId: { level, exp, dupes } }
     pityCounter: 0,
     lastLoginDate: null,
+    dailySweepDate: null,
+    dailySweepUsed: 0,
     clearedChapters: {},
     equipment: {}, // { charId: { weapon, armor, accessory } }
     equipInventory: [], // [equipId, ...]
@@ -219,6 +223,8 @@
       state.owned = saved.owned ?? {};
       state.pityCounter = saved.pityCounter ?? 0;
       state.lastLoginDate = saved.lastLoginDate ?? null;
+      state.dailySweepDate = saved.dailySweepDate ?? null;
+      state.dailySweepUsed = saved.dailySweepUsed ?? 0;
       state.clearedChapters = saved.clearedChapters ?? {};
       state.equipment = saved.equipment ?? {};
       state.equipInventory = saved.equipInventory ?? [];
@@ -1281,7 +1287,7 @@
         const own = state.owned[cid];
         const stats = getEffectiveStats(cid);
         const qcss = QUALITY_CSS[base.quality];
-        html += `<div class="cc-team-slot filled quality-border-${qcss}" data-slot="${i}">
+        html += `<div class="cc-team-slot filled quality-border-${qcss}" data-slot="${i}" data-char-id="${cid}">
           <button class="slot-remove" data-remove="${i}">&times;</button>
           <div class="cc-mini-card">
             <div class="card-icon">${ICONS[cid - 1]}</div>
@@ -1298,6 +1304,56 @@
       }
     }
     slotsEl.innerHTML = html;
+
+    // Click filled slot to open detail (ignore remove button)
+    slotsEl.querySelectorAll('.cc-team-slot.filled').forEach(slotEl => {
+      slotEl.addEventListener('click', (e) => {
+        if (e.target && e.target.closest('.slot-remove')) return;
+        const cid = parseInt(slotEl.dataset.charId);
+        if (!isNaN(cid)) showCharDetail(cid);
+      });
+    });
+
+    // Team tools (insert once)
+    const panel = document.getElementById('panel-team');
+    if (panel) {
+      let actionsEl = document.getElementById('team-actions');
+      if (!actionsEl) {
+        actionsEl = document.createElement('div');
+        actionsEl.id = 'team-actions';
+        actionsEl.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;margin:-8px 0 10px;';
+        panel.insertBefore(actionsEl, slotsEl);
+      }
+      actionsEl.innerHTML = `
+        <button class="btn btn-outline btn-sm" id="btn-auto-team">一键上阵</button>
+        <button class="btn btn-outline btn-sm" id="btn-clear-team">清空阵容</button>
+      `;
+      actionsEl.querySelector('#btn-auto-team').onclick = () => {
+        const ownedIds = Object.keys(state.owned).map(Number);
+        if (ownedIds.length === 0) { showToast('暂无角色，请先召唤', 'info'); return; }
+        const ranked = ownedIds.map(id => {
+          const base = getCharData(id);
+          const own = state.owned[id];
+          const stats = getEffectiveStats(id);
+          const q = base ? (QUALITY_ORDER[base.quality] || 0) : 0;
+          const score = q * 100000 + (own.level || 0) * 1000 + (stats.atk || 0) * 10 + (stats.hp || 0);
+          return { id, score };
+        }).sort((a, b) => b.score - a.score);
+        state.team = ranked.slice(0, 5).map(x => x.id);
+        while (state.team.length < 5) state.team.push(null);
+        saveGame();
+        showToast('已自动上阵最强的5位角色', 'success');
+        renderTeam();
+        renderBench();
+      };
+      actionsEl.querySelector('#btn-clear-team').onclick = () => {
+        state.team = [null, null, null, null, null];
+        saveGame();
+        showToast('阵容已清空', 'info');
+        renderTeam();
+        renderBench();
+      };
+    }
 
     // Formation preview below team slots
     const teamChars = getTeamChars();
@@ -1367,29 +1423,129 @@
         renderBench();
       });
     });
+
+    // In-team feedback
+    listEl.querySelectorAll('.cc-bench-card.in-team').forEach(card => {
+      card.addEventListener('click', () => {
+        showToast('该角色已在阵容中', 'info');
+      });
+    });
   }
 
   function renderChapters() {
     const grid = document.getElementById('chapter-grid');
+    const panel = document.getElementById('panel-chapter');
+    const today = new Date().toDateString();
+    if (state.dailySweepDate !== today) {
+      state.dailySweepDate = today;
+      state.dailySweepUsed = 0;
+      saveGame();
+    }
+    const sweepLimit = 3;
+    const sweepRemain = Math.max(0, sweepLimit - (state.dailySweepUsed || 0));
+    if (panel) {
+      let top = document.getElementById('chapter-top');
+      if (!top) {
+        top = document.createElement('div');
+        top.id = 'chapter-top';
+        top.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-4px 0 10px;flex-wrap:wrap;';
+        panel.insertBefore(top, grid);
+      }
+      top.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem">今日扫荡：<span style="color:${sweepRemain>0?'var(--green)':'var(--red)'};font-weight:bold">${sweepLimit - sweepRemain}/${sweepLimit}</span></div>
+        <div style="color:var(--text-muted);font-size:0.75rem">提示：已通关章节可扫荡拿奖励</div>`;
+    }
     grid.innerHTML = CHAPTERS.map(ch => {
       const unlocked = ch.id <= state.highestChapter + 1;
       const cleared = ch.id <= state.highestChapter;
       const reward = 150 + ch.id * 50;
+      const canSweep = cleared && sweepRemain > 0;
       return `<div class="cc-chapter-card ${cleared ? 'cleared' : ''} ${!unlocked ? 'locked' : ''}" data-chapter="${ch.id}">
         <div class="cc-chapter-num">第${ch.id}章</div>
         <div class="cc-chapter-name">${ch.name}</div>
         <div class="cc-chapter-desc">敌人 ATK ${ch.atkMin}-${ch.atkMax} | HP ${ch.hpMin}-${ch.hpMax}</div>
         <div class="cc-chapter-reward">奖励：${reward}灵石 + ${ch.id * 15}经验</div>
+        ${cleared ? `<div style="text-align:right;margin-top:8px"><button class="btn btn-outline btn-sm cc-sweep-btn" data-ch="${ch.id}" aria-disabled="${canSweep?'false':'true'}" ${canSweep?'':`data-disabled-reason=\"今日扫荡次数不足\"`}>扫荡</button></div>` : ''}
         ${!unlocked ? '<div style="color:var(--text-muted);font-size:0.75rem;margin-top:4px;">需先通关前一章</div>' : ''}
       </div>`;
     }).join('');
 
     grid.querySelectorAll('.cc-chapter-card:not(.locked)').forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        if (e.target && e.target.closest && e.target.closest('.cc-sweep-btn')) return;
         const chId = parseInt(card.dataset.chapter);
         startBattle(chId);
       });
     });
+
+    grid.querySelectorAll('.cc-sweep-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const chId = parseInt(btn.dataset.ch);
+        sweepChapter(chId);
+      });
+    });
+
+    grid.querySelectorAll('.cc-chapter-card.locked').forEach(card => {
+      card.addEventListener('click', () => {
+        showToast('需先通关前一章', 'info');
+      });
+    });
+  }
+
+  function sweepChapter(chId) {
+    const today = new Date().toDateString();
+    if (state.dailySweepDate !== today) {
+      state.dailySweepDate = today;
+      state.dailySweepUsed = 0;
+    }
+    const sweepLimit = 3;
+    if ((state.dailySweepUsed || 0) >= sweepLimit) {
+      showToast('今日扫荡次数已用完', 'info');
+      saveGame();
+      renderChapters();
+      return;
+    }
+    if (chId > state.highestChapter) {
+      showToast('请先通关该章节后再扫荡', 'info');
+      return;
+    }
+
+    state.dailySweepUsed = (state.dailySweepUsed || 0) + 1;
+    const reward = 150 + chId * 50;
+    const expReward = chId * 15;
+    const sweepMul = 0.7;
+    const stonesGain = Math.floor(reward * sweepMul);
+    const expGain = Math.max(1, Math.floor(expReward * sweepMul));
+    state.stones += stonesGain;
+
+    // Grant EXP to team (same as战斗胜利，但降低)
+    for (const cid of state.team) {
+      if (!cid || !state.owned[cid]) continue;
+      const own = state.owned[cid];
+      own.exp += expGain;
+      while (own.level < MAX_LEVEL && own.exp >= expForLevel(own.level)) {
+        own.exp -= expForLevel(own.level);
+        own.level++;
+      }
+      if (own.level >= MAX_LEVEL) own.exp = 0;
+    }
+
+    // Small chance of equipment box (better chapters give slightly higher chance)
+    const dropChance = Math.min(0.45, 0.18 + chId * 0.02);
+    const dropped = Math.random() < dropChance ? rollEquipDrop(chId) : null;
+    if (dropped) {
+      state.equipInventory.push(dropped.id);
+      showToast(`扫荡收获：+${stonesGain}灵石，经验+${expGain}，获得装备：${dropped.icon} ${dropped.name}`, 'success', 2200);
+    } else {
+      showToast(`扫荡收获：+${stonesGain}灵石，经验+${expGain}`, 'success', 1600);
+    }
+
+    saveGame();
+    renderTopBar();
+    renderTeam();
+    renderBench();
+    renderChapters();
   }
 
   function renderGachaResults(results) {
@@ -1441,6 +1597,12 @@
       card.addEventListener('click', () => {
         const cid = parseInt(card.dataset.charId);
         showCharDetail(cid);
+      });
+    });
+
+    grid.querySelectorAll('.cc-collection-card.not-owned').forEach(card => {
+      card.addEventListener('click', () => {
+        showToast('尚未获得该角色', 'info');
       });
     });
   }
@@ -1499,10 +1661,22 @@
       ${btHtml}
     `;
 
-    document.getElementById('char-detail-footer').innerHTML = '';
+    document.getElementById('char-detail-footer').innerHTML = `
+      <button class="btn btn-outline btn-sm" id="btn-auto-equip">自动装备</button>
+    `;
 
     const modal = document.getElementById('char-detail-modal');
     modal.classList.add('active');
+
+    // Auto equip
+    const autoEquipBtn = document.getElementById('btn-auto-equip');
+    if (autoEquipBtn) {
+      autoEquipBtn.addEventListener('click', () => {
+        _autoEquip(charId);
+        showCharDetail(charId);
+        refreshUI();
+      });
+    }
 
     // Breakthrough button
     const btBtn = document.getElementById('btn-breakthrough');
@@ -1611,6 +1785,46 @@
         showCharDetail(charId); // refresh
       });
     });
+  }
+
+  function _autoEquip(charId) {
+    if (!state.equipment) state.equipment = {};
+    if (!state.equipment[charId]) state.equipment[charId] = {};
+    if (!Array.isArray(state.equipInventory)) state.equipInventory = [];
+    const equips = state.equipment[charId];
+
+    const changes = [];
+    for (const slot of EQUIP_SLOTS) {
+      const candidates = state.equipInventory
+        .map((eid, idx) => ({ eid, idx, eq: EQUIP_MAP[eid] }))
+        .filter(x => x.eq && x.eq.slot === slot);
+      if (candidates.length === 0) continue;
+
+      candidates.sort((a, b) => {
+        const qa = QUALITY_ORDER[a.eq.quality] || 0;
+        const qb = QUALITY_ORDER[b.eq.quality] || 0;
+        if (qb !== qa) return qb - qa;
+        const va = (a.eq.atk || 0) * 10 + (a.eq.hp || 0);
+        const vb = (b.eq.atk || 0) * 10 + (b.eq.hp || 0);
+        return vb - va;
+      });
+
+      const best = candidates[0];
+      const current = equips[slot];
+      if (current === best.eid) continue;
+
+      if (current) state.equipInventory.push(current);
+      equips[slot] = best.eid;
+      state.equipInventory.splice(best.idx, 1);
+      changes.push(`${EQUIP_SLOT_NAMES[slot]}→${best.eq.name}`);
+    }
+
+    if (changes.length === 0) {
+      showToast('暂无更好的装备可替换', 'info');
+      return;
+    }
+    saveGame();
+    showToast('已自动装备：' + changes.join('，'), 'success', 3500);
   }
 
   function refreshUI() {
@@ -1802,6 +2016,11 @@
         saveGame();
         showToast('每日登录奖励：+100灵石', 'success');
       }
+      if (state.dailySweepDate !== today) {
+        state.dailySweepDate = today;
+        state.dailySweepUsed = 0;
+        saveGame();
+      }
     })();
     // 仙缘联动: 检查跨游戏奖励
     if (typeof CrossGameRewards !== 'undefined') {
@@ -1852,6 +2071,36 @@
       renderTeam();
       renderBench();
     });
+
+    if (!window._cardcollectHotkeysBound) {
+      window._cardcollectHotkeysBound = true;
+      document.addEventListener('keydown', (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+        const key = e.key.toLowerCase();
+        if (key === 'a') {
+          const btn = document.getElementById('btn-auto-team');
+          if (btn && btn.offsetParent !== null) {
+            e.preventDefault();
+            btn.click();
+          }
+        }
+        if (key === 'e') {
+          const btn = document.getElementById('btn-auto-equip');
+          if (btn && btn.offsetParent !== null) {
+            e.preventDefault();
+            btn.click();
+          }
+        }
+        if (key === 'x') {
+          const btn = document.getElementById('btn-battle-speed');
+          if (btn && btn.offsetParent !== null) {
+            e.preventDefault();
+            btn.click();
+          }
+        }
+      });
+    }
 
     // 新手引导
     if (typeof GuideSystem !== 'undefined') {
