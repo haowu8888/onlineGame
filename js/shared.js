@@ -1427,6 +1427,7 @@ window.GuideSystem = (function() {
   var steps = [];
   var currentStep = 0;
   var gameKey = '';
+  var pendingStartTimer = null;
 
   function isCompleted(key) {
     var done = Storage.get(GUIDE_KEY, {});
@@ -1437,6 +1438,13 @@ window.GuideSystem = (function() {
     var done = Storage.get(GUIDE_KEY, {});
     done[key] = true;
     Storage.set(GUIDE_KEY, done);
+  }
+
+  function clearPendingStartTimer() {
+    if (pendingStartTimer !== null) {
+      clearTimeout(pendingStartTimer);
+      pendingStartTimer = null;
+    }
   }
 
   function createOverlay() {
@@ -1498,7 +1506,9 @@ window.GuideSystem = (function() {
   }
 
   function showStep(idx) {
+    if (!overlay) return;
     var step = steps[idx];
+    if (!step) return;
     var tooltip = overlay.querySelector('.guide-tooltip');
     var indicator = overlay.querySelector('.guide-step-indicator');
     var text = overlay.querySelector('.guide-text');
@@ -1536,6 +1546,7 @@ window.GuideSystem = (function() {
   }
 
   function finish() {
+    clearPendingStartTimer();
     if (overlay) {
       overlay.classList.remove('active');
       var hl = document.querySelector('.guide-highlight');
@@ -1547,11 +1558,16 @@ window.GuideSystem = (function() {
   return {
     start: function(key, guideSteps) {
       if (isCompleted(key)) return false;
+      clearPendingStartTimer();
       gameKey = key;
       steps = guideSteps;
       currentStep = 0;
       createOverlay();
-      setTimeout(function() { showStep(0); }, 600);
+      pendingStartTimer = setTimeout(function() {
+        pendingStartTimer = null;
+        if (isCompleted(key)) return;
+        showStep(0);
+      }, 600);
       return true;
     },
     isCompleted: isCompleted,
