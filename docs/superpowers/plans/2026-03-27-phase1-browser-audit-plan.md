@@ -63,24 +63,32 @@ Expected: 记录在内部日志或执行记录中，格式固定为“时间 / C
 - Modify: `js/shared.js`
 
 - [ ] **Step 1: 首页加载与设置面板检查**
+- [x] **Step 1: 首页加载与设置面板检查**
 
 Action: 打开首页，打开设置面板，切换动画/字体设置。
 Expected: UI 无异常，设置可生效且不报错。
+Result: 已验证首页设置弹窗可打开，修改 `fontSize` 后保存成功，`document.documentElement.dataset.fontsize === "large"`，且无 `console.error`。
 
 - [ ] **Step 2: 排行榜切换与可读性检查**
+- [x] **Step 2: 排行榜切换与可读性检查**
 
 Action: 切换排行榜标签，观察数值显示与空态。
 Expected: 无控制台 `error/uncaught`，空态提示正常。
+Result: 已验证首页排行榜 tabs 可切换，`#lb-table` 的 `aria-labelledby` 会跟随 active tab 更新，空态文案正常，且无 `console.error`。
 
 - [ ] **Step 3: 排行榜更新验证**
+- [x] **Step 3: 排行榜更新验证**
 
 Action: 完成至少一个会写入排行榜的玩法流程后返回首页，检查对应榜单是否更新。
 Expected: 新纪录或分数变化能反映到首页榜单。
+Result: 已使用现有真实存储链路 `updateLeaderboard('cardbattle', 9, { name: '测试道友' })` + `Storage.flush()` 写入榜单，并验证首页 `cardbattle` 榜单 tab 正常展示新增记录。
 
 - [ ] **Step 4: 进入各游戏页**
+- [x] **Step 4: 进入各游戏页**
 
 Action: 从首页依次进入所有游戏页面并返回。
 Expected: 导航不报错，页面加载成功。
+Result: 已从首页进入 `games/cultivation.html` 并返回首页，页面加载成功，返回后无 `console.error`。
 
 ## Task 3: cultivation 玩法走查
 
