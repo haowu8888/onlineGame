@@ -1306,8 +1306,12 @@
       this._offlineResult = (expGain > 0 || goldGain > 0) ? { elapsed, expGain, goldGain, insightGain } : null;
     }
 
+    isBattleActive() {
+      return !!this.battleState;
+    }
+
     tick() {
-      if (!this.data || !this.meditating) return;
+      if (!this.data || !this.meditating || this.isBattleActive()) return;
       const rate = this.getExpRate();
       this.data.exp += rate;
       this.data.totalExp += rate;
@@ -3586,7 +3590,7 @@
         weBanner.style.display = 'none';
       }
       // 随机事件
-      if (!this.eventPaused && this.game.meditating) {
+      if (!this.eventPaused && this.game.meditating && !this.game.isBattleActive()) {
         const evt = this.game._checkRandomEvent();
         if (evt) {
           // 如果当前已有弹窗（eventPaused会在showEventModal中设为true，这里是尚未暂停时检查）
