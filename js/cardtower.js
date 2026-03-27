@@ -2540,8 +2540,27 @@
     init() {
       initNav('cardtower');
       initParticles('#particles', 20);
+      var resetState = typeof Phase2SaveReset !== 'undefined' ? Phase2SaveReset.ensure('cardtower') : null;
+      if (resetState && resetState.status === 'cancelled') {
+        this.renderResetBlocked();
+        return;
+      }
       this.ui.showScreen('start');
       this.ui.renderLeaderboard();
+    }
+
+    renderResetBlocked() {
+      var app = document.getElementById('ct-app');
+      if (!app) return;
+      app.innerHTML = `
+        <div class="ct-screen ct-start-screen active">
+          <div class="ct-start-inner">
+            <h1 class="ct-start-title">阶段2更新需清档</h1>
+            <p class="ct-start-subtitle">你刚才取消了新版清档确认。斩仙塔当前版本不兼容旧进度，确认清档后才能继续进入。</p>
+            <button class="btn btn-outline btn-lg" type="button" onclick="window.location.href='../index.html'">返回首页</button>
+          </div>
+        </div>
+      `;
     }
 
     startGame(daily) {

@@ -3349,9 +3349,25 @@
       this._panels = {};
 
       this.initSettings();
+      const resetState = typeof Phase2SaveReset !== 'undefined' ? Phase2SaveReset.ensure('cultivation') : null;
+      if (resetState && resetState.status === 'cancelled') {
+        this.renderResetBlocked();
+        return;
+      }
       CultivationGame.migrateOldSave();
       this.renderSlotSelection();
       this._bindBattleHotkeys();
+    }
+
+    renderResetBlocked() {
+      if (this.gameEl) this.gameEl.style.display = 'none';
+      this.charCreateEl.innerHTML = `
+        <div style="max-width:520px;margin:48px auto;padding:24px;border:1px solid var(--border-color);border-radius:20px;background:rgba(8,15,26,0.92);text-align:center;">
+          <h2 style="margin-bottom:12px;color:var(--gold);">阶段2更新需清档</h2>
+          <p style="margin-bottom:16px;color:var(--text-secondary);line-height:1.7;">你刚才取消了新版清档确认。<code>修仙之路</code> 当前版本不兼容旧档，确认清档后才能继续进入。</p>
+          <button class="btn btn-outline btn-sm" type="button" onclick="window.location.href='../index.html'">返回首页</button>
+        </div>
+      `;
     }
 
     initSettings() {

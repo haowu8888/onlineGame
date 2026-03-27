@@ -34,7 +34,7 @@
 - Modify: `js/cardtower.js`
 - Modify: `js/guigu.js`
 
-- [ ] **Step 1: 定义阶段2版本常量**
+- [x] **Step 1: 定义阶段2版本常量**
 
 Add:
 ```js
@@ -42,8 +42,9 @@ const PHASE2_SAVE_VERSION = 2;
 const PHASE2_RESET_GAMES = ['cultivation', 'cardtower', 'guigu'];
 ```
 Expected: 共享层和三个游戏都能读到统一的阶段2版本号。
+Result: 已将 `js/shared.js` 中的 `CONSTANTS.SAVE_VERSION` 提升到 `2`，并新增 `PHASE2_SAVE_RESET_CONFIG`，集中声明 `cultivation`、`cardtower`、`guigu` 的阶段2清档版本、展示名与匹配键规则。
 
-- [ ] **Step 2: 增加一次性清档确认**
+- [x] **Step 2: 增加一次性清档确认**
 
 Add:
 ```js
@@ -54,8 +55,9 @@ Add:
 ```
 Action: 首次进入三个目标游戏前，检查确认标记；未确认时弹出明确提示“阶段2会清空旧档”。
 Expected: 用户确认后再删除旧档键，不能静默清空。
+Result: 已在 `js/shared.js` 中实现 `window.Phase2SaveReset.ensure(gameId)`，首次进入目标游戏时会弹出明确确认；确认状态落在 `phase2_reset_confirmations`，同版本只问一次。
 
-- [ ] **Step 3: 清理目标旧档与遗留联动键**
+- [x] **Step 3: 清理目标旧档与遗留联动键**
 
 Run against:
 ```js
@@ -68,11 +70,13 @@ Run against:
 ]
 ```
 Expected: 只清理阶段2目标玩法与其联动残留，不误伤其他游戏存档。
+Result: 已验证 `cultivation` 只清 `cultivation_save_*`，`cardtower` 清 `cardtower_*` 与 `xianyuan_tower_bonuses`，`guigu` 清 `guigu_save_*` 与 `xianyuan_guigu_bonuses`；非目标玩法存档保留。
 
-- [ ] **Step 4: 回归验证清档行为**
+- [x] **Step 4: 回归验证清档行为**
 
 Action: 预置旧档 -> 进入游戏 -> 确认清档 -> 重载再进。
 Expected: 首次会提示并清空；二次进入不再重复提示；三个目标玩法以新版初始态启动。
+Result: 已通过 `.tmp/phase2-reset-audit.html` 验证共享层 helper 从缺失到通过；又通过 `.tmp/cultivation-reset-integration.html`、`.tmp/guigu-reset-integration.html`、`.tmp/cardtower-reset-integration.html` 在本机 Chrome headless 验证 3 个目标页面真实初始化后都会触发一次确认并清理各自旧档。期间额外修掉 1 个新引入语法错误：`js/cultivation.js` 的清档阻断文案误写反引号导致脚本解析失败。
 
 - [ ] **Step 5: 提交共享层改动**
 

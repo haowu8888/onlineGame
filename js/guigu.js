@@ -1822,6 +1822,11 @@ class GuiguUI {
       {key:'autoSave',label:'自动保存',type:'checkbox',default:true,checkLabel:'每分钟自动保存'},
       {key:'effects',label:'特效',type:'checkbox',default:true,checkLabel:'启用战斗特效'}
     ],'guigu_settings',()=>{});
+    const resetState=typeof Phase2SaveReset!=='undefined'?Phase2SaveReset.ensure('guigu'):null;
+    if(resetState&&resetState.status==='cancelled'){
+      this.renderResetBlocked();
+      return;
+    }
     this.renderSlotSelection();
     this._bindHotkeys();
     // Bind game events
@@ -1835,6 +1840,14 @@ class GuiguUI {
     // Auto-save
     if(this._autoSaveTimer)clearInterval(this._autoSaveTimer);
     this._autoSaveTimer=setInterval(()=>{if(this.game.state&&!this.game.state.dead)this.game.saveGame()},60000);
+  }
+
+  renderResetBlocked(){
+    const el=this._getEl('char-create');
+    const gameEl=this._getEl('guigu-game');
+    if(gameEl)gameEl.style.display='none';
+    if(!el)return;
+    el.innerHTML=`<div style="max-width:520px;margin:48px auto;padding:24px;border:1px solid var(--border-color);border-radius:20px;background:rgba(8,15,26,0.92);text-align:center;"><h2 style="margin-bottom:12px;color:var(--gold);">阶段2更新需清档</h2><p style="margin-bottom:16px;color:var(--text-secondary);line-height:1.7;">你刚才取消了新版清档确认。<code>鬼谷八荒</code> 当前版本不兼容旧档，确认清档后才能继续进入。</p><button class="btn btn-outline btn-sm" type="button" onclick="window.location.href='../index.html'">返回首页</button></div>`;
   }
 
   refreshUI(){
