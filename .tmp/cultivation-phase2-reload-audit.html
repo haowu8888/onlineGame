@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cultivation phase2 reload audit</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div id="particles"></div>
+  <div id="char-create"></div>
+  <div id="cult-game">
+    <div id="status-bar"></div>
+    <div id="cult-tabs">
+      <button class="cult-tab active" data-tab="cultivate">cultivate</button>
+      <button class="cult-tab" data-tab="battle">battle</button>
+      <button class="cult-tab" data-tab="alchemy">alchemy</button>
+      <button class="cult-tab" data-tab="forge">forge</button>
+      <button class="cult-tab" data-tab="shop">shop</button>
+      <button class="cult-tab" data-tab="inventory">inventory</button>
+      <button class="cult-tab" data-tab="pet">pet</button>
+      <button class="cult-tab" data-tab="technique">technique</button>
+      <button class="cult-tab" data-tab="sect">sect</button>
+      <button class="cult-tab" data-tab="world">world</button>
+      <button class="cult-tab" data-tab="inbox" id="tab-inbox">inbox</button>
+      <button class="cult-tab" data-tab="bestiary">bestiary</button>
+      <button class="cult-tab" data-tab="achievement">achievement</button>
+    </div>
+    <div class="cult-panel active" id="panel-cultivate" data-panel="cultivate"></div>
+    <div class="cult-panel" id="panel-world" data-panel="world"></div>
+    <div class="cult-panel" id="panel-inbox" data-panel="inbox"></div>
+    <div class="cult-panel" id="panel-battle" data-panel="battle"></div>
+    <div class="cult-panel" id="panel-alchemy" data-panel="alchemy"></div>
+    <div class="cult-panel" id="panel-forge" data-panel="forge"></div>
+    <div class="cult-panel" id="panel-shop" data-panel="shop"></div>
+    <div class="cult-panel" id="panel-inventory" data-panel="inventory"></div>
+    <div class="cult-panel" id="panel-pet" data-panel="pet"></div>
+    <div class="cult-panel" id="panel-technique" data-panel="technique"></div>
+    <div class="cult-panel" id="panel-sect" data-panel="sect"></div>
+    <div class="cult-panel" id="panel-bestiary" data-panel="bestiary"></div>
+    <div class="cult-panel" id="panel-achievement" data-panel="achievement"></div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const stage = params.get('stage') || '1';
+    if (stage === '1') {
+      localStorage.clear();
+      localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ cultivation: 2 }));
+      localStorage.setItem('cultivation_save_1', JSON.stringify({
+        name: '读档审计',
+        spiritRoot: 'wood',
+        sect: 'sword',
+        realm: 3,
+        exp: 0,
+        gold: 7000,
+        hp: 800,
+        maxHp: 800,
+        atk: 100,
+        def: 50,
+        spirit: 120,
+        maxSpirit: 120,
+        inventory: { herb: 8, crystal: 4, beast_core: 3, ore: 3, capture_talisman: 0 },
+        pills: { hp_pill: 2 },
+        equipment: { weapon: null, armor: null, accessory: null },
+        ownedEquips: [],
+        totalExp: 0,
+        totalKills: 0,
+        totalCrafts: 0,
+        totalEvents: 0,
+        achievements: [],
+        insight: 0,
+        lastOnline: Date.now(),
+        created: Date.now(),
+        currentLocation: 'mist_forest'
+      }));
+    }
+    window.__errors = [];
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cultivation.js" defer></script>
+  <script>
+    function wait(ms) {
+      return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+      });
+    }
+
+    function getPhase2State() {
+      return JSON.parse(localStorage.getItem('cultivation_save_1') || '{}').phase2Adventure || {};
+    }
+
+    async function enterBattleTab() {
+      document.querySelector('[data-enter="1"]')?.click();
+      await wait(120);
+      document.querySelector('.cult-tab[data-tab="battle"]')?.click();
+      await wait(120);
+    }
+
+    async function ensureChoices() {
+      if (!document.querySelectorAll('.phase2-route-card').length) {
+        document.getElementById('btn-phase2-adventure-start')?.click();
+        await wait(120);
+      }
+    }
+
+    window.addEventListener('load', function () {
+      (async function () {
+        await wait(80);
+        await enterBattleTab();
+
+        if (stage === '1') {
+          await ensureChoices();
+          const state = getPhase2State();
+          const firstImmediate = (state.currentChoices || []).find(function (item) {
+            return item.type !== 'battle';
+          });
+          document.querySelector('[data-route-choice="' + firstImmediate.choiceId + '"]')?.click();
+          await wait(180);
+          const snapshot = getPhase2State();
+          localStorage.setItem('phase2_reload_snapshot', JSON.stringify({
+            step: snapshot.step,
+            omen: snapshot.omen,
+            choiceIds: (snapshot.currentChoices || []).map(function (item) { return item.choiceId; })
+          }));
+          location.href = location.pathname + '?stage=2';
+          return;
+        }
+
+        const state = getPhase2State();
+        const snapshot = JSON.parse(localStorage.getItem('phase2_reload_snapshot') || '{}');
+        const result = {
+          step: state.step || 0,
+          savedStep: snapshot.step || 0,
+          omen: state.omen || null,
+          savedOmen: snapshot.omen || null,
+          choiceCount: document.querySelectorAll('.phase2-route-card').length,
+          savedChoiceCount: Array.isArray(snapshot.choiceIds) ? snapshot.choiceIds.length : 0,
+          blessingCount: document.querySelectorAll('.status-chip').length,
+          errors: window.__errors
+        };
+        result.pass =
+          result.step === result.savedStep &&
+          result.step >= 1 &&
+          result.omen === result.savedOmen &&
+          result.choiceCount === result.savedChoiceCount &&
+          result.choiceCount === 3 &&
+          result.errors.length === 0;
+        document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+      })();
+    });
+  </script>
+</body>
+</html>

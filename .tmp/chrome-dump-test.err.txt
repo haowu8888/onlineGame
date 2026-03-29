@@ -1,0 +1,4 @@
+[0327/190222.818:ERROR:third_party\crashpad\crashpad\util\win\registration_protocol_win.cc:108] CreateFile: 拒绝访问。 (0x5)
+[37524:57096:0327/190223.005:ERROR:components\os_crypt\sync\os_crypt_win.cc:105] Failed to decrypt: 该项不适于在指定状态下使用。 (0x8009000B)
+[37524:58068:0327/190223.060:FATAL:mojo\public\cpp\platform\platform_channel.cc:108] Check failed: . : 拒绝访问。 (0x5)
+[0327/190223.062:ERROR:third_party\crashpad\crashpad\client\crashpad_client_win.cc:142] crash server failed to launch, self-terminating

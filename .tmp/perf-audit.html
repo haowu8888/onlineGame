@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>perf audit</title></head>
+<body>
+<iframe id="app" style="width:1440px;height:2800px;border:0;"></iframe>
+<pre id="result">running</pre>
+<script>
+const frame = document.getElementById('app');
+const resultEl = document.getElementById('result');
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function setResult(data) { resultEl.textContent = JSON.stringify(data, null, 2); document.title = data.ok ? 'PASS' : 'FAIL'; }
+async function loadPage(url) {
+  return new Promise((resolve, reject) => {
+    const start = performance.now();
+    const done = () => {
+      frame.removeEventListener('load', done);
+      resolve({ win: frame.contentWindow, doc: frame.contentDocument, start });
+    };
+    frame.addEventListener('load', done, { once: true });
+    frame.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+    setTimeout(() => reject(new Error('load timeout: ' + url)), 15000);
+  });
+}
+async function waitFor(fn, label, timeout = 15000) {
+  const start = performance.now();
+  while (performance.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(20);
+  }
+  throw new Error('wait timeout: ' + label);
+}
+async function auditIndex() {
+  const { doc, start } = await loadPage('file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/index.html');
+  const tab = await waitFor(() => doc.querySelector('#lb-tabs .leaderboard-tab[data-game="knife"]'), 'index tab');
+  const readyMs = Math.round(performance.now() - start);
+  const clickStart = performance.now();
+  tab.click();
+  await waitFor(() => doc.querySelector('#lb-tabs .leaderboard-tab.active[data-game="knife"]'), 'index response', 5000);
+  const responseMs = Math.round(performance.now() - clickStart);
+  return { page: 'index', readyMs, responseMs };
+}
+async function auditCultivation() {
+  let ctx = await loadPage('file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/cultivation.html');
+  Object.keys(ctx.win.localStorage).filter((k) => k.startsWith('cultivation_save_')).forEach((k) => ctx.win.localStorage.removeItem(k));
+  ctx = await loadPage('file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/cultivation.html');
+  const { doc, start } = ctx;
+  const btn = await waitFor(() => doc.querySelector("#char-create [data-create='1']"), 'cultivation create');
+  const readyMs = Math.round(performance.now() - start);
+  const clickStart = performance.now();
+  btn.click();
+  await waitFor(() => doc.querySelector('#char-name'), 'cultivation response', 5000);
+  const responseMs = Math.round(performance.now() - clickStart);
+  return { page: 'cultivation', readyMs, responseMs };
+}
+async function auditCardtower() {
+  const { doc, start } = await loadPage('file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/cardtower.html');
+  const btn = await waitFor(() => doc.querySelector('#ct-btn-start'), 'cardtower start');
+  const readyMs = Math.round(performance.now() - start);
+  const clickStart = performance.now();
+  btn.click();
+  await waitFor(() => doc.querySelector('.ct-class-card'), 'cardtower response', 5000);
+  const responseMs = Math.round(performance.now() - clickStart);
+  return { page: 'cardtower', readyMs, responseMs };
+}
+(async () => {
+  try {
+    const results = [];
+    results.push(await auditIndex());
+    results.push(await auditCultivation());
+    results.push(await auditCardtower());
+    setResult({ ok: true, results });
+  } catch (error) {
+    setResult({ ok: false, error: String(error && error.stack || error) });
+  }
+})();
+</script>
+</body>
+</html>

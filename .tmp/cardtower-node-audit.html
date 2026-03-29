@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>cardtower node audit</title></head>
+<body>
+<iframe id="app" style="width:1440px;height:2600px;border:0;"></iframe>
+<pre id="result">running</pre>
+<script>
+const GAME_URL = 'file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/cardtower.html';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const resultEl = document.getElementById('result');
+const frame = document.getElementById('app');
+function setResult(data) { resultEl.textContent = JSON.stringify(data, null, 2); document.title = data.ok ? 'PASS' : 'FAIL'; }
+async function loadGame() {
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      frame.removeEventListener('load', done);
+      resolve({ win: frame.contentWindow, doc: frame.contentDocument });
+    };
+    frame.addEventListener('load', done, { once: true });
+    frame.src = GAME_URL + '?t=' + Date.now();
+    setTimeout(() => reject(new Error('load timeout')), 15000);
+  });
+}
+async function waitFor(fn, label, timeout = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(50);
+  }
+  throw new Error('wait timeout: ' + label);
+}
+function getCurrentNodeLabel(doc) {
+  return doc.querySelector('.ct-tower-node.current .ct-tower-node-label')?.textContent || doc.querySelector('.ct-tower-node.boss.current .ct-tower-node-label')?.textContent || '';
+}
+(async () => {
+  try {
+    let { doc } = await loadGame();
+    await waitFor(() => doc.querySelector('#ct-btn-start'), 'start button');
+    doc.querySelector('#ct-btn-start').click();
+    await waitFor(() => doc.querySelector('.ct-class-card[data-class="body"]'), 'class selection');
+    doc.querySelector('.ct-class-card[data-class="body"]').click();
+    await waitFor(() => doc.querySelector('#ct-game.active, #ct-game .ct-tower-node.current'), 'game screen');
+    await waitFor(() => doc.querySelector('.ct-tower-node.current .ct-tower-node-label'), 'current node label');
+    const initialNode = getCurrentNodeLabel(doc);
+    let loops = 0;
+    let chosenReward = null;
+    let chosenEvent = null;
+    while (loops < 220) {
+      loops += 1;
+      if (doc.querySelector('#ct-gameover.active')) {
+        throw new Error('game over before reaching next node');
+      }
+      if (doc.querySelector('#ct-card-reward.active')) {
+        const card = await waitFor(() => doc.querySelector('#ct-reward-cards .ct-card'), 'reward card');
+        chosenReward = card.querySelector('.ct-card-name')?.textContent || card.dataset.id || 'unknown';
+        card.click();
+        await sleep(400);
+        continue;
+      }
+      if (doc.querySelector('#ct-event-overlay.active')) {
+        const choice = await waitFor(() => doc.querySelector('#ct-event-choices .ct-event-choice'), 'event choice');
+        chosenEvent = choice.textContent || 'continue';
+        choice.click();
+        await sleep(450);
+        continue;
+      }
+      if (doc.querySelector('#ct-relic-reward.active')) {
+        const relic = await waitFor(() => doc.querySelector('#ct-relic-choices .ct-relic-choice'), 'relic choice');
+        relic.click();
+        await sleep(450);
+        continue;
+      }
+      if (doc.querySelector('#ct-rest-shop.active')) {
+        const rest = await waitFor(() => doc.querySelector('#ct-rest-choices .ct-rest-choice'), 'rest choice');
+        rest.click();
+        await sleep(450);
+        continue;
+      }
+      const currentNode = getCurrentNodeLabel(doc);
+      if (currentNode && currentNode !== initialNode) {
+        const info = Array.from(doc.querySelectorAll('#ct-player-status .ct-ps-item')).map((el) => el.textContent.trim());
+        setResult({
+          ok: true,
+          initialNode,
+          currentNode,
+          loops,
+          chosenReward,
+          chosenEvent,
+          playerStatus: info,
+          battleLog: doc.querySelector('#ct-battle-log')?.textContent || ''
+        });
+        return;
+      }
+      const playable = doc.querySelector('#ct-hand-area .ct-card:not(.cant-play)');
+      if (playable) {
+        playable.click();
+        await sleep(420);
+        continue;
+      }
+      const endTurn = doc.querySelector('#ct-btn-end-turn[aria-disabled="false"]');
+      if (endTurn) {
+        endTurn.click();
+        await sleep(700);
+        continue;
+      }
+      await sleep(250);
+    }
+    throw new Error('loop limit reached before moving to next node');
+  } catch (error) {
+    setResult({ ok: false, error: String(error && error.stack || error) });
+  }
+})();
+</script>
+</body>
+</html>

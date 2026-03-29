@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>guigu quick audit</title></head>
+<body>
+<iframe id="app" style="width:1440px;height:2800px;border:0;"></iframe>
+<pre id="result">running</pre>
+<script>
+const GAME_URL = 'file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/guigu.html';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const resultEl = document.getElementById('result');
+const frame = document.getElementById('app');
+function setResult(data) { resultEl.textContent = JSON.stringify(data, null, 2); document.title = data.ok ? 'PASS' : 'FAIL'; }
+async function loadGame() {
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      frame.removeEventListener('load', done);
+      resolve({ win: frame.contentWindow, doc: frame.contentDocument });
+    };
+    frame.addEventListener('load', done, { once: true });
+    frame.src = GAME_URL + '?t=' + Date.now();
+    setTimeout(() => reject(new Error('load timeout')), 15000);
+  });
+}
+async function waitFor(fn, label, timeout = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(50);
+  }
+  throw new Error('wait timeout: ' + label);
+}
+async function createSave() {
+  let ctx = await loadGame();
+  Object.keys(ctx.win.localStorage).filter((k) => k.startsWith('guigu_save_')).forEach((k) => ctx.win.localStorage.removeItem(k));
+  ctx = await loadGame();
+  let { doc } = ctx;
+  await waitFor(() => doc.querySelector("button[data-action='new'][data-slot='0']"), 'new slot');
+  doc.querySelector("button[data-action='new'][data-slot='0']").click();
+  await waitFor(() => doc.querySelector('#create-name'), 'create name');
+  doc.querySelector('#create-name').value = '鬼谷快测';
+  doc.querySelector('#create-next').click();
+  await waitFor(() => doc.querySelector('.spirit-root-option'), 'spirit root');
+  doc.querySelector('.spirit-root-option').click();
+  doc.querySelector('#create-next').click();
+  await waitFor(() => doc.querySelector('.sect-option'), 'sect');
+  doc.querySelector('.sect-option').click();
+  doc.querySelector('#create-next').click();
+  await waitFor(() => doc.querySelectorAll('.talent-option').length >= 2, 'talents');
+  doc.querySelectorAll('.talent-option')[0].click();
+  doc.querySelectorAll('.talent-option')[1].click();
+  doc.querySelector('#create-next').click();
+  await waitFor(() => doc.querySelector('.personality-option'), 'personality');
+  doc.querySelector('.personality-option').click();
+  doc.querySelector('#create-next').click();
+  await waitFor(() => doc.querySelector('#create-confirm'), 'confirm');
+  doc.querySelector('#create-confirm').click();
+  await waitFor(() => doc.querySelector('#guigu-game'), 'game started');
+  return ctx;
+}
+(async () => {
+  try {
+    const ctx = await createSave();
+    const { win, doc } = ctx;
+    const read = () => JSON.parse(win.localStorage.getItem('guigu_save_0'));
+    const beforeMeditate = read();
+    await waitFor(() => doc.querySelector('#qa-meditate'), 'quick meditate');
+    doc.querySelector('#qa-meditate').click();
+    await sleep(250);
+    const afterMeditate = read();
+
+    doc.querySelector('.guigu-tab[data-tab="adventure"]').click();
+    await waitFor(() => doc.querySelector('.action-card[data-action="rest"]'), 'rest card');
+    const beforeRest = read();
+    doc.querySelector('.action-card[data-action="rest"]').click();
+    await sleep(250);
+    const afterRest = read();
+
+    await waitFor(() => doc.querySelector('.action-card[data-action="explore"]'), 'explore card');
+    const beforeExplore = read();
+    doc.querySelector('.action-card[data-action="explore"]').click();
+    await sleep(250);
+    const afterExplore = read();
+
+    const gatherCard = doc.querySelector('.action-card[data-action="gather"]');
+    const gatherDisabled = gatherCard?.dataset.disabled === '1';
+    let gatherResult = null;
+    if (!gatherDisabled) {
+      const beforeGather = read();
+      gatherCard.click();
+      await sleep(250);
+      const afterGather = read();
+      gatherResult = {
+        before: { month: beforeGather.month, day: beforeGather.day, gold: beforeGather.gold, items: (beforeGather.inventory || []).length },
+        after: { month: afterGather.month, day: afterGather.day, gold: afterGather.gold, items: (afterGather.inventory || []).length }
+      };
+    }
+
+    setResult({
+      ok: true,
+      meditate: {
+        before: { month: beforeMeditate.month, day: beforeMeditate.day, exp: beforeMeditate.exp },
+        after: { month: afterMeditate.month, day: afterMeditate.day, exp: afterMeditate.exp }
+      },
+      rest: {
+        before: { month: beforeRest.month, day: beforeRest.day, hp: beforeRest.hp, sp: beforeRest.sp },
+        after: { month: afterRest.month, day: afterRest.day, hp: afterRest.hp, sp: afterRest.sp }
+      },
+      explore: {
+        before: { month: beforeExplore.month, day: beforeExplore.day, gold: beforeExplore.gold, exp: beforeExplore.exp },
+        after: { month: afterExplore.month, day: afterExplore.day, gold: afterExplore.gold, exp: afterExplore.exp }
+      },
+      gatherDisabled,
+      gatherResult,
+      toasts: Array.from(doc.querySelectorAll('.toast')).map((el) => el.textContent.trim())
+    });
+  } catch (error) {
+    setResult({ ok: false, error: String(error && error.stack || error) });
+  }
+})();
+</script>
+</body>
+</html>
