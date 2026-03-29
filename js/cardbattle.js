@@ -233,6 +233,8 @@
 
   const CARD_CATALOG_MAP = {};
   CARD_CATALOG.forEach(c => CARD_CATALOG_MAP[c.id] = c);
+  const ironGolem = CARD_CATALOG.find(c => c.id === 'c17');
+  if (ironGolem) ironGolem.taunt = true;
   const UNLOCKABLE_CARD_IDS = CARD_CATALOG.filter(c => !c.starter).map(c => c.id);
 
   /* --- 收藏/套牌存储 --- */
@@ -363,6 +365,8 @@
       winner: null,
       playerHeroPowerUsed: false,
       enemyHeroPowerUsed: false,
+      playerFatigue: 0,
+      enemyFatigue: 0,
       // Battle tracking for defeat analysis
       tracker: {
         playerDmgDealt: 0,
@@ -402,16 +406,20 @@
 
   function drawCard(who) {
     if (who === 'player') {
-      if (G.playerDeck.length === 0) return false;
+      if (G.playerDeck.length === 0) { applyFatigue('player'); return false; }
       if (G.playerHand.length >= 10) {
         // burn card
-        G.playerDeck.shift();
+        const burned = G.playerDeck.shift();
+        if (!G.playerBurnedThisTurn) {
+          showToast(`手牌已满，${burned.name}被烧毁`, 'info', 1200);
+          G.playerBurnedThisTurn = true;
+        }
         return false;
       }
       G.playerHand.push(G.playerDeck.shift());
       return true;
     } else {
-      if (G.enemyDeck.length === 0) return false;
+      if (G.enemyDeck.length === 0) { applyFatigue('enemy'); return false; }
       if (G.enemyHand.length >= 10) {
         G.enemyDeck.shift();
         return false;
@@ -419,6 +427,18 @@
       G.enemyHand.push(G.enemyDeck.shift());
       return true;
     }
+  }
+
+  function applyFatigue(who) {
+    if (who === 'player') {
+      G.playerFatigue = (G.playerFatigue || 0) + 1;
+      dealDamageToMaster('player', G.playerFatigue);
+      showToast(`牌库耗尽，受到疲劳伤害 ${G.playerFatigue}`, 'info', 1200);
+    } else {
+      G.enemyFatigue = (G.enemyFatigue || 0) + 1;
+      dealDamageToMaster('enemy', G.enemyFatigue);
+    }
+    checkGameOver();
   }
 
   function startPlayerTurn() {
@@ -429,6 +449,7 @@
     G.playerMaxEnergy = Math.min(10, G.playerMaxEnergy + 1);
     G.playerEnergy = G.playerMaxEnergy;
     G.playerHeroPowerUsed = false;
+    G.playerBurnedThisTurn = false;
     drawCard('player');
 
     // Reset attack flags
@@ -1227,6 +1248,11 @@
     }
   }
 
+  function pickHeroPowerTarget(list) {
+    if (!list || list.length === 0) return null;
+    return list.slice().sort((a, b) => (b.atk - a.atk) || (a.hp - b.hp))[0];
+  }
+
   /** Hero power: deal 2 damage to any target (minion or enemy master) */
   function useHeroPower(owner) {
     const HERO_POWER_COST = 2;
@@ -1234,11 +1260,17 @@
       if (G.playerHeroPowerUsed || G.playerEnergy < HERO_POWER_COST) return false;
       G.playerEnergy -= HERO_POWER_COST;
       G.playerHeroPowerUsed = true;
-      // Deal 2 damage to random enemy minion or enemy master
-      if (G.enemyField.length > 0 && Math.random() < 0.6) {
-        const t = G.enemyField[Math.floor(Math.random() * G.enemyField.length)];
-        dealDamageToMinion(t, 2);
-        removeDeadMinions();
+      if (G.enemyHP <= 2) {
+        dealDamageToMaster('enemy', 2);
+        return true;
+      }
+      // Deal 2 damage to highest-attack enemy minion or enemy master
+      if (G.enemyField.length > 0) {
+        const t = pickHeroPowerTarget(G.enemyField);
+        if (t) {
+          dealDamageToMinion(t, 2);
+          removeDeadMinions();
+        }
       } else {
         dealDamageToMaster('enemy', 2);
       }
@@ -1246,11 +1278,17 @@
       if (G.enemyHeroPowerUsed || G.enemyEnergy < HERO_POWER_COST) return false;
       G.enemyEnergy -= HERO_POWER_COST;
       G.enemyHeroPowerUsed = true;
-      // AI: deal 2 to player minion or player master
-      if (G.playerField.length > 0 && Math.random() < 0.6) {
-        const t = G.playerField[Math.floor(Math.random() * G.playerField.length)];
-        dealDamageToMinion(t, 2);
-        removeDeadMinions();
+      if (G.playerHP <= 2) {
+        dealDamageToMaster('player', 2);
+        return true;
+      }
+      // AI: deal 2 to highest-attack player minion or player master
+      if (G.playerField.length > 0) {
+        const t = pickHeroPowerTarget(G.playerField);
+        if (t) {
+          dealDamageToMinion(t, 2);
+          removeDeadMinions();
+        }
       } else {
         dealDamageToMaster('player', 2);
       }

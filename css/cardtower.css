@@ -168,22 +168,34 @@
 .ct-tower-map {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
 }
 
-.ct-tower-node {
-  display: flex;
-  align-items: center;
+.ct-tower-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  padding: 8px 10px;
+}
+
+.ct-tower-node {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-height: 110px;
+  padding: 10px;
   border-radius: var(--radius-md);
   font-size: 0.8rem;
   color: var(--text-muted);
-  background: transparent;
-  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all var(--transition-fast);
   position: relative;
+  text-align: left;
+  cursor: default;
 }
 
 .ct-tower-node.completed {
@@ -197,6 +209,18 @@
   border-color: var(--gold);
   background: rgba(212, 164, 74, 0.1);
   box-shadow: 0 0 10px rgba(212, 164, 74, 0.2);
+}
+
+.ct-tower-node.available {
+  cursor: pointer;
+  border-color: rgba(74, 218, 212, 0.32);
+  background: rgba(74, 218, 212, 0.08);
+}
+
+.ct-tower-node.available:hover {
+  transform: translateY(-2px);
+  border-color: rgba(74, 218, 212, 0.65);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
 }
 
 .ct-tower-node.boss {
@@ -216,8 +240,45 @@
   text-align: center;
 }
 
+.ct-tower-node-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
 .ct-tower-node-label {
   flex: 1;
+}
+
+.ct-tower-node-title {
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.ct-node-preview,
+.ct-node-next {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.ct-node-affix {
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  color: var(--red-light);
+  border: 1px solid rgba(212, 74, 74, 0.35);
+  background: rgba(212, 74, 74, 0.1);
+}
+
+.ct-node-empty {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  text-align: center;
 }
 
 .ct-tower-node-check {
@@ -325,6 +386,19 @@
   margin-bottom: 8px;
 }
 
+.ct-enemy-affix {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 74, 74, 0.3);
+  background: rgba(212, 74, 74, 0.08);
+  color: var(--red-light);
+  font-size: 0.7rem;
+}
+
 .ct-enemy-hp-bar {
   width: 100%;
   height: 10px;
@@ -392,6 +466,7 @@
 .ct-status-badge.enraged { color: var(--red-light); border: 1px solid rgba(212, 74, 74, 0.3); }
 .ct-status-badge.burn { color: var(--red-light); border: 1px solid rgba(255, 120, 120, 0.3); }
 .ct-status-badge.frozen { color: #7dd3fc; border: 1px solid rgba(125, 211, 252, 0.35); }
+.ct-status-badge.affix { color: var(--gold); border: 1px solid rgba(212, 164, 74, 0.3); }
 
 .ct-intent-next {
   margin-top: 4px;
@@ -814,12 +889,26 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .ct-event-choice:hover {
   border-color: var(--gold);
   background: rgba(212, 164, 74, 0.1);
   color: var(--gold);
+}
+
+.ct-event-choice-label {
+  font-weight: 700;
+}
+
+.ct-event-choice-desc {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 /* 升级卡牌选择 */
@@ -1136,11 +1225,11 @@
     max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     padding: 10px 16px;
-    overflow-x: auto;
+    overflow-x: visible;
   }
 
   .ct-tower-title {
@@ -1152,34 +1241,39 @@
   }
 
   .ct-tower-map {
-    flex-direction: row;
-    gap: 4px;
-    overflow-x: auto;
+    flex-direction: column;
+    gap: 8px;
+    overflow-x: visible;
+  }
+
+  .ct-tower-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ct-tower-node {
-    white-space: nowrap;
-    padding: 4px 8px;
+    white-space: normal;
+    min-height: 96px;
+    padding: 8px;
     font-size: 0.7rem;
   }
 
   .ct-tower-floor-divider {
     writing-mode: horizontal-tb;
-    border-top: none;
-    border-left: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    border-left: none;
     margin-top: 0;
-    margin-left: 4px;
-    padding: 0 4px;
+    margin-left: 0;
+    padding: 8px 0 4px;
     font-size: 0.65rem;
   }
 
   .ct-tower-deck-info {
     margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-    border-left: 1px solid var(--border-color);
-    padding-left: 12px;
-    margin-left: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    border-left: none;
+    padding-left: 0;
+    margin-left: 0;
     display: flex;
     gap: 10px;
     white-space: nowrap;

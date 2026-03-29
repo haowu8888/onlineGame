@@ -2,6 +2,16 @@
 (function () {
   'use strict';
 
+  const cardcollectProgression = globalThis.CardCollectProgression;
+  if (!cardcollectProgression) {
+    throw new Error('CardCollectProgression is required before cardcollect.js');
+  }
+  const {
+    getCompensationBuffPct,
+    grantTeamExp,
+    resolveAutoEquipDrop,
+  } = cardcollectProgression;
+
   // ===== 角色图标映射 =====
   const ICONS = [
     '🧑', '🏹', '🛡️', '🌿', '📜', '👦', '🐾', '🔨', '📖', '🥋',
@@ -178,7 +188,7 @@
 
   function rollEquipDrop(chapterId) {
     // 30% base drop chance, scaling with chapter
-    const dropChance = 0.25 + chapterId * 0.01;
+    const dropChance = 0.28 + chapterId * 0.012;
     if (Math.random() > dropChance) return null;
     const available = EQUIPMENT_POOL.filter(e => e.minCh <= chapterId);
     if (available.length === 0) return null;
@@ -195,7 +205,7 @@
 
   // ===== Game State =====
   let state = {
-    stones: 1000,
+    stones: 1200,
     highestChapter: 0,
     team: [null, null, null, null, null], // charId or null
     owned: {}, // { charId: { level, exp, dupes } }
@@ -217,7 +227,7 @@
   function loadGame() {
     const saved = Storage.get(SAVE_KEY, null);
     if (saved) {
-      state.stones = saved.stones ?? 1000;
+      state.stones = saved.stones ?? 1200;
       state.highestChapter = saved.highestChapter ?? 0;
       state.team = saved.team ?? [null, null, null, null, null];
       state.owned = saved.owned ?? {};
@@ -267,6 +277,28 @@
 
   function expForLevel(lv) {
     return lv * EXP_PER_LEVEL;
+  }
+
+  function grantExpToTeam(expGain) {
+    state.owned = grantTeamExp({
+      team: state.team,
+      owned: state.owned,
+      expGain,
+      maxLevel: MAX_LEVEL,
+      expForLevel,
+    });
+  }
+
+  function buildDroppedEquipResult(droppedEquip, autoEquipResult) {
+    if (!droppedEquip) return '';
+    const baseHtml = `<div class="result-equip" style="margin-top:6px;color:#d4a5ff;">装备掉落：${droppedEquip.icon} ${droppedEquip.name} (${EQUIP_SLOT_NAMES[droppedEquip.slot]})</div>`;
+    if (!autoEquipResult || !autoEquipResult.equipped) {
+      return `${baseHtml}<div class="result-equip" style="margin-top:4px;color:var(--text-muted);">已放入背包</div>`;
+    }
+    const target = getCharData(autoEquipResult.targetId);
+    const replaced = autoEquipResult.replacedId ? EQUIP_MAP[autoEquipResult.replacedId] : null;
+    const replacedText = replaced ? `，替换 ${replaced.icon} ${replaced.name}` : '';
+    return `${baseHtml}<div class="result-equip" style="margin-top:4px;color:var(--gold);">已自动装备给 ${target ? target.name : '队友'}${replacedText}</div>`;
   }
 
   function getUniqueCount() {
@@ -496,8 +528,8 @@
 
     // Underdog compensation: buff allies if player has failed this chapter multiple times
     const failCount = (state.chapterFailCount || {})[chapterId] || 0;
-    if (failCount >= 2) {
-      const buffPct = Math.min(failCount * 5, 30); // 5% per fail, max 30%
+    const buffPct = getCompensationBuffPct(failCount);
+    if (buffPct > 0) {
       const buffMul = 1 + buffPct / 100;
       for (const ally of battleState.allies) {
         ally.hp = Math.floor(ally.hp * buffMul);
@@ -1107,17 +1139,7 @@
         }
 
         // Grant EXP to team
-        for (const cid of state.team) {
-          if (!cid || !state.owned[cid]) continue;
-          const own = state.owned[cid];
-          own.exp += expReward;
-          // Level up
-          while (own.level < MAX_LEVEL && own.exp >= expForLevel(own.level)) {
-            own.exp -= expForLevel(own.level);
-            own.level++;
-          }
-          if (own.level >= MAX_LEVEL) own.exp = 0;
-        }
+        grantExpToTeam(expReward);
 
         if (ch > state.highestChapter) {
           state.highestChapter = ch;
@@ -1125,9 +1147,13 @@
 
         // Equipment drop
         const droppedEquip = rollEquipDrop(ch);
+        let autoEquipResult = null;
         if (droppedEquip) {
-          state.equipInventory.push(droppedEquip.id);
-          showToast(`获得装备：${droppedEquip.icon} ${droppedEquip.name}`, 'success');
+          autoEquipResult = autoEquipDrop(droppedEquip);
+          if (!autoEquipResult.equipped) {
+            state.equipInventory.push(droppedEquip.id);
+            showToast(`获得装备：${droppedEquip.icon} ${droppedEquip.name}`, 'success');
+          }
         }
 
         saveGame();
@@ -1135,36 +1161,45 @@
         trackAchievements();
 
         // Show result
-        showBattleResult(true, reward, expReward, droppedEquip);
+        showBattleResult(true, reward, expReward, droppedEquip, null, autoEquipResult);
       } else {
         // Increment fail counter for compensation
         if (!state.chapterFailCount) state.chapterFailCount = {};
         const ch = battleState.chapter;
         state.chapterFailCount[ch] = (state.chapterFailCount[ch] || 0) + 1;
+        const consolationStones = Math.floor(30 + ch * 8);
+        const consolationExp = Math.floor(ch * 6);
+        state.stones += consolationStones;
+        grantExpToTeam(consolationExp);
         saveGame();
-        showBattleResult(false, 0, 0, null, ch);
+        showBattleResult(false, consolationStones, consolationExp, null, ch);
       }
 
       battleState = null;
     }, battleSkipping ? 100 : 600);
   }
 
-  function showBattleResult(won, stones, exp, droppedEquip, failedChapter) {
+  function showBattleResult(won, stones, exp, droppedEquip, failedChapter, autoEquipResult) {
     const modal = document.getElementById('battle-result-modal');
     document.getElementById('result-title').textContent = won ? '战斗胜利' : '战斗失败';
-    const equipHtml = droppedEquip
+    let equipHtml = droppedEquip
       ? `<div class="result-equip" style="margin-top:6px;color:#d4a5ff;">装备掉落：${droppedEquip.icon} ${droppedEquip.name} (${EQUIP_SLOT_NAMES[droppedEquip.slot]})</div>`
       : '';
+    equipHtml = buildDroppedEquipResult(droppedEquip, autoEquipResult);
     let compensationHint = '';
     if (!won && failedChapter) {
       const fc = (state.chapterFailCount || {})[failedChapter] || 0;
       if (fc >= 2) {
-        const nextBuff = Math.min(fc * 5, 30);
+        const nextBuff = getCompensationBuffPct(fc);
         compensationHint = `<div style="margin-top:6px;font-size:0.75rem;color:var(--gold)">下次挑战将获得天道庇护：属性+${nextBuff}%</div>`;
       } else if (fc === 1) {
         compensationHint = `<div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted)">再失败1次将获得天道庇护加成</div>`;
       }
     }
+    const lossRewards = (!won && (stones > 0 || exp > 0))
+      ? `<div class="result-rewards">安慰奖励：+${stones} 灵石</div>
+         <div class="result-exp">队伍获得 ${exp} 经验</div>`
+      : '';
     document.getElementById('result-body').innerHTML = won
       ? `<div class="result-icon">🎉</div>
          <div class="result-text">成功通关！</div>
@@ -1173,6 +1208,7 @@
          ${equipHtml}`
       : `<div class="result-icon">💀</div>
          <div class="result-text">队伍全灭，请提升实力后再挑战</div>
+         ${lossRewards}
          ${compensationHint}
          <div class="result-encourage" style="margin-top:8px;font-size:0.8rem;color:var(--cyan);font-style:italic">${typeof getEncouragement==='function'?getEncouragement():''}</div>`;
     modal.classList.add('active');
@@ -1441,7 +1477,7 @@
       state.dailySweepUsed = 0;
       saveGame();
     }
-    const sweepLimit = 3;
+    const sweepLimit = 4;
     const sweepRemain = Math.max(0, sweepLimit - (state.dailySweepUsed || 0));
     if (panel) {
       let top = document.getElementById('chapter-top');
@@ -1499,7 +1535,7 @@
       state.dailySweepDate = today;
       state.dailySweepUsed = 0;
     }
-    const sweepLimit = 3;
+    const sweepLimit = 4;
     if ((state.dailySweepUsed || 0) >= sweepLimit) {
       showToast('今日扫荡次数已用完', 'info');
       saveGame();
@@ -1510,33 +1546,34 @@
       showToast('请先通关该章节后再扫荡', 'info');
       return;
     }
+    const hasTeam = state.team.some(cid => cid && state.owned[cid]);
+    if (!hasTeam) {
+      showToast('请先设置阵容', 'info');
+      return;
+    }
 
     state.dailySweepUsed = (state.dailySweepUsed || 0) + 1;
     const reward = 150 + chId * 50;
     const expReward = chId * 15;
-    const sweepMul = 0.7;
+    const sweepMul = 0.8;
     const stonesGain = Math.floor(reward * sweepMul);
     const expGain = Math.max(1, Math.floor(expReward * sweepMul));
     state.stones += stonesGain;
 
     // Grant EXP to team (same as战斗胜利，但降低)
-    for (const cid of state.team) {
-      if (!cid || !state.owned[cid]) continue;
-      const own = state.owned[cid];
-      own.exp += expGain;
-      while (own.level < MAX_LEVEL && own.exp >= expForLevel(own.level)) {
-        own.exp -= expForLevel(own.level);
-        own.level++;
-      }
-      if (own.level >= MAX_LEVEL) own.exp = 0;
-    }
+    grantExpToTeam(expGain);
 
     // Small chance of equipment box (better chapters give slightly higher chance)
     const dropChance = Math.min(0.45, 0.18 + chId * 0.02);
     const dropped = Math.random() < dropChance ? rollEquipDrop(chId) : null;
     if (dropped) {
-      state.equipInventory.push(dropped.id);
-      showToast(`扫荡收获：+${stonesGain}灵石，经验+${expGain}，获得装备：${dropped.icon} ${dropped.name}`, 'success', 2200);
+      const autoEquipResult = autoEquipDrop(dropped);
+      if (autoEquipResult.equipped) {
+        showToast(`扫荡收获：+${stonesGain}灵石，经验+${expGain}，装备已自动替换`, 'success', 2200);
+      } else {
+        state.equipInventory.push(dropped.id);
+        showToast(`扫荡收获：+${stonesGain}灵石，经验+${expGain}，获得装备：${dropped.icon} ${dropped.name}`, 'success', 2200);
+      }
     } else {
       showToast(`扫荡收获：+${stonesGain}灵石，经验+${expGain}`, 'success', 1600);
     }
@@ -1825,6 +1862,23 @@
     }
     saveGame();
     showToast('已自动装备：' + changes.join('，'), 'success', 3500);
+  }
+
+  function autoEquipDrop(equip) {
+    const result = resolveAutoEquipDrop({
+      equip,
+      team: state.team,
+      owned: state.owned,
+      equipment: state.equipment,
+      equipInventory: state.equipInventory,
+      equipMap: EQUIP_MAP,
+    });
+    if (!result.equipped) return result;
+    state.equipment = result.nextEquipment;
+    state.equipInventory = result.nextInventory;
+    const targetData = getCharData(result.targetId);
+    showToast(`自动装备：${equip.icon} ${equip.name} → ${targetData ? targetData.name : '队友'}`, 'success', 1800);
+    return result;
   }
 
   function refreshUI() {

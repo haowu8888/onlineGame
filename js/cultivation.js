@@ -3,6 +3,11 @@
 (function () {
   'use strict';
 
+  const recoveryHelper = globalThis.CultivationRecovery;
+  if (!recoveryHelper || typeof recoveryHelper.useRecoverItem !== 'function') {
+    throw new Error('CultivationRecovery helper is unavailable');
+  }
+
   // ==================== 特效系统 ====================
 
   function _animationsEnabled() {
@@ -499,12 +504,12 @@
   // ==================== 灵宠捕捉配置 ====================
 
   const CAPTURE_CONFIG = {
-    baseRate: 0.10,
-    realmBonus: 0.03,
-    hpThreshold: 0.5,
-    hpBonusRate: 0.002,
+    baseRate: 0.12,
+    realmBonus: 0.035,
+    hpThreshold: 0.55,
+    hpBonusRate: 0.0025,
     talismanBonus: 0.25,
-    affinityPerBattle: 2,
+    affinityPerBattle: 3,
     affinityPerFeed: 5,
     affinityMax: 100,
   };
@@ -1576,7 +1581,7 @@
         log: [], turn: 0, done: false, won: false,
         buffAtk: 1, buffDef: 1, buffCrit: this._getPermCritBonus(),
         dots: [], cooldowns: {}, counterTurns: 0, counterValue: 0, shield: 0,
-        reviveUsed: false, playerDamageTaken: 0,
+        reviveUsed: false, playerDamageTaken: 0, captureFails: 0,
         playerElement, monsterElement, elBonusPlayer, elBonusMonster,
       };
       let elHint = '';
@@ -1981,11 +1986,46 @@
 
     battleUsePill() {
       if (!this.battleState || this.battleState.done) return false;
-      if (!this.data.pills.hp_pill || this.data.pills.hp_pill <= 0) return false;
-      this.data.pills.hp_pill--;
-      const heal = Math.floor(this.data.maxHp * 0.3);
-      this.data.hp = Math.min(this.data.maxHp, this.data.hp + heal);
-      this.battleState.log.push({ text: `使用回春丹，恢复 ${heal} 生命`, type: 'heal' });
+      const result = recoveryHelper.useRecoverItem({
+        count: this.data.pills.hp_pill,
+        current: this.data.hp,
+        max: this.data.maxHp,
+        ratio: 0.3,
+      });
+      if (!result.ok) return false;
+      this.data.pills.hp_pill = result.count;
+      this.data.hp = result.value;
+      this.battleState.log.push({ text: `使用回春丹，恢复 ${result.gain} 生命`, type: 'heal' });
+      return true;
+    }
+
+    battleUseGreaterHealPill() {
+      if (!this.battleState || this.battleState.done) return false;
+      const result = recoveryHelper.useRecoverItem({
+        count: this.data.pills.greater_heal_pill,
+        current: this.data.hp,
+        max: this.data.maxHp,
+        ratio: 0.7,
+      });
+      if (!result.ok) return false;
+      this.data.pills.greater_heal_pill = result.count;
+      this.data.hp = result.value;
+      this.battleState.log.push({ text: `使用大还丹，恢复 ${result.gain} 生命`, type: 'heal' });
+      return true;
+    }
+
+    battleUseSpiritPill() {
+      if (!this.battleState || this.battleState.done) return false;
+      const result = recoveryHelper.useRecoverItem({
+        count: this.data.pills.spirit_pill,
+        current: this.data.spirit,
+        max: this.data.maxSpirit,
+        ratio: 0.5,
+      });
+      if (!result.ok) return false;
+      this.data.pills.spirit_pill = result.count;
+      this.data.spirit = result.value;
+      this.battleState.log.push({ text: `使用聚灵丹，恢复 ${result.gain} 灵力`, type: 'info' });
       return true;
     }
 
@@ -2004,7 +2044,12 @@
 
     battleFlee() {
       if (!this.battleState || this.battleState.done) return;
-      if (Math.random() < 0.6) {
+      const hpPct = this.data.maxHp ? this.data.hp / this.data.maxHp : 1;
+      let fleeRate = 0.6;
+      if (hpPct < 0.3) fleeRate += 0.2;
+      if (hpPct < 0.15) fleeRate += 0.1;
+      fleeRate = Math.min(0.85, fleeRate);
+      if (Math.random() < fleeRate) {
         this.battleState.done = true;
         this.battleState.log.push({ text: '成功逃跑！', type: 'info' });
       } else {
@@ -2021,8 +2066,9 @@
       const m = b.monster;
       // Reward scaling matches monster scaling
       const rewardScale = m.maxHp / (MONSTERS[m.id] ? MONSTERS[m.id].hp : m.maxHp) || 1;
-      const exp = Math.floor(m.exp * rewardScale);
-      const gold = Math.floor(m.gold * rewardScale);
+      const realmBonus = 1 + Math.min(0.12, this.data.realm * 0.02);
+      const exp = Math.floor(m.exp * rewardScale * realmBonus);
+      const gold = Math.floor(m.gold * rewardScale * realmBonus);
       // 功法金币加成
       let goldFinal = gold;
       if (this.data.activeTechnique) {
@@ -2038,8 +2084,36 @@
         const title = TITLES_MAP[this.data.activeTitle];
         if (title && title.bonus && title.bonus.goldPct) goldFinal = Math.floor(goldFinal * (1 + title.bonus.goldPct));
       }
-      this.data.exp += exp; this.data.totalExp += exp; this.data.gold += goldFinal; this.data.totalKills++;
-      b.log.push({ text: `获得 ${exp} 修为, ${goldFinal} 灵石`, type: 'reward' });
+      let expFinal = exp;
+      let goldFinalWithBonus = goldFinal;
+      if (b.playerDamageTaken === 0) {
+        const bonusExp = Math.floor(exp * 0.1);
+        const bonusGold = Math.floor(goldFinal * 0.1);
+        expFinal += bonusExp;
+        goldFinalWithBonus += bonusGold;
+        if (bonusExp > 0 || bonusGold > 0) {
+          b.log.push({ text: `无伤奖励：+${bonusExp} 修为 +${bonusGold} 灵石`, type: 'reward' });
+        }
+      }
+      this.data.exp += expFinal; this.data.totalExp += expFinal; this.data.gold += goldFinalWithBonus; this.data.totalKills++;
+      b.log.push({ text: `获得 ${expFinal} 修为, ${goldFinalWithBonus} 灵石`, type: 'reward' });
+      const hpRecover = Math.floor(this.data.maxHp * 0.04);
+      const spRecover = Math.floor(this.data.maxSpirit * 0.06);
+      let hpGain = 0;
+      let spGain = 0;
+      if (hpRecover > 0 && this.data.hp < this.data.maxHp) {
+        const before = this.data.hp;
+        this.data.hp = Math.min(this.data.maxHp, this.data.hp + hpRecover);
+        hpGain = this.data.hp - before;
+      }
+      if (spRecover > 0 && this.data.spirit < this.data.maxSpirit) {
+        const before = this.data.spirit;
+        this.data.spirit = Math.min(this.data.maxSpirit, this.data.spirit + spRecover);
+        spGain = this.data.spirit - before;
+      }
+      if (hpGain > 0 || spGain > 0) {
+        b.log.push({ text: `战后调息：气血+${hpGain} 灵力+${spGain}`, type: 'info' });
+      }
       const mTemplate = MONSTERS[m.id];
       if (mTemplate.drops) {
         // 掉落加成：世界事件(dropMul) + 功法(dropBonus)
@@ -2352,8 +2426,11 @@
 
       let rate = CAPTURE_CONFIG.baseRate + d.realm * CAPTURE_CONFIG.realmBonus;
       const hpRatio = b.monster.currentHp / b.monster.maxHp;
-      const hpMissing = Math.floor((CAPTURE_CONFIG.hpThreshold - hpRatio) * 100);
+      const hpMissing = Math.floor((CAPTURE_CONFIG.hpThreshold - hpRatio) * 120);
       rate += hpMissing * CAPTURE_CONFIG.hpBonusRate;
+      if (b.captureFails) {
+        rate += Math.min(0.15, b.captureFails * 0.03);
+      }
 
       let usedTalisman = false;
       if ((d.inventory.capture_talisman || 0) > 0) {
@@ -2375,7 +2452,7 @@
           def: template.baseDef,
           hp: template.baseHp,
           evolution: 0,
-          affinity: 0,
+          affinity: 10,
           skillCooldown: 0,
         };
         d.pets.push(pet);
@@ -2388,8 +2465,14 @@
         this.save();
         return { success: true, petName: template.name };
       } else {
+        b.captureFails = (b.captureFails || 0) + 1;
         // 捕捉失败：怪物反击一次
         b.log.push({ text: `捕捉失败！${usedTalisman ? '(捕灵符已消耗)' : ''}`, type: 'info' });
+        if (usedTalisman && Math.random() < 0.5) {
+          b.log.push({ text: '捕灵符护身，避免了反击！', type: 'info' });
+          this.save();
+          return { success: false, reason: '捕捉失败，但捕灵符避免反击' };
+        }
         this._monsterAttack();
         this.save();
         return { success: false, reason: '捕捉失败，怪物发动反击！' };
@@ -4405,6 +4488,16 @@
       }
       const battleBackText = this.game.isPhase2RouteBattle() ? '返回路线' : '返回秘境';
 
+      const hpPillCount = d.pills.hp_pill || 0;
+      const greaterHealCount = d.pills.greater_heal_pill || 0;
+      const spiritPillCount = d.pills.spirit_pill || 0;
+      const hpPillDisabled = hpPillCount <= 0 ? 'aria-disabled="true" data-disabled-reason="回春丹不足"' : '';
+      const pillBtns = [
+        `<button class="btn btn-outline btn-sm" data-action="pill" ${hpPillDisabled}>回春丹 (${hpPillCount})</button>`,
+        greaterHealCount > 0 ? `<button class="btn btn-outline btn-sm" data-action="greater">大还丹 (${greaterHealCount})</button>` : '',
+        spiritPillCount > 0 ? `<button class="btn btn-outline btn-sm" data-action="spirit">回灵丹 (${spiritPillCount})</button>` : ''
+      ].join('');
+
       panel.innerHTML = `<div class="battle-zone"><div class="battle-field active">
         <div class="battle-entities">
           <div class="battle-entity"><div class="battle-entity-icon">🧘${pElIcon}</div><div class="battle-entity-name">${escapeHtml(d.name)}</div>
@@ -4420,7 +4513,7 @@
           <button class="btn btn-gold btn-sm" data-action="attack">攻击</button>
           ${petSkillBtn}
           <button class="capture-btn ${canCapture ? 'glow' : ''}" data-action="capture" ${canCapture ? '' : 'disabled'}>${captureLabel}</button>
-          <button class="btn btn-outline btn-sm" data-action="pill">服丹 (${d.pills.hp_pill || 0})</button>
+          ${pillBtns}
           <button class="btn btn-outline btn-sm auto-battle-btn ${isAutoActive ? 'active' : ''}" data-action="auto">${isAutoActive ? '停止自动' : '自动战斗'}</button>
           <button class="btn btn-outline btn-sm" data-action="flee">逃跑</button>
         </div>${skillBtns}` : `<div class="battle-actions"><button class="btn btn-gold btn-sm" data-action="back">${battleBackText}</button></div>`}
@@ -4463,10 +4556,31 @@
                   const baseCrit = typeof this.game._getPermCritBonus === 'function' ? this.game._getPermCritBonus() : 0;
                   const sectSkills = SKILLS.filter(s => s.sect === d.sect && d.realm >= s.realmReq);
                   const readySkills = sectSkills.filter(s => (b.cooldowns[s.id] || 0) <= 0 && d.spirit >= s.spiritCost);
+                  const activePet = d.activePet !== null ? d.pets[d.activePet] : null;
+                  const petSkill = activePet ? PET_SKILLS[activePet.templateId] : null;
+                  const petReady = activePet && petSkill && petSkill.manual && activePet.level >= 5 && (activePet.skillCooldown || 0) <= 0;
                   let acted = false;
 
-                  if (hpPct < 0.35 && d.pills.hp_pill > 0) {
+                  const canCapture = this.game.canCapturePet();
+                  const hasTalisman = (d.inventory.capture_talisman || 0) > 0;
+                  const captureReady = canCapture && (b.monster.currentHp / b.monster.maxHp < (hasTalisman ? 0.33 : 0.25)
+                    || (b.captureFails || 0) >= 2 && b.monster.currentHp / b.monster.maxHp < 0.4);
+                  if (captureReady) {
+                    const result = this.game.attemptCapture();
+                    if (result.success) showToast(`成功捕获 ${result.petName}`, 'success');
+                    else showToast(result.reason || '捕捉失败', 'info');
+                    acted = true;
+                  } else if (hpPct < 0.18 && (d.pills.greater_heal_pill || 0) <= 0 && (d.pills.hp_pill || 0) <= 0) {
+                    this.game.battleFlee();
+                    acted = true;
+                  } else if (hpPct < 0.45 && d.pills.greater_heal_pill > 0) {
+                    this.game.battleUseGreaterHealPill();
+                    acted = true;
+                  } else if (hpPct < 0.55 && d.pills.hp_pill > 0) {
                     this.game.battleUsePill();
+                    acted = true;
+                  } else if (d.spirit < d.maxSpirit * 0.45 && d.pills.spirit_pill > 0) {
+                    this.game.battleUseSpiritPill();
                     acted = true;
                   } else if (b.buffAtk <= 1 && d.pills.atk_pill > 0) {
                     this.game.battleUseBuff('atk_pill');
@@ -4481,6 +4595,9 @@
                     readySkills.sort((a, c) => c.dmgMul - a.dmgMul);
                     this.game.battleUseSkill(readySkills[0].id);
                     acted = true;
+                  } else if (petReady && b.monster.currentHp / b.monster.maxHp > 0.4) {
+                    this.game.battleUsePetSkill();
+                    acted = true;
                   }
 
                   if (!acted) this.game.battleAttack();
@@ -4491,7 +4608,9 @@
               this.renderBattleField(panel);
               return;
             }
-            case 'pill': if (!this.game.battleUsePill()) { showToast('没有回春丹了！', 'error'); return; } break;
+            case 'pill': if (!this.game.battleUsePill()) { showToast('回春丹不足', 'error'); return; } break;
+            case 'greater': if (!this.game.battleUseGreaterHealPill()) { showToast('大还丹不足', 'error'); return; } break;
+            case 'spirit': if (!this.game.battleUseSpiritPill()) { showToast('回灵丹不足', 'error'); return; } break;
             case 'flee': this.game.battleFlee(); break;
             case 'back': {
               if (this._autoBattleInterval) { clearInterval(this._autoBattleInterval); this._autoBattleInterval = null; }
