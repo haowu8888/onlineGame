@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>lifesim save audit</title></head>
+<body>
+<iframe id="app" style="width:1280px;height:2400px;border:0;"></iframe>
+<pre id="result">running</pre>
+<script>
+const GAME_URL = 'file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/lifesim.html';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const resultEl = document.getElementById('result');
+const frame = document.getElementById('app');
+function setResult(data) { resultEl.textContent = JSON.stringify(data, null, 2); document.title = data.ok ? 'PASS' : 'FAIL'; }
+async function loadGame() {
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      frame.removeEventListener('load', done);
+      resolve({ win: frame.contentWindow, doc: frame.contentDocument });
+    };
+    frame.addEventListener('load', done, { once: true });
+    frame.src = GAME_URL + '?t=' + Date.now();
+    setTimeout(() => reject(new Error('load timeout')), 15000);
+  });
+}
+async function waitFor(fn, label, timeout = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(50);
+  }
+  throw new Error('wait timeout: ' + label);
+}
+async function clickAndWait(doc, selector, label, afterMs = 180) {
+  const el = await waitFor(() => doc.querySelector(selector), label);
+  el.click();
+  await sleep(afterMs);
+}
+async function advanceOneStep(doc) {
+  const choice = await waitFor(() => doc.querySelector('.ls-choice-btn, #btn-continue'), 'event action');
+  choice.click();
+  await sleep(160);
+  const continueBtn = await waitFor(() => doc.querySelector('#btn-continue'), 'continue button');
+  continueBtn.click();
+  await sleep(220);
+}
+(async () => {
+  try {
+    let ctx = await loadGame();
+    Object.keys(ctx.win.localStorage).filter((k) => k.startsWith('game_lifesim_save_')).forEach((k) => ctx.win.localStorage.removeItem(k));
+    ctx = await loadGame();
+    let { win, doc } = ctx;
+    await clickAndWait(doc, "button[data-create='1']", 'create slot');
+    const nameInput = await waitFor(() => doc.querySelector('#ls-name'), 'name input');
+    nameInput.value = '审计命';
+    nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+    await sleep(120);
+    await clickAndWait(doc, '#btn-wizard-next', 'step 0 next');
+    await waitFor(() => doc.querySelector('#btn-reroll-talent'), 'step 1 loaded');
+    await clickAndWait(doc, '#btn-wizard-next', 'step 1 next');
+    await waitFor(() => doc.querySelector('#btn-random'), 'step 2 loaded');
+    await clickAndWait(doc, '#btn-random', 'random attrs');
+    await clickAndWait(doc, '#btn-wizard-next', 'step 2 next');
+    await waitFor(() => doc.querySelector('#btn-start-game'), 'step 3 loaded');
+    await clickAndWait(doc, '#btn-start-game', 'start game', 260);
+    await waitFor(() => doc.querySelector('#event-area'), 'event area');
+    await advanceOneStep(doc);
+    await advanceOneStep(doc);
+    await advanceOneStep(doc);
+    const stored = JSON.parse(win.localStorage.getItem('game_lifesim_save_1'));
+    if (!stored || !stored.data || stored.data.name !== '审计命') throw new Error('lifesim save missing after steps');
+    const beforeReload = {
+      name: stored.data.name,
+      age: stored.data.age,
+      realm: stored.data.realm,
+      gold: stored.data.gold,
+      logLength: (stored.log || []).length,
+    };
+    ctx = await loadGame();
+    ({ win, doc } = ctx);
+    await clickAndWait(doc, "button[data-enter='1']", 'enter save', 260);
+    await waitFor(() => doc.querySelector('#event-area'), 'event area after reload');
+    const infoValues = Array.from(doc.querySelectorAll('.ls-info-item .ls-info-value')).map((el) => el.textContent || '');
+    const afterReload = {
+      name: infoValues[0] || '',
+      ageText: infoValues[1] || '',
+      stageText: infoValues[2] || '',
+      realmText: infoValues[3] || '',
+      goldText: infoValues[4] || '',
+      eventTitle: doc.querySelector('.ls-event-title')?.textContent || '',
+    };
+    const storedAfterReload = JSON.parse(win.localStorage.getItem('game_lifesim_save_1'));
+    setResult({
+      ok: true,
+      beforeReload,
+      afterReload,
+      storedAfterReload: {
+        name: storedAfterReload?.data?.name,
+        age: storedAfterReload?.data?.age,
+        realm: storedAfterReload?.data?.realm,
+        gold: storedAfterReload?.data?.gold,
+        logLength: (storedAfterReload?.log || []).length,
+      }
+    });
+  } catch (error) {
+    setResult({ ok: false, error: String(error && error.stack || error) });
+  }
+})();
+</script>
+</body>
+</html>

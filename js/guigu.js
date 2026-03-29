@@ -79,6 +79,149 @@ const TERRAIN=[
 
 const TIME_COSTS={meditate:30,explore:7,battle:1,craft:15,breakthrough:90,rest:3,trade:1,npcInteract:1};
 
+const MONTH_PLAN_OPTIONS=[
+  {id:'training',name:'闭关修行',shortName:'修炼',bonusTag:'exp_up',desc:'修炼收益更厚，突破更稳。',accent:'gold'},
+  {id:'adventure',name:'外出历练',shortName:'历练',bonusTag:'loot_up',desc:'机缘更肥，外出牌堆更敢给。',accent:'cyan'},
+  {id:'sect',name:'宗门差事',shortName:'宗门',bonusTag:'sect_up',desc:'贡献更好刷，宗门压力更容易控。',accent:'green'},
+  {id:'social',name:'经营人脉',shortName:'人脉',bonusTag:'social_up',desc:'谈话、邀约、传闻收益更高。',accent:'purple'}
+];
+const MONTH_PLAN_MAP=Object.fromEntries(MONTH_PLAN_OPTIONS.map(x=>[x.id,x]));
+
+const ENCOUNTER_TEMPLATES=[
+  {
+    id:'ruins_contract',
+    kind:'trial',
+    type:'risk_reward',
+    terrains:['ruins','forbidden','mist'],
+    weightTags:['adventure'],
+    title:'残阵回响',
+    prompt:'残阵深处传来异响，像是有人把机缘和杀机一起埋在了下面。',
+    choices:[
+      {id:'steady',label:'稳探',hint:'多花点时间摸清路数，拿稳定收益。'},
+      {id:'press',label:'强闯',hint:'直接冲，打赢赚大头，翻车也疼。'},
+      {id:'leave',label:'撤离',hint:'不贪，留口气等下轮。'}
+    ]
+  },
+  {
+    id:'forest_spring',
+    kind:'rest',
+    type:'recovery',
+    terrains:['forest','water','plains'],
+    weightTags:['training','social'],
+    title:'灵泉夜潮',
+    prompt:'灵泉涨潮，泉眼边雾气翻涌，适合养伤，也适合赌一手悟性。',
+    choices:[
+      {id:'steady',label:'调息',hint:'回血回蓝，顺手压一压心魔。'},
+      {id:'press',label:'借泉悟道',hint:'悟道更狠，但要多吃几天时间。'},
+      {id:'leave',label:'装满灵囊',hint:'带点泉露走，收益一般但稳。'}
+    ]
+  },
+  {
+    id:'sect_errand',
+    kind:'sect',
+    type:'mission',
+    terrains:['sect','town','plains'],
+    weightTags:['sect','social'],
+    title:'执事点名',
+    prompt:'执事盯上你了，给活的时候笑得挺和气，摆明了是想看你接不接。',
+    choices:[
+      {id:'steady',label:'接下杂务',hint:'拿贡献和一点灵石，顺便缓压。'},
+      {id:'press',label:'抢硬差事',hint:'高压高奖，可能直接打起来。'},
+      {id:'leave',label:'推辞',hint:'不接，轻松但宗门观感会掉。'}
+    ]
+  },
+  {
+    id:'caravan_dispute',
+    kind:'trade',
+    type:'opportunity',
+    terrains:['desert','town','plains'],
+    weightTags:['social','adventure'],
+    title:'商队争价',
+    prompt:'商队和散修在路边吵得脸红脖子粗，谁都想把那点灵石榨干。',
+    choices:[
+      {id:'steady',label:'居中撮合',hint:'赚人脉和少量灵石。'},
+      {id:'press',label:'自己下场砍价',hint:'压价成功赚更多，失败就白搭时间。'},
+      {id:'leave',label:'顺手捡漏',hint:'拿点材料就走，便宜但不惊喜。'}
+    ]
+  },
+  {
+    id:'mountain_beast',
+    kind:'hunt',
+    type:'battle',
+    terrains:['mountain','forest','plains','water'],
+    weightTags:['adventure','sect'],
+    title:'妖兽踪迹',
+    prompt:'脚下的泥印还带着热气，附近八成有只成了气候的东西。',
+    choices:[
+      {id:'steady',label:'布阵诱敌',hint:'稳一点，收益中等。'},
+      {id:'press',label:'追进巢穴',hint:'正面狠狠干一票，掉落会更肥。'},
+      {id:'leave',label:'绕路',hint:'不打，换点移动情报。'}
+    ]
+  },
+  {
+    id:'mist_guest',
+    kind:'social',
+    type:'social',
+    terrains:['mist','town','sect','water'],
+    weightTags:['social','training'],
+    title:'雾中来客',
+    prompt:'雾里走出个衣着不俗的修士，话不多，但一开口就是试探。',
+    choices:[
+      {id:'steady',label:'交换见闻',hint:'拿关系和少量见识。'},
+      {id:'press',label:'深聊隐闻',hint:'高风险套话，可能赚大消息。'},
+      {id:'leave',label:'点头离开',hint:'不沾因果，拿个轻提示。'}
+    ]
+  }
+];
+const ENCOUNTER_TEMPLATE_MAP=Object.fromEntries(ENCOUNTER_TEMPLATES.map(x=>[x.id,x]));
+
+const SECT_ORDER_TEMPLATES=[
+  {id:'sect_hunt',name:'猎妖令',metric:'monsterKills',targetBase:2,targetStep:1,rewardText:'贡献与战利品',focus:'adventure'},
+  {id:'sect_patrol',name:'巡山令',metric:'exploreSteps',targetBase:4,targetStep:1,rewardText:'贡献与情报',focus:'adventure'},
+  {id:'sect_donation',name:'纳贡令',metric:'donatedGold',targetBase:300,targetStep:150,rewardText:'贡献与宗门信用',focus:'sect'},
+  {id:'sect_network',name:'联络令',metric:'npcTalks',targetBase:3,targetStep:1,rewardText:'贡献与人脉',focus:'social'},
+  {id:'sect_retreat',name:'闭关令',metric:'trainingDays',targetBase:30,targetStep:30,rewardText:'突破资源',focus:'training'},
+  {id:'sect_encounter',name:'探秘令',metric:'encountersResolved',targetBase:2,targetStep:1,rewardText:'贡献与机缘线索',focus:'adventure'}
+];
+
+function getGuiguMonthKey(state){
+  return String((state&&state.year)||1)+'-'+String((state&&state.month)||1);
+}
+
+function createMonthPlanState(state){
+  return {
+    focus:null,
+    daysLeft:0,
+    bonusTag:null,
+    monthKey:getGuiguMonthKey(state),
+    chosenAt:null
+  };
+}
+
+function createMonthlyStats(){
+  return {
+    trainingDays:0,
+    encountersResolved:0,
+    monsterKills:0,
+    donatedGold:0,
+    npcTalks:0,
+    exploreSteps:0,
+    expBonus:0,
+    goldBonus:0,
+    contributionBonus:0,
+    relationBonus:0,
+    lootFound:0
+  };
+}
+
+function createSectPressureState(){
+  return {
+    pressure:12,
+    currentOrder:null,
+    history:[]
+  };
+}
+
 const MATERIALS=[
   {id:'mat001',name:'灵草',tier:0,desc:'普通灵草'},
   {id:'mat002',name:'铁矿石',tier:0,desc:'常见矿石'},
@@ -466,7 +609,14 @@ class GuiguGame {
       activeNpcQuests:[],completedNpcQuests:[],
       // 坐骑系统 (Phase 4H)
       ownedMounts:[],activeMount:null,
-      mountFeed:0,mountRides:0,bountiesDone:0
+      mountFeed:0,mountRides:0,bountiesDone:0,
+      monthPlan:createMonthPlanState({year:1,month:1}),
+      monthlyStats:createMonthlyStats(),
+      encounterDeck:[],
+      lastEncounterResult:null,
+      pendingEncounterReward:null,
+      sectPressure:createSectPressureState(),
+      lastMonthSummary:null
     };
 
     const ggBonuses = Storage.get('xianyuan_guigu_bonuses', { mountFeed: 0 });
@@ -480,6 +630,7 @@ class GuiguGame {
     this.generateNPCs();
     this.revealFog(7,7,2);
     this.recalcStats();
+    this.ensurePhase2State();
     this.addWorldLog('你踏入了鬼谷世界，开始了修行之路。');
     this.saveGame();
   }
@@ -505,6 +656,7 @@ class GuiguGame {
       if(this.state.mountFeed===undefined) this.state.mountFeed=0;
       if(this.state.mountRides===undefined) this.state.mountRides=0;
       if(this.state.bountiesDone===undefined) this.state.bountiesDone=0;
+      this.ensurePhase2State();
 
       const ggBonuses = Storage.get('xianyuan_guigu_bonuses', { mountFeed: 0 });
       if ((ggBonuses.mountFeed || 0) > 0) {
@@ -556,6 +708,518 @@ class GuiguGame {
     if(!this.state) return;
     this.state.cultLog.unshift(msg);
     if(this.state.cultLog.length>30)this.state.cultLog.length=30;
+  }
+
+  ensurePhase2State(){
+    const s=this.state;if(!s)return;
+    const currentMonthKey=getGuiguMonthKey(s);
+    const previousMonthKey=s.monthPlan&&s.monthPlan.monthKey;
+    if(!s.monthPlan||typeof s.monthPlan!=='object')s.monthPlan=createMonthPlanState(s);
+    if(!s.monthlyStats||typeof s.monthlyStats!=='object')s.monthlyStats=createMonthlyStats();
+    if(!s.sectPressure||typeof s.sectPressure!=='object')s.sectPressure=createSectPressureState();
+    if(!Array.isArray(s.encounterDeck))s.encounterDeck=[];
+    if(!Array.isArray(s.sectPressure.history))s.sectPressure.history=[];
+    s.monthlyStats=Object.assign(createMonthlyStats(),s.monthlyStats);
+    s.sectPressure.pressure=clamp(Number(s.sectPressure.pressure)||0,0,100);
+    s.monthPlan.focus=MONTH_PLAN_MAP[s.monthPlan.focus]?s.monthPlan.focus:null;
+    if(previousMonthKey&&previousMonthKey!==currentMonthKey){
+      s.monthPlan=createMonthPlanState(s);
+      s.encounterDeck=[];
+      s.lastEncounterResult=null;
+      s.pendingEncounterReward=null;
+    }
+    s.monthPlan.monthKey=currentMonthKey;
+    s.monthPlan.bonusTag=s.monthPlan.focus?MONTH_PLAN_MAP[s.monthPlan.focus].bonusTag:null;
+    s.monthPlan.daysLeft=s.monthPlan.focus?clamp(Number(s.monthPlan.daysLeft)||Math.max(0,31-s.day),0,30):0;
+    if(s.lastEncounterResult===undefined)s.lastEncounterResult=null;
+    if(s.pendingEncounterReward===undefined)s.pendingEncounterReward=null;
+    if(s.lastMonthSummary===undefined)s.lastMonthSummary=null;
+    if(!s.sectPressure.currentOrder)s.sectPressure.currentOrder=this.generateSectOrder();
+    if(s.monthPlan.focus&&s.encounterDeck.length<3)s.encounterDeck=this.generateEncounterDeck();
+  }
+
+  syncSectRank(){
+    const s=this.state;if(!s)return;
+    const c=s.sect_data.contribution;
+    if(c>=50000)s.sect_data.rank=4;
+    else if(c>=20000)s.sect_data.rank=3;
+    else if(c>=5000)s.sect_data.rank=2;
+    else if(c>=1000)s.sect_data.rank=1;
+    else s.sect_data.rank=0;
+  }
+
+  hasMonthPlan(){
+    return !!(this.state&&this.state.monthPlan&&this.state.monthPlan.focus);
+  }
+
+  selectMonthPlan(focusId){
+    const s=this.state;
+    const option=MONTH_PLAN_MAP[focusId];
+    if(!s||!option)return null;
+    s.monthPlan={
+      focus:focusId,
+      daysLeft:Math.max(0,31-s.day),
+      bonusTag:option.bonusTag,
+      monthKey:getGuiguMonthKey(s),
+      chosenAt:Date.now()
+    };
+    if(focusId==='sect'){
+      s.sectPressure.pressure=clamp(s.sectPressure.pressure-4,0,100);
+    }
+    s.encounterDeck=this.generateEncounterDeck();
+    this.addWorldLog('【主修】本月改走“'+option.name+'”路线。');
+    this.saveGame();
+    this.emit('monthPlanSelected',{focus:focusId});
+    return s.monthPlan;
+  }
+
+  getPlanMultiplier(kind){
+    const focus=this.state&&this.state.monthPlan?this.state.monthPlan.focus:null;
+    if(!focus)return 1;
+    if(kind==='meditateExp')return focus==='training'?1.35:1;
+    if(kind==='encounterExp')return focus==='adventure'?1.2:(focus==='training'?1.08:1);
+    if(kind==='encounterGold')return focus==='adventure'?1.35:(focus==='social'?1.12:1);
+    if(kind==='contribution')return focus==='sect'?1.5:1;
+    if(kind==='relation')return focus==='social'?1.45:1;
+    if(kind==='moveDays')return focus==='adventure'?0.86:1;
+    return 1;
+  }
+
+  getBreakthroughPlanBonus(){
+    return this.hasMonthPlan()&&this.state.monthPlan.focus==='training'?0.08:0;
+  }
+
+  trackMonthlyStat(metric,amount){
+    const s=this.state;if(!s)return;
+    if(s.monthlyStats[metric]===undefined)s.monthlyStats[metric]=0;
+    s.monthlyStats[metric]+=amount;
+  }
+
+  recordMonthlyGain(metric,amount){
+    const s=this.state;if(!s||!amount)return;
+    if(s.monthlyStats[metric]===undefined)s.monthlyStats[metric]=0;
+    s.monthlyStats[metric]+=amount;
+  }
+
+  getCurrentTerrain(){
+    const s=this.state;if(!s||!s.map)return null;
+    return TERRAIN[s.map[s.position.y][s.position.x].terrain];
+  }
+
+  getRandomTerrainMaterial(terrainCls){
+    const terrain=TERRAIN.find(t=>t.cls===terrainCls);
+    if(!terrain||!terrain.res.length)return null;
+    return MATERIALS_MAP[pick(terrain.res)]||null;
+  }
+
+  pickEncounterMonster(terrainCls,strong){
+    const s=this.state;if(!s)return null;
+    const candidates=MONSTERS.filter(m=>
+      !m.spiritBeast&&m.realmMin<=Math.min(7,s.realm+(strong?1:0))&&m.realmMax>=Math.max(0,s.realm-(strong?0:1))&&
+      (m.terrain===terrainCls||Math.random()<0.08)
+    );
+    return candidates.length?pick(candidates):null;
+  }
+
+  getEncounterWeight(template,terrainCls){
+    const s=this.state;
+    const focus=s&&s.monthPlan?s.monthPlan.focus:null;
+    let weight=1;
+    if(template.terrains.includes(terrainCls))weight+=3;
+    if(focus&&template.weightTags.includes(focus))weight+=2;
+    if(s&&s.sectPressure&&s.sectPressure.pressure>=45&&template.kind==='sect')weight+=2;
+    if(focus==='training'&&template.kind==='rest')weight+=1;
+    if(focus==='social'&&template.kind==='social')weight+=1;
+    return weight;
+  }
+
+  createEncounterCard(template,terrainCls,index){
+    return {
+      id:'enc_'+Date.now()+'_'+index+'_'+randomInt(100,999),
+      templateId:template.id,
+      kind:template.kind,
+      type:template.type,
+      terrain:terrainCls,
+      title:template.title,
+      prompt:template.prompt,
+      choices:template.choices.map(choice=>({
+        id:choice.id,
+        label:choice.label,
+        hint:choice.hint
+      }))
+    };
+  }
+
+  generateEncounterDeck(){
+    const s=this.state;
+    if(!s||!this.hasMonthPlan())return [];
+    const terrain=this.getCurrentTerrain();
+    const terrainCls=terrain?terrain.cls:'plains';
+    const pool=ENCOUNTER_TEMPLATES.filter(template=>template.terrains.includes(terrainCls)||template.terrains.includes('any'));
+    const available=pool.slice();
+    const deck=[];
+    for(let i=0;i<3&&available.length;i++){
+      const total=available.reduce((sum,template)=>sum+this.getEncounterWeight(template,terrainCls),0);
+      let roll=Math.random()*total;
+      let pickIndex=0;
+      for(let idx=0;idx<available.length;idx++){
+        roll-=this.getEncounterWeight(available[idx],terrainCls);
+        if(roll<=0){
+          pickIndex=idx;
+          break;
+        }
+      }
+      const template=available.splice(pickIndex,1)[0];
+      deck.push(this.createEncounterCard(template,terrainCls,i));
+    }
+    return deck;
+  }
+
+  refillEncounterDeck(){
+    const s=this.state;if(!s)return;
+    if(!this.hasMonthPlan()){
+      s.encounterDeck=[];
+      return;
+    }
+    s.encounterDeck=this.generateEncounterDeck();
+  }
+
+  applyEncounterPackage(pkg){
+    const s=this.state;if(!s||!pkg)return;
+    if(pkg.exp){
+      s.exp+=pkg.exp;
+      this.recordMonthlyGain('expBonus',pkg.exp);
+    }
+    if(pkg.gold){
+      s.gold+=pkg.gold;
+      this.recordMonthlyGain('goldBonus',pkg.gold);
+    }
+    if(pkg.contribution){
+      s.sect_data.contribution+=pkg.contribution;
+      this.syncSectRank();
+      this.recordMonthlyGain('contributionBonus',pkg.contribution);
+    }
+    if(pkg.relation){
+      const npcPool=s.npcs.filter(n=>n.alive);
+      const npc=npcPool.length?pick(npcPool):null;
+      if(npc){
+        s.relations[npc.id]=(s.relations[npc.id]||0)+pkg.relation;
+        this.recordMonthlyGain('relationBonus',pkg.relation);
+      }
+    }
+    if(pkg.hpPct)s.hp=Math.min(s.maxHp,s.hp+Math.floor(s.maxHp*pkg.hpPct));
+    if(pkg.spPct)s.sp=Math.min(s.maxSp,s.sp+Math.floor(s.maxSp*pkg.spPct));
+    if(pkg.heartDemon)this.addHeartDemon(pkg.heartDemon);
+    if(pkg.item){
+      this.addItem(pkg.item);
+      this.recordMonthlyGain('lootFound',pkg.item.count||1);
+    }
+  }
+
+  buildSectOrderDescription(template,target){
+    if(template.metric==='monsterKills')return '本月猎妖 '+target+' 次。';
+    if(template.metric==='exploreSteps')return '本月巡查外域 '+target+' 次。';
+    if(template.metric==='donatedGold')return '本月上缴灵石 '+target+'。';
+    if(template.metric==='npcTalks')return '本月联络人脉 '+target+' 次。';
+    if(template.metric==='trainingDays')return '本月闭关 '+target+' 天。';
+    return '本月机缘牌至少处理 '+target+' 张。';
+  }
+
+  generateSectOrder(){
+    const s=this.state;if(!s)return null;
+    const options=SECT_ORDER_TEMPLATES.slice();
+    const total=options.reduce((sum,item)=>sum+1+(s.sectPressure.pressure>=35&&item.focus==='sect'?1:0),0);
+    let roll=Math.random()*total;
+    let template=options[0];
+    for(const item of options){
+      roll-=1+(s.sectPressure.pressure>=35&&item.focus==='sect'?1:0);
+      if(roll<=0){
+        template=item;
+        break;
+      }
+    }
+    const scale=Math.max(0,Math.min(3,s.sect_data.rank+s.realm));
+    const target=template.targetBase+template.targetStep*scale;
+    return {
+      id:template.id+'_'+Date.now(),
+      templateId:template.id,
+      name:template.name,
+      metric:template.metric,
+      target:target,
+      focus:template.focus,
+      rewardText:template.rewardText,
+      desc:this.buildSectOrderDescription(template,target)
+    };
+  }
+
+  applySectOrderReward(order){
+    const s=this.state;if(!s||!order)return'';
+    const scale=s.realm+1;
+    const contribution=Math.floor((120+order.target*35)*this.getPlanMultiplier('contribution'));
+    const gold=40*scale;
+    s.gold+=gold;
+    s.sect_data.contribution+=contribution;
+    this.syncSectRank();
+    s.sectPressure.pressure=clamp(s.sectPressure.pressure-10,0,100);
+    const material=this.getRandomTerrainMaterial(this.getCurrentTerrain()?.cls||'plains');
+    if(material){
+      this.addItem({id:material.id,name:material.name,type:'material',count:1});
+      this.recordMonthlyGain('lootFound',1);
+    }
+    return '贡献+'+formatNumber(contribution)+'，灵石+'+formatNumber(gold)+(material?'，外带 '+material.name:'');
+  }
+
+  applySectOrderPenalty(order){
+    const s=this.state;if(!s||!order)return'';
+    const goldLoss=Math.min(s.gold,40*(s.realm+1));
+    s.gold-=goldLoss;
+    s.sectPressure.pressure=clamp(s.sectPressure.pressure+14,0,100);
+    const contributionLoss=Math.min(s.sect_data.contribution,80);
+    s.sect_data.contribution-=contributionLoss;
+    this.syncSectRank();
+    return '灵石-'+formatNumber(goldLoss)+'，贡献-'+formatNumber(contributionLoss)+'，宗门压力上升';
+  }
+
+  buildNextMonthHint(){
+    const s=this.state;if(!s)return'';
+    const order=s.sectPressure.currentOrder;
+    if(s.sectPressure.pressure>=50)return'下月宗门盯得很死，拖着不动真会挨罚。';
+    if(order&&order.focus==='adventure')return'下月外务偏向历练，硬仗和遗迹牌会更常见。';
+    if(order&&order.focus==='sect')return'下月宗门差事偏多，想轻松混过去基本没戏。';
+    if(order&&order.focus==='social')return'下月更适合经营人脉，传闻和委托会更值钱。';
+    return'下月风向偏稳，但机缘从来不讲武德。';
+  }
+
+  finalizeMonthCycle(){
+    const s=this.state;if(!s)return;
+    const oldFocus=s.monthPlan.focus;
+    const stats=Object.assign(createMonthlyStats(),s.monthlyStats||{});
+    const order=s.sectPressure.currentOrder;
+    let orderSuccess=false;
+    let orderResult='本月无人催债。';
+    if(order){
+      orderSuccess=(stats[order.metric]||0)>=order.target;
+      orderResult=orderSuccess?this.applySectOrderReward(order):this.applySectOrderPenalty(order);
+      s.sectPressure.history.unshift({
+        monthKey:s.monthPlan.monthKey,
+        orderName:order.name,
+        success:orderSuccess
+      });
+      if(s.sectPressure.history.length>6)s.sectPressure.history.length=6;
+    }
+    const gainParts=[];
+    if(stats.expBonus>0)gainParts.push('额外经验+'+formatNumber(stats.expBonus));
+    if(stats.goldBonus>0)gainParts.push('额外灵石+'+formatNumber(stats.goldBonus));
+    if(stats.contributionBonus>0)gainParts.push('额外贡献+'+formatNumber(stats.contributionBonus));
+    if(stats.relationBonus>0)gainParts.push('额外人脉+'+formatNumber(stats.relationBonus));
+    if(stats.lootFound>0)gainParts.push('额外掉落 '+stats.lootFound+' 件');
+    if(!gainParts.length)gainParts.push('没吃到明显红利');
+    const focusName=oldFocus&&MONTH_PLAN_MAP[oldFocus]?MONTH_PLAN_MAP[oldFocus].name:'未定主修';
+    const nextOrder=this.generateSectOrder();
+    const previousOrder=s.sectPressure.currentOrder;
+    s.sectPressure.currentOrder=nextOrder;
+    const nextHint=this.buildNextMonthHint();
+    s.sectPressure.currentOrder=previousOrder;
+    s.lastMonthSummary={
+      monthKey:s.monthPlan.monthKey,
+      focus:oldFocus,
+      focusName:focusName,
+      gainText:gainParts.join('，'),
+      encounterText:'机缘牌处理 '+stats.encountersResolved+' 张，巡查 '+stats.exploreSteps+' 次。',
+      sectOrderSuccess:orderSuccess,
+      sectEvaluation:order?order.name+'：'+(stats[order.metric]||0)+' / '+order.target:'本月无宗门法令',
+      orderResult:orderResult,
+      nextRiskHint:'下月提示：'+nextHint
+    };
+    if(order){
+      this.addWorldLog('【宗门】'+order.name+(orderSuccess?'完成':'失手')+'，'+orderResult);
+    }
+    if(oldFocus){
+      this.addWorldLog('【月结】'+focusName+'，'+gainParts.join('，'));
+    }
+    s.monthPlan=createMonthPlanState(s);
+    s.monthlyStats=createMonthlyStats();
+    s.encounterDeck=[];
+    s.lastEncounterResult=null;
+    s.pendingEncounterReward=null;
+    s.sectPressure.currentOrder=nextOrder;
+  }
+
+  resolveEncounterChoice(cardId,choiceId){
+    const s=this.state;if(!s||!this.hasMonthPlan())return null;
+    const card=s.encounterDeck.find(item=>item.id===cardId);
+    const template=card?ENCOUNTER_TEMPLATE_MAP[card.templateId]:null;
+    if(!card||!template)return null;
+    const scale=s.realm+1;
+    const terrainCls=card.terrain;
+    const expMul=this.getPlanMultiplier('encounterExp');
+    const goldMul=this.getPlanMultiplier('encounterGold');
+    const relMul=this.getPlanMultiplier('relation');
+    const result={encounterId:template.id,choiceId:choiceId,battle:false,text:'',cardTitle:card.title};
+    let dayCost=2;
+
+    if(template.id==='ruins_contract'){
+      if(choiceId==='steady'){
+        dayCost=4;
+        this.applyEncounterPackage({
+          exp:Math.floor(45*scale*expMul),
+          gold:Math.floor(22*scale*goldMul),
+          item:(()=>{const mat=this.getRandomTerrainMaterial(terrainCls);return mat?{id:mat.id,name:mat.name,type:'material',count:1}:null;})()
+        });
+        result.text='你稳着拆阵纹，没暴毙，还顺手抠出了一笔资源。';
+      }else if(choiceId==='press'){
+        const monster=this.pickEncounterMonster(terrainCls,true);
+        s.pendingEncounterReward={
+          exp:Math.floor(70*scale*expMul),
+          gold:Math.floor(55*scale*goldMul),
+          item:(()=>{const mat=this.getRandomTerrainMaterial(terrainCls);return mat?{id:mat.id,name:mat.name,type:'material',count:1}:null;})(),
+          source:'残阵回响'
+        };
+        if(monster){
+          this.startBattle(monster);
+          result.battle=true;
+        }
+        result.text='你一脚踹开阵眼，底下的东西果然不肯老实。';
+      }else{
+        dayCost=2;
+        this.applyEncounterPackage({hpPct:0.15,spPct:0.12});
+        result.text='你见好就收，至少把命保住了。';
+      }
+    }else if(template.id==='forest_spring'){
+      if(choiceId==='steady'){
+        dayCost=3;
+        this.applyEncounterPackage({hpPct:0.28,spPct:0.24,heartDemon:-4});
+        result.text='灵泉一泡，人清爽了，心也没那么燥。';
+      }else if(choiceId==='press'){
+        dayCost=5;
+        this.applyEncounterPackage({exp:Math.floor(65*scale*expMul),heartDemon:3});
+        result.text='你硬压着泉潮悟道，收获大，代价也没少沾。';
+      }else{
+        dayCost=2;
+        this.applyEncounterPackage({
+          item:{id:'mat015',name:'月华露',type:'material',count:1}
+        });
+        result.text='你装了一囊泉露，虽然不炸裂，但实用。';
+      }
+    }else if(template.id==='sect_errand'){
+      if(choiceId==='steady'){
+        dayCost=3;
+        this.applyEncounterPackage({
+          contribution:Math.floor(90*this.getPlanMultiplier('contribution')),
+          gold:Math.floor(18*scale*goldMul)
+        });
+        s.sectPressure.pressure=clamp(s.sectPressure.pressure-4,0,100);
+        result.text='杂务不体面，但宗门看账看得明白。';
+      }else if(choiceId==='press'){
+        const monster=this.pickEncounterMonster(terrainCls,true);
+        s.pendingEncounterReward={
+          contribution:Math.floor(150*this.getPlanMultiplier('contribution')),
+          gold:Math.floor(36*scale*goldMul),
+          source:'执事点名'
+        };
+        if(monster){
+          this.startBattle(monster);
+          result.battle=true;
+        }
+        result.text='你把最硬的差事接了，执事眼神当场就不一样。';
+      }else{
+        dayCost=1;
+        s.sectPressure.pressure=clamp(s.sectPressure.pressure+6,0,100);
+        result.text='你推掉了差事，轻松是轻松，账也记下了。';
+      }
+    }else if(template.id==='caravan_dispute'){
+      if(choiceId==='steady'){
+        dayCost=3;
+        this.applyEncounterPackage({
+          relation:Math.floor(8*relMul),
+          gold:Math.floor(20*scale*goldMul)
+        });
+        result.text='你居中一调停，两边都给点面子钱。';
+      }else if(choiceId==='press'){
+        dayCost=4;
+        const buyIn=Math.min(s.gold,20*scale);
+        s.gold-=buyIn;
+        this.applyEncounterPackage({
+          gold:Math.floor((buyIn*2.4)*goldMul),
+          relation:Math.floor(5*relMul)
+        });
+        result.text='你亲自下场压价，手是真黑，但也真赚。';
+      }else{
+        dayCost=2;
+        const mat=this.getRandomTerrainMaterial(terrainCls)||MATERIALS_MAP.mat002;
+        this.applyEncounterPackage({item:{id:mat.id,name:mat.name,type:'material',count:1}});
+        result.text='你没掺和太深，顺手薅了点边角料。';
+      }
+    }else if(template.id==='mountain_beast'){
+      if(choiceId==='steady'){
+        dayCost=3;
+        this.applyEncounterPackage({
+          exp:Math.floor(35*scale*expMul),
+          item:(()=>{const mat=this.getRandomTerrainMaterial(terrainCls);return mat?{id:mat.id,name:mat.name,type:'material',count:1}:null;})()
+        });
+        result.text='你顺着痕迹设了套，虽没狠狠干一票，但收成还行。';
+      }else if(choiceId==='press'){
+        const monster=this.pickEncounterMonster(terrainCls,true);
+        s.pendingEncounterReward={
+          exp:Math.floor(60*scale*expMul),
+          gold:Math.floor(45*scale*goldMul),
+          item:(()=>{const mat=this.getRandomTerrainMaterial(terrainCls);return mat?{id:mat.id,name:mat.name,type:'material',count:1}:null;})(),
+          source:'妖兽踪迹'
+        };
+        if(monster){
+          this.startBattle(monster);
+          result.battle=true;
+        }
+        result.text='你直接追进巢穴，这波要么吃肉，要么挨咬。';
+      }else{
+        dayCost=1;
+        this.trackMonthlyStat('exploreSteps',1);
+        result.text='你绕开了巢穴，顺便摸清了附近地势。';
+      }
+    }else if(template.id==='mist_guest'){
+      if(choiceId==='steady'){
+        dayCost=3;
+        this.applyEncounterPackage({
+          relation:Math.floor(10*relMul),
+          exp:Math.floor(28*scale*expMul)
+        });
+        result.text='这人说话滴水不漏，但你还是套到了点真东西。';
+      }else if(choiceId==='press'){
+        dayCost=4;
+        const fee=Math.min(s.gold,12*scale);
+        s.gold-=fee;
+        this.applyEncounterPackage({
+          relation:Math.floor(14*relMul),
+          exp:Math.floor(40*scale*expMul),
+          gold:Math.floor(18*scale*goldMul)
+        });
+        result.text='你把话聊深了，花了点本钱，但换来的门路更值钱。';
+      }else{
+        dayCost=2;
+        this.applyEncounterPackage({hpPct:0.08,spPct:0.1});
+        result.text='你点到为止，没惹事，也没亏。';
+      }
+    }
+
+    if(!result.battle){
+      this.advanceDays(dayCost);
+    }
+    this.trackMonthlyStat('encountersResolved',1);
+    s.lastEncounterResult={
+      encounterId:template.id,
+      choiceId:choiceId,
+      text:result.text
+    };
+    s.encounterDeck=s.encounterDeck.filter(item=>item.id!==cardId);
+    while(s.encounterDeck.length<3&&this.hasMonthPlan()){
+      const refill=this.generateEncounterDeck().find(item=>!s.encounterDeck.some(existing=>existing.templateId===item.templateId));
+      if(!refill)break;
+      s.encounterDeck.push(refill);
+    }
+    this.addCultLog(result.text);
+    this.saveGame();
+    this.emit('encounterResolved',result);
+    return result;
   }
 
   recalcStats(){
@@ -640,8 +1304,12 @@ class GuiguGame {
 
   advanceDays(n){
     const s=this.state;if(!s||s.dead)return;
+    this.ensurePhase2State();
     for(let i=0;i<n;i++){
       s.day++;
+      if(s.monthPlan&&s.monthPlan.focus&&s.monthPlan.daysLeft>0){
+        s.monthPlan.daysLeft--;
+      }
       // Decrement dual cultivation days
       const dc=s.dualCultivation||{partnerId:null,daysLeft:0};
       if(dc.daysLeft>0){
@@ -667,6 +1335,7 @@ class GuiguGame {
 
   _onMonthChange(){
     const s=this.state;
+    this.finalizeMonthCycle();
     // NPC monthly exp
     s.npcs.forEach(npc=>{
       if(!npc.alive)return;
@@ -707,13 +1376,16 @@ class GuiguGame {
   meditate(){
     const s=this.state;if(!s||s.dead)return;
     const days=TIME_COSTS.meditate;
-    let expGain=this.getExpPerDay()*days;
+    const baseExp=this.getExpPerDay()*days;
+    let expGain=Math.floor(baseExp*this.getPlanMultiplier('meditateExp'));
     // Dual cultivation bonus
     const dc=s.dualCultivation||{partnerId:null,daysLeft:0};
     if(dc.partnerId&&dc.daysLeft>0){
       expGain=Math.floor(expGain*1.5);
     }
     s.exp+=expGain;
+    this.trackMonthlyStat('trainingDays',days);
+    this.recordMonthlyGain('expBonus',Math.max(0,expGain-baseExp));
     // Meditation reduces heart demon
     const hdReduce=s.talents.includes('calm')?6:4;
     if(s.heartDemon>0){s.heartDemon=Math.max(0,s.heartDemon-hdReduce);this.addCultLog('心神宁静，心魔-'+hdReduce);this.recalcStats();}
@@ -755,6 +1427,7 @@ class GuiguGame {
     for(const cp of chosenPaths){
       s.enlightenment[cp.path]=(s.enlightenment[cp.path]||0)+cp.gain;
     }
+    this.trackMonthlyStat('trainingDays',30);
     this.advanceDays(30);
     this.checkAchievements();
     this.emit('wudaoComplete');
@@ -792,6 +1465,7 @@ class GuiguGame {
     if(s.talents.includes('luck'))rate+=0.15;
     rate*=(1-s.heartDemon/200);
     rate+=s.breakBonus;
+    rate+=this.getBreakthroughPlanBonus();
     rate=Math.min(rate,0.99);
     this.advanceDays(TIME_COSTS.breakthrough);
 
@@ -944,7 +1618,9 @@ class GuiguGame {
     this.revealFog(x,y,1);
     this.updateBountyProgress('explore',1);
     this.updateNpcQuestProgress('explore',1);
+    this.trackMonthlyStat('exploreSteps',1);
     let exploreDays=TIME_COSTS.explore;
+    exploreDays=Math.max(1,Math.round(exploreDays*this.getPlanMultiplier('moveDays')));
     if(s.activeMount){
       const mt=MOUNTS_MAP[s.activeMount];
       if(mt){
@@ -1205,6 +1881,7 @@ class GuiguGame {
       const goldGain=randomInt(mon.exp/5,mon.exp/2);
       s.gold+=goldGain;
       s.kills=(s.kills||0)+1;
+      this.trackMonthlyStat('monsterKills',1);
       // Killing increases heart demon slightly
       if(Math.random()<0.3)this.addHeartDemon(1);
       if(mon.realmMin>=5)s.bossKills=(s.bossKills||0)+1;
@@ -1233,11 +1910,17 @@ class GuiguGame {
           }
         }
       });
+      if(s.pendingEncounterReward){
+        this.applyEncounterPackage(s.pendingEncounterReward);
+        this.addCultLog('机缘加码：'+(s.pendingEncounterReward.source||'额外战利')+' 也被你一并吃下。');
+        s.pendingEncounterReward=null;
+      }
       bs.rewards={exp:mon.exp,gold:goldGain,drops};
       this.addCultLog('击败'+mon.name+'，获得'+mon.exp+'经验');
     }else{
       s.gold=Math.floor(s.gold*0.9);
       s.hp=1;
+      s.pendingEncounterReward=null;
       // Move to nearest town
       s.position={x:7,y:7};
       this.addCultLog('战败...被传送回城镇');
@@ -1324,10 +2007,12 @@ class GuiguGame {
     let result={};
 
     if(action==='talk'){
-      const gain=Math.floor(5*relMul);
+      const gain=Math.floor(5*relMul*this.getPlanMultiplier('relation'));
       s.relations[npcId]=(rel+gain);
       result={type:'talk',text:pick(NPC_DIALOGUES),gain};
       if(!s.knownNPCs.includes(npcId))s.knownNPCs.push(npcId);
+      this.trackMonthlyStat('npcTalks',1);
+      this.recordMonthlyGain('relationBonus',Math.max(0,gain-5));
       this.updateBountyProgress('npc_talk',1);
       this.updateBountyProgress('npc_favor',s.relations[npcId]);
       this.updateNpcQuestProgress('npc_talk',1);
@@ -1339,10 +2024,11 @@ class GuiguGame {
         const item=s.inventory[giftIdx];
         if(item){
           const val=item.tier?item.tier*10:5;
-          const gain=Math.floor((10+val)*relMul);
+          const gain=Math.floor((10+val)*relMul*this.getPlanMultiplier('relation'));
           s.relations[npcId]=(rel+gain);
           s.inventory.splice(giftIdx,1);
           s.npcDaily.gift[npcId]=1;
+          this.recordMonthlyGain('relationBonus',Math.max(0,gain-(10+val)));
           result={type:'gift',gain,itemName:item.name};
         }else{
           result={type:'gift',success:false,msg:'无效的礼物'};
@@ -1422,8 +2108,9 @@ class GuiguGame {
       }else{
         s.sp-=20;
         s.npcDaily.invite[npcId]=1;
-        const expGain=Math.floor(80*(npc.realm+1));
+        const expGain=Math.floor(80*(npc.realm+1)*this.getPlanMultiplier('encounterExp'));
         s.exp+=expGain;
+        this.recordMonthlyGain('expBonus',Math.max(0,expGain-80*(npc.realm+1)));
         let loot='';
         if(Math.random()<0.35){
           this.addItem({name:'灵草',type:'material',matId:'mat001',count:1,tier:1});
@@ -1736,13 +2423,11 @@ class GuiguGame {
     const s=this.state;if(!s)return false;
     if(s.gold<amount)return false;
     s.gold-=amount;
-    s.sect_data.contribution+=amount;
-    // Update rank
-    const c=s.sect_data.contribution;
-    if(c>=50000)s.sect_data.rank=4;
-    else if(c>=20000)s.sect_data.rank=3;
-    else if(c>=5000)s.sect_data.rank=2;
-    else if(c>=1000)s.sect_data.rank=1;
+    const contribution=Math.floor(amount*this.getPlanMultiplier('contribution'));
+    s.sect_data.contribution+=contribution;
+    this.trackMonthlyStat('donatedGold',amount);
+    this.recordMonthlyGain('contributionBonus',Math.max(0,contribution-amount));
+    this.syncSectRank();
     this.saveGame();
     return true;
   }
@@ -1823,6 +2508,11 @@ class GuiguUI {
       {key:'autoSave',label:'自动保存',type:'checkbox',default:true,checkLabel:'每分钟自动保存'},
       {key:'effects',label:'特效',type:'checkbox',default:true,checkLabel:'启用战斗特效'}
     ],'guigu_settings',()=>{});
+    const resetState=typeof Phase2SaveReset!=='undefined'?Phase2SaveReset.ensure('guigu'):null;
+    if(resetState&&resetState.status==='cancelled'){
+      this.renderResetBlocked();
+      return;
+    }
     this.renderSlotSelection();
     this._bindHotkeys();
     // Bind game events
@@ -1836,6 +2526,14 @@ class GuiguUI {
     // Auto-save
     if(this._autoSaveTimer)clearInterval(this._autoSaveTimer);
     this._autoSaveTimer=setInterval(()=>{if(this.game.state&&!this.game.state.dead)this.game.saveGame()},60000);
+  }
+
+  renderResetBlocked(){
+    const el=this._getEl('char-create');
+    const gameEl=this._getEl('guigu-game');
+    if(gameEl)gameEl.style.display='none';
+    if(!el)return;
+    el.innerHTML=`<div style="max-width:520px;margin:48px auto;padding:24px;border:1px solid var(--border-color);border-radius:20px;background:rgba(8,15,26,0.92);text-align:center;"><h2 style="margin-bottom:12px;color:var(--gold);">阶段2更新需清档</h2><p style="margin-bottom:16px;color:var(--text-secondary);line-height:1.7;">你刚才取消了新版清档确认。<code>鬼谷八荒</code> 当前版本不兼容旧档，确认清档后才能继续进入。</p><button class="btn btn-outline btn-sm" type="button" onclick="window.location.href='../index.html'">返回首页</button></div>`;
   }
 
   refreshUI(){
@@ -2091,6 +2789,7 @@ class GuiguUI {
   startGame(){
     // Process offline gains before rendering
     const offlineResult=this.game.processOfflineGains();
+    this.game.ensurePhase2State();
     // Clear incremental map render caches so the grid is rebuilt for the new/loaded game
     this._mapCells=null;
     this._mapStates=null;
@@ -2099,6 +2798,8 @@ class GuiguUI {
     this.setupTabs();
     this.bindOverviewQuickActions();
     this.refreshUI();
+    window.__guiguUI=this;
+    window.__guiguGame=this.game;
     this.game.checkAchievements();
     if(typeof CrossGameAchievements!=='undefined'){
       CrossGameAchievements.trackStat('games_played_guigu',true);
@@ -2294,13 +2995,18 @@ class GuiguUI {
   renderCalendarBar(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('calendar-bar');
+    this.game.ensurePhase2State();
     const hdP=s.heartDemon;
     const alignCls=s.alignment>0?'alignment-good':s.alignment<0?'alignment-evil':'alignment-neutral';
-    const alignText=s.alignment>0?'正道+'+s.alignment:s.alignment<0?'魔道'+s.alignment:'中立';
+    const alignText=s.alignment>0?'??+'+s.alignment:s.alignment<0?'??'+s.alignment:'??';
+    const focus=s.monthPlan&&s.monthPlan.focus?MONTH_PLAN_MAP[s.monthPlan.focus]:null;
+    const order=s.sectPressure?s.sectPressure.currentOrder:null;
     el.innerHTML=`
-      <div class="calendar-item">📅 第${s.year}年 ${s.month}月</div>
-      <div class="calendar-item">心魔: <div class="bar bar-demon" style="width:60px;display:inline-block;vertical-align:middle"><div class="bar-fill" style="width:${hdP}%"></div></div> ${hdP}/100</div>
-      <div class="calendar-item ${alignCls}">阵营: ${alignText}</div>`;
+      <div class="calendar-item">?? ?${s.year}? ${s.month}?</div>
+      <div class="calendar-item">??: <div class="bar bar-demon" style="width:60px;display:inline-block;vertical-align:middle"><div class="bar-fill" style="width:${hdP}%"></div></div> ${hdP}/100</div>
+      <div class="calendar-item ${alignCls}">??: ${alignText}</div>
+      <div class="calendar-item month-plan-chip" data-month-plan-focus="${focus?focus.id:''}" data-month-plan-days="${focus?s.monthPlan.daysLeft:0}">${focus?('??: '+focus.name+' ? ??'+s.monthPlan.daysLeft+'?'):'??: ???????'}</div>
+      <div class="calendar-item sect-pressure-chip" data-sect-pressure-value="${s.sectPressure?s.sectPressure.pressure:0}">????: ${s.sectPressure?s.sectPressure.pressure:0}${order?' ? '+order.name:''}</div>`;
   }
 
   renderNewsTicker(){
@@ -2311,9 +3017,47 @@ class GuiguUI {
   }
 
   /* === 总览面板 === */
+  renderMonthPlanChooser(note){
+    const cards=MONTH_PLAN_OPTIONS.map(option=>`<button class="month-focus-card accent-${option.accent}" data-month-focus="${option.id}" type="button"><span class="focus-name">${option.name}</span><span class="focus-desc">${option.desc}</span></button>`).join('');
+    return `<div class="phase2-card month-chooser"><h3>????</h3><p class="phase2-note">${note||'???????????????????'}</p><div class="month-focus-grid">${cards}</div></div>`;
+  }
+
+  renderPhase2SnapshotCards(){
+    const s=this.game.state;if(!s)return'';
+    const focus=s.monthPlan&&s.monthPlan.focus?MONTH_PLAN_MAP[s.monthPlan.focus]:null;
+    const order=s.sectPressure?s.sectPressure.currentOrder:null;
+    const summary=s.lastMonthSummary;
+    let html='<div class="phase2-top-grid">';
+    if(focus){
+      html+=`<div class="phase2-card month-current"><h3>????</h3><div class="phase2-kv"><span>${focus.name}</span><strong>${s.monthPlan.daysLeft} ?</strong></div><p class="phase2-note">${focus.desc}</p></div>`;
+    }else{
+      html+=this.renderMonthPlanChooser('??????????????????');
+    }
+    if(order){
+      html+=`<div class="phase2-card month-order" data-sect-order-id="${order.id}"><h3>????</h3><div class="phase2-kv"><span>${order.name}</span><strong>${s.monthlyStats[order.metric]||0} / ${order.target}</strong></div><p class="phase2-note">${order.desc}</p></div>`;
+    }
+    html+='</div>';
+    if(summary){
+      html+=`<div class="phase2-card month-summary"><h3>????</h3><div class="summary-line"><span>????</span><strong>${summary.gainText}</strong></div><div class="summary-line"><span>????</span><strong>${summary.encounterText}</strong></div><div class="summary-line"><span>????</span><strong>${summary.sectEvaluation}</strong></div><div class="summary-line"><span>????</span><strong>${summary.orderResult}</strong></div><p class="phase2-note">${summary.nextRiskHint}</p></div>`;
+    }
+    return html;
+  }
+
+  bindMonthPlanActions(root){
+    root.querySelectorAll('[data-month-focus]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const picked=this.game.selectMonthPlan(btn.dataset.monthFocus);
+        if(!picked)return;
+        showToast('???????'+MONTH_PLAN_MAP[picked.focus].name,'success');
+        this.refreshUI();
+      });
+    });
+  }
+
   renderOverviewPanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-overview');
+    const phase2Html=this.renderPhase2SnapshotCards();
     const sr=SPIRIT_ROOTS_MAP[s.spiritRoot];
     const sect=SECTS_MAP[s.sect];
     const pers=PERSONALITIES_MAP[s.personality];
@@ -2321,7 +3065,7 @@ class GuiguUI {
     const expP=Math.floor(s.exp/nextExp*100);
     const talentHtml=s.talents.map(tid=>{const t=TALENTS_MAP[tid];return`<span class="talent-tag">${t?t.name:tid}</span>`}).join('');
 
-    el.innerHTML=`<div class="overview-grid">
+    el.innerHTML=`${phase2Html}<div class="overview-grid">
       <div class="overview-card"><h3>角色信息</h3>
         <div class="info-row"><span class="label">道号</span><span class="value">${escapeHtml(s.name)}</span></div>
         <div class="info-row"><span class="label">境界</span><span class="value" style="color:${this.getRealmColor(s.realm)}">${REALMS[s.realm].name}</span></div>
@@ -2355,12 +3099,38 @@ class GuiguUI {
         </div>
       </div>
     </div>`;
+    this.bindMonthPlanActions(el);
+    document.getElementById('qa-meditate')?.addEventListener('click',()=>{
+      if(!this.game.hasMonthPlan()){showToast('先把本月主修定下来。','info');return}
+      const r=this.game.meditate();
+      if(r&&r.enlightenEvent)this.showEnlightenmentModal(r.enlightenEvent);
+      this.refreshUI();
+    });
+    document.getElementById('qa-wudao')?.addEventListener('click',()=>{
+      if(!this.game.hasMonthPlan()){showToast('先把本月主修定下来。','info');return}
+      this._showWudaoTraining();
+    });
+    document.getElementById('qa-map')?.addEventListener('click',()=>{
+      if(!this.game.hasMonthPlan()){showToast('先把本月主修定下来。','info');return}
+      this.currentTab='map';
+      this._getEl('guigu-tabs').querySelectorAll('.guigu-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='map'));
+      document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel==='map'));
+      this.renderMapPanel();
+    });
+    document.getElementById('qa-save')?.addEventListener('click',()=>{this.game.saveGame();showToast('存档成功','success')});
+    document.getElementById('qa-back')?.addEventListener('click',()=>{this.game.saveGame();this.renderSlotSelection()});
   }
 
   /* === 修炼面板 === */
   renderCultivatePanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-cultivate');
+    const phase2Html=this.renderPhase2SnapshotCards();
+    if(!this.game.hasMonthPlan()){
+      el.innerHTML=phase2Html;
+      this.bindMonthPlanActions(el);
+      return;
+    }
     const nextExp=s.realm<7?REALMS[s.realm+1].expReq:s.exp;
     const expP=Math.min(100,Math.floor(s.exp/nextExp*100));
     const canBreak=this.game.canBreakthrough();
@@ -2379,7 +3149,7 @@ class GuiguUI {
     const dcHtml=dc.partnerId&&dc.daysLeft>0?`<div style="margin-top:8px;padding:8px 12px;background:rgba(212,164,74,0.15);border:1px solid var(--gold-dim);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--gold-light)">双修中: 与${dcPartner?dcPartner.name:'道侣'}双修，经验×1.5，剩余${dc.daysLeft}天</div>`:'';
     const expPreview=Math.floor(this.game.getExpPerDay()*30*(dc.partnerId&&dc.daysLeft>0?1.5:1));
 
-    el.innerHTML=`
+    el.innerHTML=`${phase2Html}
       <div class="meditate-section">
         <div class="meditate-circle" id="med-circle">🧘</div>
         <div class="meditate-info">每次修炼消耗30天，预计获得 ${formatNumber(expPreview)} 经验${dc.partnerId&&dc.daysLeft>0?' (含双修加成)':''}</div>
@@ -2398,6 +3168,7 @@ class GuiguUI {
       <div class="enlightenment-section"><h3>悟道</h3>${pathsHtml}</div>
       <div class="cult-log"><h4 style="color:var(--gold-light);margin-bottom:8px">修炼日志</h4>${logHtml}</div>`;
 
+    this.bindMonthPlanActions(el);
     const wudaoBtn=document.getElementById('btn-wudao-cult');
     if(wudaoBtn&&!document.getElementById('btn-meditate-90')){
       const batchWrap=document.createElement('div');
@@ -2437,6 +3208,12 @@ class GuiguUI {
   renderMapPanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-map');
+    const phase2Html=this.renderPhase2SnapshotCards();
+    if(!this.game.hasMonthPlan()){
+      el.innerHTML=phase2Html;
+      this.bindMonthPlanActions(el);
+      return;
+    }
     const adj=this.game.getAdjacentCells();
     const adjSet=new Set(adj.map(a=>a.x+','+a.y));
     const mapSize=15;
@@ -2657,48 +3434,28 @@ class GuiguUI {
   renderAdventurePanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-adventure');
-    const curTerrain=TERRAIN[s.map[s.position.y][s.position.x].terrain];
-    const monsters=MONSTERS.filter(m=>!m.spiritBeast&&m.realmMin<=s.realm&&m.realmMax>=s.realm&&(m.terrain===curTerrain.cls||Math.random()<0.05));
-    // Spirit beasts available in this terrain
-    const spiritBeasts=MONSTERS.filter(m=>m.spiritBeast&&m.terrain===curTerrain.cls&&m.realmMin<=s.realm&&m.realmMax>=s.realm);
-
-    // Difficulty calculation based on terrain danger vs player realm
-    const getDifficulty=(danger)=>{
-      if(danger===0)return{cls:'safe',label:'安全',badge:'badge-safe'};
-      if(danger<=s.realm)return{cls:'easy',label:'容易',badge:'badge-easy'};
-      if(danger<=s.realm+1)return{cls:'medium',label:'中等',badge:'badge-medium'};
-      return{cls:'hard',label:'困难',badge:'badge-hard'};
-    };
-    const diff=getDifficulty(curTerrain.danger);
-
-    // Action cards
-    const actionCards=[
-      {id:'battle',icon:'⚔️',name:'战斗',desc:'与此地的妖兽搏斗，获取经验和掉落',diff:diff,available:monsters.length>0||spiritBeasts.length>0},
-      {id:'explore',icon:'🔍',name:'搜索',desc:'搜索周围环境，寻找隐藏的宝物和材料',diff:getDifficulty(Math.max(0,curTerrain.danger-1)),available:true},
-      {id:'rest',icon:'💤',name:'休息',desc:'原地休息恢复气血和灵力',diff:{cls:'safe',label:'安全',badge:'badge-safe'},available:true},
-      {id:'gather',icon:'🌿',name:'采集',desc:'采集此地的天然资源和灵材',diff:getDifficulty(Math.floor(curTerrain.danger/2)),available:curTerrain.res.length>0}
-    ];
-
-    let cardsHtml='<div class="action-card-grid">';
-    actionCards.forEach(card=>{
-      const disabledCls=card.available?'':'disabled';
-      const disabledStyle=card.available?'':'opacity:0.4;';
-      const disabledReason = card.available ? '' : (card.id==='battle'?'此处暂无可战斗的目标':card.id==='gather'?'此地暂无可采集资源':'当前不可用');
-      cardsHtml+=`<div class="action-card diff-${card.diff.cls} ${disabledCls}" data-action="${card.id}" data-disabled="${card.available?'0':'1'}" data-disabled-reason="${disabledReason}" style="${disabledStyle}">
-        <div class="action-card-icon">${card.icon}</div>
-        <div class="action-card-name">${card.name}</div>
-        <div class="action-card-desc">${card.desc}</div>
-        <span class="action-card-badge ${card.diff.badge}">${card.diff.label}</span>
-        ${!card.available?'<span style="font-size:0.7rem;color:var(--text-muted);margin-left:6px">不可用</span>':''}
-      </div>`;
-    });
-    cardsHtml+='</div>';
-
-    let monHtml=monsters.length?monsters.map(m=>`<div class="monster-card"><div class="monster-info"><div class="monster-name">${m.name}</div><div class="monster-level">${REALMS[m.realmMin].name}~${REALMS[m.realmMax].name}</div><div class="monster-stats">HP:${m.hp} ATK:${m.atk} DEF:${m.def}</div></div><button class="btn btn-danger btn-sm fight-btn" data-mid="${m.id}">战斗</button></div>`).join(''):'<p style="color:var(--text-muted);text-align:center;padding:20px">此处暂无可战斗的目标</p>';
-    if(spiritBeasts.length){
-      monHtml+='<h4 style="color:var(--gold-light);margin:12px 0 8px">灵兽出没</h4>';
-      monHtml+=spiritBeasts.map(m=>`<div class="monster-card" style="border-color:var(--gold-dim)"><div class="monster-info"><div class="monster-name" style="color:var(--gold-light)">${m.name} <span style="font-size:0.75rem;color:var(--text-muted)">灵兽</span></div><div class="monster-level">${REALMS[m.realmMin].name}~${REALMS[m.realmMax].name}</div><div class="monster-stats">HP:${m.hp} ATK:${m.atk} DEF:${m.def}</div></div><button class="btn btn-gold btn-sm fight-btn" data-mid="${m.id}">挑战</button></div>`).join('');
+    const phase2Html=this.renderPhase2SnapshotCards();
+    if(!this.game.hasMonthPlan()){
+      el.innerHTML=phase2Html;
+      this.bindMonthPlanActions(el);
+      return;
     }
+    this.game.ensurePhase2State();
+    if(!s.encounterDeck.length)this.game.refillEncounterDeck();
+    const terrain=this.game.getCurrentTerrain();
+    const focus=MONTH_PLAN_MAP[s.monthPlan.focus];
+    const cardsHtml=(s.encounterDeck||[]).map(card=>`<article class="encounter-card" data-encounter-card-id="${card.id}"><div class="encounter-head"><span class="encounter-type">${card.title}</span><span class="encounter-terrain">${terrain?terrain.name:'??'}</span></div><p class="encounter-prompt">${card.prompt}</p><div class="encounter-choices">${card.choices.map(choice=>`<button class="encounter-choice-btn" type="button" data-encounter-card="${card.id}" data-encounter-choice="${choice.id}"><span>${choice.label}</span><small>${choice.hint}</small></button>`).join('')}</div></article>`).join('');
+    const lastResult=s.lastEncounterResult?`<div class="phase2-card encounter-result"><h3>????</h3><p class="phase2-note">${s.lastEncounterResult.text}</p></div>`:'';
+    el.innerHTML=`${phase2Html}<div class="panel-title">??</div><div class="location-header"><h3>${terrain?terrain.icon:''} ${terrain?terrain.name:'??'}</h3><p>?????${focus?focus.name:''}????????????????????????????????????</p></div><div class="encounter-deck-grid">${cardsHtml}</div>${lastResult}`;
+    this.bindMonthPlanActions(el);
+    el.querySelectorAll('[data-encounter-choice]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const result=this.game.resolveEncounterChoice(btn.dataset.encounterCard,btn.dataset.encounterChoice);
+        if(!result)return;
+        if(result.battle){
+          this.showBattleModal();
+        }else{
+          showToast(result.text,'success');
 
     el.innerHTML=`<div class="panel-title">历练</div><div class="location-header"><h3>${curTerrain.icon} ${curTerrain.name}</h3><p>危险等级: ${'★'.repeat(curTerrain.danger)||'安全'} <span class="action-card-badge ${diff.badge}" style="margin-left:8px">${diff.label}</span></p></div>${cardsHtml}<div class="monster-list" id="adventure-monster-list" style="display:none">${monHtml}</div>`;
 
@@ -2759,17 +3516,11 @@ class GuiguUI {
           this.game.advanceDays(TIME_COSTS.explore);
           this.refreshUI();
         }
-        return;
-      }
-      const fBtn=e.target.closest('.fight-btn');
-      if(fBtn){
-        const mon=MONSTERS_MAP[fBtn.dataset.mid];
-        if(mon){this.game.startBattle(mon);this.showBattleModal()}
-      }
-    };
+        this.refreshUI();
+      });
+    });
   }
 
-  /* === NPC面板 === */
   renderNPCPanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-npc');
@@ -2941,26 +3692,38 @@ class GuiguUI {
   renderSectPanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-sect');
+    const phase2Html=this.renderPhase2SnapshotCards();
+    if(!this.game.hasMonthPlan()){
+      el.innerHTML=phase2Html;
+      this.bindMonthPlanActions(el);
+      return;
+    }
     const sect=SECTS_MAP[s.sect];
     const rankName=this.game.getSectRankName();
     const members=s.npcs.filter(n=>n.alive&&n.faction===s.sect).slice(0,10);
-    const logHtml=s.worldLog.filter(w=>w.text.includes('宗门')).slice(0,5).map(w=>`<div class="sect-log-entry">【${w.year}年】${escapeHtml(w.text)}</div>`).join('');
-
-    el.innerHTML=`<div class="panel-title">宗门</div>
+    const order=s.sectPressure.currentOrder;
+    const progress=order?(s.monthlyStats[order.metric]||0):0;
+    const pressure=s.sectPressure.pressure;
+    const summary=s.lastMonthSummary;
+    el.innerHTML=`${phase2Html}<div class="panel-title">??</div>
+      <div class="sect-phase2-grid">
+        <div class="phase2-card sect-pressure-card"><h3>????</h3><div class="pressure-row"><span data-sect-pressure-value="${pressure}">${pressure}</span><div class="bar bar-demon"><div class="bar-fill" style="width:${pressure}%"></div></div></div><p class="phase2-note">???????????????????????</p></div>
+        <div class="phase2-card sect-order-card" data-sect-order-id="${order?order.id:''}"><h3>${order?order.name:'????'}</h3><div class="phase2-kv"><span>????</span><strong>${order?progress+' / '+order.target:'--'}</strong></div><p class="phase2-note">${order?order.desc:'???????????'}</p><p class="phase2-note">?????${order?order.rewardText:''}</p></div>
+      </div>
       <div class="sect-info-card"><h3>${sect?sect.icon+' '+sect.name:''}</h3><p style="color:var(--text-secondary);font-size:0.85rem">${sect?sect.desc:''}</p>
-        <div class="sect-rank-info"><div class="sect-stat"><div class="sect-stat-label">职位</div><div class="sect-stat-value">${rankName}</div></div><div class="sect-stat"><div class="sect-stat-label">贡献</div><div class="sect-stat-value">${formatNumber(s.sect_data.contribution)}</div></div></div>
+        <div class="sect-rank-info"><div class="sect-stat"><div class="sect-stat-label">??</div><div class="sect-stat-value">${rankName}</div></div><div class="sect-stat"><div class="sect-stat-label">??</div><div class="sect-stat-value">${formatNumber(s.sect_data.contribution)}</div></div></div>
       </div>
       <div class="sect-actions">
-        <button class="btn btn-gold btn-sm" id="donate-100">捐献100灵石</button>
-        <button class="btn btn-gold btn-sm" id="donate-1000">捐献1000灵石</button>
+        <button class="btn btn-gold btn-sm" id="donate-100">??100??</button>
+        <button class="btn btn-gold btn-sm" id="donate-1000">??1000??</button>
       </div>
-      <div class="sect-members"><h4 style="color:var(--gold-light);margin-bottom:8px">同门</h4>${members.map(n=>`<span style="display:inline-block;padding:4px 8px;margin:2px;background:var(--bg-primary);border-radius:var(--radius-sm);font-size:0.8rem">${escapeHtml(n.name)} (${REALMS[n.realm].name})</span>`).join('')}</div>
-      <div class="sect-log" style="margin-top:16px">${logHtml||'<div class="sect-log-entry">暂无宗门消息</div>'}</div>`;
-    document.getElementById('donate-100')?.addEventListener('click',()=>{if(this.game.donateSect(100)){showToast('捐献成功','success');this.refreshUI()}else showToast('灵石不足','error')});
-    document.getElementById('donate-1000')?.addEventListener('click',()=>{if(this.game.donateSect(1000)){showToast('捐献成功','success');this.refreshUI()}else showToast('灵石不足','error')});
+      ${summary?`<div class="phase2-card month-summary"><h3>??????</h3><div class="summary-line"><span>??</span><strong>${summary.sectEvaluation}</strong></div><div class="summary-line"><span>??</span><strong>${summary.orderResult}</strong></div><p class="phase2-note">${summary.nextRiskHint}</p></div>`:''}
+      <div class="sect-members"><h4 style="color:var(--gold-light);margin-bottom:8px">??</h4>${members.map(n=>`<span style="display:inline-block;padding:4px 8px;margin:2px;background:var(--bg-primary);border-radius:var(--radius-sm);font-size:0.8rem">${escapeHtml(n.name)} (${REALMS[n.realm].name})</span>`).join('')}</div>`;
+    this.bindMonthPlanActions(el);
+    document.getElementById('donate-100')?.addEventListener('click',()=>{if(this.game.donateSect(100)){showToast('????','success');this.refreshUI()}else showToast('????','error')});
+    document.getElementById('donate-1000')?.addEventListener('click',()=>{if(this.game.donateSect(1000)){showToast('????','success');this.refreshUI()}else showToast('????','error')});
   }
 
-  /* === 乾坤袋面板 === */
   renderInventoryPanel(){
     const s=this.game.state;if(!s)return;
     const el=this._getEl('panel-inventory');

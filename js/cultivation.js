@@ -930,6 +930,73 @@
 
   // ==================== CultivationGame类 ====================
 
+  const PHASE2_ROUTE_BIAS = [
+    { id: 'steady', name: '稳修', desc: '稳扎稳打，路线均衡', preview: '疗伤与机缘更稳', weights: { battle: 3, event: 3, rest: 2, harvest: 2 } },
+    { id: 'greedy', name: '夺宝', desc: '偏向资源与收益', preview: '材料与灵石更多', weights: { battle: 2, event: 2, rest: 1, harvest: 5 } },
+    { id: 'gamble', name: '赌命', desc: '高风险高收益', preview: '更容易撞上恶战与大奖', weights: { battle: 4, event: 3, rest: 1, harvest: 2 } },
+  ];
+  const PHASE2_ROUTE_BIAS_MAP = Object.fromEntries(PHASE2_ROUTE_BIAS.map((item) => [item.id, item]));
+
+  const PHASE2_ROUTE_TEMPLATES = [
+    { id: 'battle', type: 'battle', risk: 2, title: '妖兽拦路', preview: '妖气翻涌，杀机逼近', rewards: ['修为', '战利品'] },
+    { id: 'event', type: 'event', risk: 1, title: '残碑机缘', preview: '古碑发光，可悟道', rewards: ['悟道', '修为'] },
+    { id: 'rest', type: 'rest', risk: 0, title: '灵泉喘息', preview: '短暂休整，恢复状态', rewards: ['生命', '灵力'] },
+    { id: 'harvest', type: 'harvest', risk: 1, title: '灵材闪烁', preview: '附近似有宝材与矿脉', rewards: ['材料', '灵石'] },
+  ];
+  const PHASE2_ROUTE_TEMPLATE_MAP = Object.fromEntries(PHASE2_ROUTE_TEMPLATES.map((item) => [item.id, item]));
+
+  const PHASE2_BLESSINGS = [
+    { id: 'blood_forge', name: '血战淬体', desc: '战斗结算额外获得 35% 修为与灵石', tags: ['战斗', '收益'] },
+    { id: 'jade_skin', name: '玉骨护体', desc: '路线受伤减少 50%，战后额外回复 12% 生命', tags: ['防御', '续航'] },
+    { id: 'mind_focus', name: '明心见性', desc: '机缘节点额外获得 50% 修为与悟道', tags: ['机缘', '成长'] },
+    { id: 'fortune_seek', name: '寻宝灵嗅', desc: '采集节点额外产出灵石与材料', tags: ['采集', '财富'] },
+    { id: 'spring_breath', name: '回息诀', desc: '休整节点恢复更多生命与灵力', tags: ['休整', '回复'] },
+    { id: 'omen_chaser', name: '天兆追猎', desc: '高风险路线更容易刷出祝福草案', tags: ['高风险', '构筑'] },
+  ];
+  const PHASE2_BLESSINGS_MAP = Object.fromEntries(PHASE2_BLESSINGS.map((item) => [item.id, item]));
+
+  function createPhase2AdventureState() {
+    return {
+      routeBias: 'steady',
+      momentum: 0,
+      omen: null,
+      step: 0,
+      currentChoices: [],
+      blessings: [],
+      blessingDraft: [],
+      pendingBattleChoice: null,
+      lastOutcome: '',
+      log: [],
+    };
+  }
+
+  function normalizePhase2AdventureState(raw) {
+    const state = raw && typeof raw === 'object' ? raw : {};
+    return {
+      routeBias: PHASE2_ROUTE_BIAS_MAP[state.routeBias] ? state.routeBias : 'steady',
+      momentum: Number.isFinite(state.momentum) ? state.momentum : 0,
+      omen: state.omen || null,
+      step: Number.isFinite(state.step) ? state.step : 0,
+      currentChoices: Array.isArray(state.currentChoices) ? state.currentChoices : [],
+      blessings: Array.isArray(state.blessings) ? state.blessings.filter((id) => PHASE2_BLESSINGS_MAP[id]) : [],
+      blessingDraft: Array.isArray(state.blessingDraft) ? state.blessingDraft.filter((id) => PHASE2_BLESSINGS_MAP[id]) : [],
+      pendingBattleChoice: state.pendingBattleChoice || null,
+      lastOutcome: state.lastOutcome || '',
+      log: Array.isArray(state.log) ? state.log.slice(0, 8) : [],
+    };
+  }
+
+  function weightedPick(items, getWeight) {
+    const total = items.reduce((sum, item) => sum + Math.max(0, getWeight(item)), 0);
+    if (total <= 0) return pick(items);
+    let roll = Math.random() * total;
+    for (const item of items) {
+      roll -= Math.max(0, getWeight(item));
+      if (roll <= 0) return item;
+    }
+    return items[items.length - 1];
+  }
+
   class CultivationGame {
     constructor() {
       this.data = null;
@@ -1025,6 +1092,7 @@
         npcTeachings: [],
         adventureProgress: {},
         adventureCompleted: [],
+        phase2Adventure: createPhase2AdventureState(),
         stamina: 20,
         staminaMax: 20,
         lastStaminaRegen: Date.now(),
@@ -1103,6 +1171,7 @@
       if (!this.data.npcTeachings) this.data.npcTeachings = [];
       if (!this.data.adventureProgress) this.data.adventureProgress = {};
       if (!this.data.adventureCompleted) this.data.adventureCompleted = [];
+      this.data.phase2Adventure = normalizePhase2AdventureState(this.data.phase2Adventure);
       if (this.data.stamina === undefined) this.data.stamina = 20;
       if (this.data.staminaMax === undefined) this.data.staminaMax = 20;
       if (this.data.lastStaminaRegen === undefined) this.data.lastStaminaRegen = Date.now();
@@ -1311,8 +1380,12 @@
       this._offlineResult = (expGain > 0 || goldGain > 0) ? { elapsed, expGain, goldGain, insightGain } : null;
     }
 
+    isBattleActive() {
+      return !!this.battleState;
+    }
+
     tick() {
-      if (!this.data || !this.meditating) return;
+      if (!this.data || !this.meditating || this.isBattleActive()) return;
       const rate = this.getExpRate();
       this.data.exp += rate;
       this.data.totalExp += rate;
@@ -1516,6 +1589,227 @@
       else if (elBonusPlayer < 1) elHint = ' (五行被克！伤害-30%)';
       this.battleState.log.push({ text: `遭遇 ${mTemplate.icon} ${mTemplate.name}！${elHint}`, type: 'info' });
       return this.battleState;
+    }
+
+    getPhase2AdventureState() {
+      if (!this.data.phase2Adventure || typeof this.data.phase2Adventure !== 'object' || Array.isArray(this.data.phase2Adventure)) {
+        this.data.phase2Adventure = createPhase2AdventureState();
+        return this.data.phase2Adventure;
+      }
+      const normalized = normalizePhase2AdventureState(this.data.phase2Adventure);
+      Object.assign(this.data.phase2Adventure, normalized);
+      return this.data.phase2Adventure;
+    }
+
+    logPhase2Adventure(text) {
+      const state = this.getPhase2AdventureState();
+      state.log.unshift(text);
+      state.log = state.log.slice(0, 6);
+      state.lastOutcome = text;
+    }
+
+    hasPhase2Blessing(id) {
+      return this.getPhase2AdventureState().blessings.includes(id);
+    }
+
+    getPhase2Blessings() {
+      return this.getPhase2AdventureState().blessings
+        .map((id) => PHASE2_BLESSINGS_MAP[id])
+        .filter(Boolean);
+    }
+
+    setPhase2RouteBias(routeBias) {
+      if (!PHASE2_ROUTE_BIAS_MAP[routeBias]) return false;
+      const state = this.getPhase2AdventureState();
+      state.routeBias = routeBias;
+      state.currentChoices = [];
+      state.omen = null;
+      this.save();
+      return true;
+    }
+
+    _getPhase2RouteWeight(template, routeBias, state = this.getPhase2AdventureState()) {
+      const bias = PHASE2_ROUTE_BIAS_MAP[routeBias] || PHASE2_ROUTE_BIAS_MAP.steady;
+      const base = bias.weights[template.type] || 1;
+      if (template.type === 'battle') return base + Math.max(0, state.momentum);
+      if (template.type === 'rest') return Math.max(1, base - state.momentum);
+      return base;
+    }
+
+    generatePhase2RouteChoices() {
+      const state = this.getPhase2AdventureState();
+      const selected = [];
+      const used = new Set();
+      while (selected.length < 3) {
+        const pool = PHASE2_ROUTE_TEMPLATES.filter((item) => !used.has(item.id));
+        const chosen = weightedPick(pool, (item) => this._getPhase2RouteWeight(item, state.routeBias, state));
+        selected.push(chosen);
+        used.add(chosen.id);
+      }
+      state.currentChoices = selected.map((template, index) => ({
+        choiceId: `${state.step}-${index}-${template.id}-${randomInt(100, 999)}`,
+        ...template,
+        rewardText: template.rewards.join(' / '),
+      }));
+      state.omen = pick(state.currentChoices).preview;
+      return state.currentChoices;
+    }
+
+    startPhase2AdventureRun(routeBias) {
+      const state = this.getPhase2AdventureState();
+      if (routeBias && PHASE2_ROUTE_BIAS_MAP[routeBias]) state.routeBias = routeBias;
+      if (!state.log.length) this.logPhase2Adventure('秘境路线已展开，先选一道落子。');
+      state.pendingBattleChoice = null;
+      state.blessingDraft = [];
+      const choices = this.generatePhase2RouteChoices();
+      this.save();
+      return choices;
+    }
+
+    rollPhase2BlessingDraft() {
+      const state = this.getPhase2AdventureState();
+      const owned = new Set(state.blessings);
+      const pool = PHASE2_BLESSINGS.filter((item) => !owned.has(item.id));
+      const draft = [];
+      while (draft.length < Math.min(3, pool.length)) {
+        const next = pick(pool.filter((item) => !draft.includes(item.id)));
+        if (!next) break;
+        draft.push(next.id);
+      }
+      return draft;
+    }
+
+    choosePhase2Blessing(blessingId) {
+      const state = this.getPhase2AdventureState();
+      if (!state.blessingDraft.includes(blessingId) || state.blessings.includes(blessingId)) return false;
+      state.blessings.push(blessingId);
+      state.blessings = state.blessings.slice(-4);
+      state.blessingDraft = [];
+      this.logPhase2Adventure(`获得祝福：${PHASE2_BLESSINGS_MAP[blessingId].name}`);
+      this.save();
+      return true;
+    }
+
+    _applyPhase2RouteDamage(baseDamage) {
+      let damage = baseDamage;
+      if (this.hasPhase2Blessing('jade_skin')) {
+        damage = Math.floor(damage * 0.5);
+      }
+      this.data.hp = Math.max(1, this.data.hp - damage);
+      return damage;
+    }
+
+    resolvePhase2Route(choiceId) {
+      const state = this.getPhase2AdventureState();
+      const choice = state.currentChoices.find((item) => item.choiceId === choiceId);
+      if (!choice) return { success: false, reason: '当前路线已失效' };
+
+      state.currentChoices = [];
+      if (choice.type === 'battle') {
+        state.pendingBattleChoice = choice;
+        const battle = this.startBattle('__location__');
+        if (!battle) {
+          state.pendingBattleChoice = null;
+          return { success: false, reason: '当前位置没有可遭遇的敌人' };
+        }
+        this.logPhase2Adventure(`你踏入【${choice.title}】，一场恶战在所难免。`);
+        this.save();
+        return { success: true, type: 'battle' };
+      }
+
+      const summary = this._resolveImmediatePhase2Route(choice);
+      state.step += 1;
+      state.momentum = Math.max(0, state.momentum + (choice.risk >= 1 ? 1 : -1));
+      if ((state.step % 2 === 0) || (this.hasPhase2Blessing('omen_chaser') && choice.risk >= 1)) {
+        state.blessingDraft = this.rollPhase2BlessingDraft();
+      }
+      this.generatePhase2RouteChoices();
+      this.save();
+      return { success: true, type: 'immediate', summary };
+    }
+
+    _resolveImmediatePhase2Route(choice) {
+      let summary = '';
+      if (choice.type === 'event') {
+        let expGain = randomInt(90, 150);
+        let insightGain = randomInt(12, 20);
+        if (this.hasPhase2Blessing('mind_focus')) {
+          expGain = Math.floor(expGain * 1.5);
+          insightGain = Math.floor(insightGain * 1.5);
+        }
+        this.data.exp += expGain;
+        this.data.totalExp += expGain;
+        this.data.insight = (this.data.insight || 0) + insightGain;
+        if (Math.random() < 0.4) {
+          const damage = this._applyPhase2RouteDamage(randomInt(12, 24));
+          summary = `参悟残碑，获得 ${expGain} 修为与 ${insightGain} 悟道，但也被余波震伤 ${damage} 点生命。`;
+        } else {
+          summary = `参悟残碑，获得 ${expGain} 修为与 ${insightGain} 悟道。`;
+        }
+      } else if (choice.type === 'rest') {
+        let heal = Math.floor(this.data.maxHp * 0.18);
+        let spiritGain = Math.floor(this.data.maxSpirit * 0.35);
+        if (this.hasPhase2Blessing('spring_breath')) {
+          heal = Math.floor(heal * 1.6);
+          spiritGain = Math.floor(spiritGain * 1.5);
+        }
+        this.data.hp = Math.min(this.data.maxHp, this.data.hp + heal);
+        this.data.spirit = Math.min(this.data.maxSpirit, this.data.spirit + spiritGain);
+        summary = `在灵泉歇息，恢复 ${heal} 点生命与 ${spiritGain} 点灵力。`;
+      } else if (choice.type === 'harvest') {
+        let goldGain = randomInt(120, 260);
+        let materialGain = randomInt(2, 4);
+        if (this.hasPhase2Blessing('fortune_seek')) {
+          goldGain = Math.floor(goldGain * 1.5);
+          materialGain += 2;
+        }
+        const materialId = pick(['herb', 'crystal', 'ore', 'beast_core']);
+        this.data.gold += goldGain;
+        this.data.inventory[materialId] = (this.data.inventory[materialId] || 0) + materialGain;
+        summary = `采得 ${materialGain} 份${MATERIALS[materialId].name}，另获 ${goldGain} 灵石。`;
+      }
+      this.logPhase2Adventure(summary);
+      return summary;
+    }
+
+    isPhase2RouteBattle() {
+      return !!this.getPhase2AdventureState().pendingBattleChoice;
+    }
+
+    finishPhase2Battle() {
+      const state = this.getPhase2AdventureState();
+      const choice = state.pendingBattleChoice;
+      const battle = this.battleState;
+      if (!choice || !battle) return null;
+
+      state.pendingBattleChoice = null;
+      state.step += 1;
+      let summary = '';
+      if (battle.won) {
+        let bonusExp = randomInt(60, 120) * choice.risk;
+        let bonusGold = randomInt(80, 140) * choice.risk;
+        if (this.hasPhase2Blessing('blood_forge')) {
+          bonusExp = Math.floor(bonusExp * 1.35);
+          bonusGold = Math.floor(bonusGold * 1.35);
+        }
+        this.data.exp += bonusExp;
+        this.data.totalExp += bonusExp;
+        this.data.gold += bonusGold;
+        if (this.hasPhase2Blessing('jade_skin')) {
+          const heal = Math.floor(this.data.maxHp * 0.12);
+          this.data.hp = Math.min(this.data.maxHp, this.data.hp + heal);
+        }
+        state.momentum = Math.min(5, state.momentum + 2);
+        summary = `击退 ${battle.monster.name}，额外夺得 ${bonusExp} 修为与 ${bonusGold} 灵石。`;
+        state.blessingDraft = this.rollPhase2BlessingDraft();
+      } else {
+        state.momentum = Math.max(0, state.momentum - 1);
+        summary = `${battle.monster.name} 将你逼退，暂且稳住心神重整路线。`;
+      }
+      this.logPhase2Adventure(summary);
+      this.generatePhase2RouteChoices();
+      this.save();
+      return { won: battle.won, summary };
     }
 
     _monsterAttack() {
@@ -3428,9 +3722,25 @@
       this._panels = {};
 
       this.initSettings();
+      const resetState = typeof Phase2SaveReset !== 'undefined' ? Phase2SaveReset.ensure('cultivation') : null;
+      if (resetState && resetState.status === 'cancelled') {
+        this.renderResetBlocked();
+        return;
+      }
       CultivationGame.migrateOldSave();
       this.renderSlotSelection();
       this._bindBattleHotkeys();
+    }
+
+    renderResetBlocked() {
+      if (this.gameEl) this.gameEl.style.display = 'none';
+      this.charCreateEl.innerHTML = `
+        <div style="max-width:520px;margin:48px auto;padding:24px;border:1px solid var(--border-color);border-radius:20px;background:rgba(8,15,26,0.92);text-align:center;">
+          <h2 style="margin-bottom:12px;color:var(--gold);">阶段2更新需清档</h2>
+          <p style="margin-bottom:16px;color:var(--text-secondary);line-height:1.7;">你刚才取消了新版清档确认。<code>修仙之路</code> 当前版本不兼容旧档，确认清档后才能继续进入。</p>
+          <button class="btn btn-outline btn-sm" type="button" onclick="window.location.href='../index.html'">返回首页</button>
+        </div>
+      `;
     }
 
     initSettings() {
@@ -3669,7 +3979,7 @@
         weBanner.style.display = 'none';
       }
       // 随机事件
-      if (!this.eventPaused && this.game.meditating) {
+      if (!this.eventPaused && this.game.meditating && !this.game.isBattleActive()) {
         const evt = this.game._checkRandomEvent();
         if (evt) {
           // 如果当前已有弹窗（eventPaused会在showEventModal中设为true，这里是尚未暂停时检查）
@@ -4024,14 +4334,94 @@
     }
 
     // --- 战斗面板 ---
+    renderPhase2AdventureSection() {
+      const state = this.game.getPhase2AdventureState();
+      const blessings = this.game.getPhase2Blessings();
+      const bias = PHASE2_ROUTE_BIAS_MAP[state.routeBias] || PHASE2_ROUTE_BIAS_MAP.steady;
+      const blessingDraft = state.blessingDraft
+        .map((id) => PHASE2_BLESSINGS_MAP[id])
+        .filter(Boolean);
+
+      const blessingHtml = blessings.length
+        ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;">${blessings.map((item) => `<span class="status-chip" style="padding:4px 10px;border-radius:999px;background:rgba(74,218,212,0.14);border:1px solid rgba(74,218,212,0.35);font-size:0.75rem;">${item.name}</span>`).join('')}</div>`
+        : '<div style="margin-top:10px;font-size:0.78rem;color:var(--text-muted);">当前暂无祝福，先打出自己的路线节奏。</div>';
+
+      const choicesHtml = state.currentChoices.length
+        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:14px;">${state.currentChoices.map((choice) => `<button class="phase2-route-card" data-route-choice="${choice.choiceId}" style="text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(212,164,74,0.35);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong style="color:var(--gold);">${choice.title}</strong><span style="font-size:0.75rem;color:${choice.risk >= 2 ? 'var(--red-light)' : choice.risk === 1 ? 'var(--cyan)' : 'var(--green)'};">风险 ${choice.risk}</span></div><div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">${choice.preview}</div><div style="margin-top:10px;font-size:0.75rem;color:var(--cyan);">收益：${choice.rewardText}</div></button>`).join('')}</div>`
+        : `<button class="btn btn-gold btn-sm" id="btn-phase2-adventure-start" style="margin-top:14px;">展开三选一路线</button>`;
+
+      const draftHtml = blessingDraft.length
+        ? `<div style="margin-top:16px;padding:14px;border-radius:16px;border:1px solid rgba(74,218,212,0.28);background:rgba(12,20,34,0.92);"><div style="color:var(--gold);font-weight:bold;margin-bottom:10px;">战后祝福三选一</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">${blessingDraft.map((item) => `<button data-route-blessing="${item.id}" style="text-align:left;padding:12px;border-radius:14px;border:1px solid rgba(74,218,212,0.3);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="font-weight:bold;color:var(--cyan);margin-bottom:6px;">${item.name}</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">${item.desc}</div></button>`).join('')}</div></div>`
+        : '';
+
+      const biasHtml = PHASE2_ROUTE_BIAS.map((item) => `<button data-route-bias="${item.id}" class="btn ${item.id === bias.id ? 'btn-gold' : 'btn-outline'} btn-sm" style="flex:1 1 120px;">${item.name}</button>`).join('');
+      const logHtml = state.log.length
+        ? state.log.map((line) => `<div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• ${line}</div>`).join('')
+        : '<div style="font-size:0.78rem;color:var(--text-muted);">尚未推进路线，先定好倾向再落子。</div>';
+
+      return `<div style="margin-bottom:18px;padding:16px;border-radius:18px;border:1px solid rgba(212,164,74,0.22);background:linear-gradient(180deg,rgba(18,26,42,0.95),rgba(10,16,28,0.92));">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+          <div>
+            <h3 style="color:var(--gold);margin-bottom:6px;">阶段2·秘境三选一路线</h3>
+            <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.7;">当前倾向：<strong style="color:var(--cyan);">${bias.name}</strong> · ${bias.preview} · 预兆：${state.omen || '尚未显现'}</div>
+          </div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);text-align:right;">推进步数：${state.step}<br>势头：${state.momentum}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">${biasHtml}</div>
+        ${choicesHtml}
+        ${draftHtml}
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">路线记录</div>
+          ${logHtml}
+        </div>
+        ${blessingHtml}
+      </div>`;
+    }
+
     renderBattlePanel() {
       const panel = document.getElementById('panel-battle');
       const d = this.game.data;
       if (this.game.battleState && !this.game.battleState.done) { this.renderBattleField(panel); return; }
-      panel.innerHTML = `<div class="battle-zone">${this.renderSecretRealmButton(panel)}<h3 style="color:var(--gold);margin-bottom:16px;">选择秘境</h3><div class="realm-select">${DUNGEONS.map(dg => {
+      panel.innerHTML = `<div class="battle-zone">${this.renderPhase2AdventureSection()}${this.renderSecretRealmButton(panel)}<h3 style="color:var(--gold);margin-bottom:16px;">选择秘境</h3><div class="realm-select">${DUNGEONS.map(dg => {
         const locked = d.realm < dg.realmReq;
         return `<div class="realm-card ${locked ? 'locked' : ''}" data-dungeon="${dg.id}"><div class="realm-card-name">${dg.name}</div><div class="realm-card-desc">${dg.desc}</div><div class="realm-card-level">${locked ? `需要${REALMS[dg.realmReq].name}` : '可进入'}</div></div>`;
       }).join('')}</div></div>`;
+      panel.querySelectorAll('[data-route-bias]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (this.game.setPhase2RouteBias(btn.dataset.routeBias)) this.renderBattlePanel();
+        });
+      });
+      const routeStartBtn = panel.querySelector('#btn-phase2-adventure-start');
+      if (routeStartBtn) {
+        routeStartBtn.addEventListener('click', () => {
+          this.game.startPhase2AdventureRun();
+          this.renderBattlePanel();
+        });
+      }
+      panel.querySelectorAll('[data-route-choice]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const result = this.game.resolvePhase2Route(btn.dataset.routeChoice);
+          if (!result.success) {
+            showToast(result.reason, 'warning');
+            return;
+          }
+          if (result.type === 'battle') {
+            this.renderBattleField(panel);
+          } else {
+            showToast(result.summary, 'success');
+            this.renderBattlePanel();
+            this.renderStatusBar();
+          }
+        });
+      });
+      panel.querySelectorAll('[data-route-blessing]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (this.game.choosePhase2Blessing(btn.dataset.routeBlessing)) {
+            showToast(`获得祝福：${PHASE2_BLESSINGS_MAP[btn.dataset.routeBlessing].name}`, 'success');
+            this.renderBattlePanel();
+          }
+        });
+      });
       panel.querySelectorAll('.realm-card:not(.locked)').forEach(card => {
         card.addEventListener('click', () => { const state = this.game.startBattle(card.dataset.dungeon); if (state) this.renderBattleField(panel); });
       });
@@ -4096,6 +4486,7 @@
           petSkillBtn = `<button class="btn btn-outline btn-sm pet-skill-btn ${petCd > 0 ? 'on-cd' : ''}" data-action="petskill" ${petCd > 0 ? 'disabled' : ''}>${activePet.icon}${petSkill.name}${petCd > 0 ? ` (${petCd})` : ''}</button>`;
         }
       }
+      const battleBackText = this.game.isPhase2RouteBattle() ? '返回路线' : '返回秘境';
 
       const hpPillCount = d.pills.hp_pill || 0;
       const greaterHealCount = d.pills.greater_heal_pill || 0;
@@ -4125,7 +4516,7 @@
           ${pillBtns}
           <button class="btn btn-outline btn-sm auto-battle-btn ${isAutoActive ? 'active' : ''}" data-action="auto">${isAutoActive ? '停止自动' : '自动战斗'}</button>
           <button class="btn btn-outline btn-sm" data-action="flee">逃跑</button>
-        </div>${skillBtns}` : `<div class="battle-actions"><button class="btn btn-gold btn-sm" data-action="back">返回秘境</button></div>`}
+        </div>${skillBtns}` : `<div class="battle-actions"><button class="btn btn-gold btn-sm" data-action="back">${battleBackText}</button></div>`}
         <div class="battle-log">${b.log.map(l => `<div class="battle-log-entry ${l.type}">${l.text}</div>`).join('')}</div>
       </div></div>`;
 
@@ -4223,6 +4614,10 @@
             case 'flee': this.game.battleFlee(); break;
             case 'back': {
               if (this._autoBattleInterval) { clearInterval(this._autoBattleInterval); this._autoBattleInterval = null; }
+              if (this.game.isPhase2RouteBattle()) {
+                const result = this.game.finishPhase2Battle();
+                if (result && result.summary) showToast(result.summary, result.won ? 'success' : 'warning');
+              }
               this.game.battleState = null; this.renderBattlePanel(); return;
             }
           }

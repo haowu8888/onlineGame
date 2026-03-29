@@ -460,6 +460,85 @@
     { name:'第十五层 · 虚空终焉', enemies:['leishou','moying','longwei'], boss:'xukong' },
   ];
 
+
+  const TOWER_NODE_META = {
+    battle: { name: '??', icon: '?', shortLabel: '?', reward: '?????' },
+    elite: { name: '??', icon: '?', shortLabel: '?', reward: '?????' },
+    event: { name: '??', icon: '?', shortLabel: '?', reward: '????' },
+    rest: { name: '??', icon: '?', shortLabel: '?', reward: '?? / ?? / ??' },
+    shop: { name: '??', icon: '??', shortLabel: '?', reward: '???? / ??' },
+    boss: { name: '??', icon: '??', shortLabel: '?', reward: '?????' },
+  };
+
+  const ENEMY_AFFIXES = {
+    berserk: { id: 'berserk', name: '??', shortDesc: '???????', desc: '??????? +2?' },
+    thorns: { id: 'thorns', name: '??', shortDesc: '?????', desc: '????????? 2?' },
+    warded: { id: 'warded', name: '??', shortDesc: '????', desc: '???? 12 ??????????? 4 ???' },
+    frail_open: { id: 'frail_open', name: '??', shortDesc: '?????', desc: '???????? 1 ????' },
+  };
+
+  const RARE_REWARD_CARD_IDS = [
+    'tianleizhou', 'fentianjue', 'daoxintongming', 'chanding', 'lingdunshu',
+    'tiandijue', 'shengmingzhishui', 'xingchenzhui', 'hundunyin', 'jiutianbi'
+  ];
+
+  const TOWER_PATH_ACTS = [
+    { id: 'rift', name: '????', battlePool: ['xiaoyao', 'yaoxiu', 'moxiu'], elitePool: ['moxiu', 'hunxiushi', 'yaoshou'], bossPool: ['sheyao', 'yaojiang', 'mozun'], eventPool: ['treasure', 'altar', 'gambler'] },
+    { id: 'abyss', name: '????', battlePool: ['huoling', 'bingpo', 'shimagui', 'tianyaoke'], elitePool: ['shimagui', 'tianyaoke', 'longwei'], bossPool: ['yanhuo', 'binghuang', 'shiwang'], eventPool: ['treasure', 'altar', 'gambler'] },
+    { id: 'heaven', name: '????', battlePool: ['xianbing', 'moying', 'leishou', 'longwei'], elitePool: ['moying', 'leishou', 'xianbing'], bossPool: ['xianjun', 'tiandao', 'xukong'], eventPool: ['treasure', 'altar', 'gambler'] },
+  ];
+
+  const TOWER_ROW_BLUEPRINTS = [
+    [
+      [['battle', 'event', 'rest'], ['battle', 'event', 'shop']],
+      [['elite', 'battle'], ['battle', 'elite']],
+      [['battle', 'rest', 'shop'], ['event', 'battle', 'rest']],
+      [['battle', 'elite', 'shop'], ['rest', 'battle', 'elite']],
+      [['boss']]
+    ],
+    [
+      [['battle', 'event', 'shop'], ['battle', 'event', 'rest']],
+      [['battle', 'elite'], ['elite', 'battle']],
+      [['battle', 'shop', 'rest'], ['event', 'battle', 'shop']],
+      [['elite', 'battle', 'shop'], ['battle', 'elite', 'rest']],
+      [['boss']]
+    ],
+    [
+      [['battle', 'event', 'rest'], ['battle', 'event', 'shop']],
+      [['elite', 'battle'], ['battle', 'elite']],
+      [['battle', 'rest', 'shop'], ['event', 'battle', 'shop']],
+      [['elite', 'battle', 'shop'], ['battle', 'elite', 'rest']],
+      [['boss']]
+    ],
+  ];
+
+  const TOWER_PATH_EVENTS = {
+    treasure: {
+      id: 'treasure', title: '????', desc: '??????????????????????????', rewardHint: '?? / ??? / ????',
+      choices: [
+        { id: 'open', label: '????', desc: '?? 12 ????? 1 ???????', effect: { type: 'relic', hpCostFlat: 12 } },
+        { id: 'salvage', label: '????', desc: '?? 1 ?????????', effect: { type: 'rare_card' } },
+        { id: 'leave', label: '?????', desc: '????????????', effect: { type: 'leave', toast: '?????????' } }
+      ]
+    },
+    altar: {
+      id: 'altar', title: '????', desc: '????????????????????????', rewardHint: '?? / ?? / ??',
+      choices: [
+        { id: 'blood_core', label: '?????', desc: '?? 10 ??????? +8???? 8 ???', effect: { type: 'max_hp', hpCostFlat: 10, maxHpGain: 8, healGain: 8, toast: '???????????????' } },
+        { id: 'purge', label: '????', desc: '?? 1 ????', effect: { type: 'remove' } },
+        { id: 'meditate', label: '????', desc: '?? 16 ???', effect: { type: 'heal', healFlat: 16, toast: '??????' } }
+      ]
+    },
+    gambler: {
+      id: 'gambler', title: '???', desc: '??????????????????????', rewardHint: '????? / ???',
+      choices: [
+        { id: 'small_bet', label: '????', desc: '?? 6 ???60% ????????????', effect: { type: 'gamble_card', hpCostFlat: 6, winChance: 0.6, failToast: '?????? 6 ??' } },
+        { id: 'big_bet', label: '??????', desc: '?? 12 ???45% ??????????', effect: { type: 'gamble_relic', hpCostFlat: 12, winChance: 0.45, failToast: '??????????' } },
+        { id: 'leave', label: '??????', desc: '??????????', effect: { type: 'leave', toast: '??????????' } }
+      ]
+    }
+  };
+
   /* Random Events */
   const EVENTS = [
     {
@@ -710,6 +789,124 @@
     },
   ];
 
+
+  function pickWithRng(list, rng) {
+    if (!list || list.length === 0) return null;
+    return list[Math.floor(rng() * list.length)];
+  }
+
+  function shuffleWithRng(list, rng) {
+    const clone = [...list];
+    for (let i = clone.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [clone[i], clone[j]] = [clone[j], clone[i]];
+    }
+    return clone;
+  }
+
+  function laneSlotsForCount(count) {
+    if (count <= 1) return [1];
+    if (count === 2) return [0, 2];
+    return [0, 1, 2];
+  }
+
+  function describeNodeRewards(node) {
+    if (node.type === 'event') {
+      const event = TOWER_PATH_EVENTS[node.eventId];
+      return [event ? event.rewardHint : TOWER_NODE_META.event.reward];
+    }
+    if (node.type === 'rest') return ['??', '?? / ??'];
+    if (node.type === 'shop') return ['????', '????'];
+    if (node.type === 'elite') return ['?????', node.affixId ? ENEMY_AFFIXES[node.affixId].name : '????'];
+    if (node.type === 'boss') {
+      const isFinalBoss = node.actIndex === TOWER_PATH_ACTS.length - 1;
+      return ['?????', isFinalBoss ? '????' : '????'];
+    }
+    const lines = ['?????'];
+    if (node.affixId) lines.push(ENEMY_AFFIXES[node.affixId].name);
+    return lines;
+  }
+
+  function connectTowerRows(currentNodes, nextNodes) {
+    currentNodes.forEach(node => {
+      const linked = nextNodes.filter(next => Math.abs(next.lane - node.lane) <= 1).map(next => next.id);
+      node.nextIds = linked.length ? linked : nextNodes.map(next => next.id);
+    });
+  }
+
+  function createTowerNode(type, act, actIndex, rowIndex, lane, rng) {
+    const meta = TOWER_NODE_META[type];
+    const node = {
+      id: `act-${actIndex}-row-${rowIndex}-lane-${lane}`,
+      actIndex,
+      rowIndex,
+      lane,
+      type,
+      title: meta.name,
+      nextIds: [],
+      nextPreview: [],
+      previewRewards: []
+    };
+
+    if (type === 'battle' || type === 'elite' || type === 'boss') {
+      const poolKey = type === 'battle' ? 'battlePool' : (type === 'elite' ? 'elitePool' : 'bossPool');
+      const enemyKey = pickWithRng(act[poolKey], rng);
+      const template = BOSS_TEMPLATES[enemyKey] || ENEMY_TEMPLATES[enemyKey];
+      node.enemyKey = enemyKey;
+      node.title = template ? template.name : meta.name;
+      if (type === 'elite') {
+        node.affixId = pickWithRng(Object.keys(ENEMY_AFFIXES), rng);
+        node.hpMul = 1.35 + actIndex * 0.08;
+      } else if (type === 'battle' && actIndex > 0 && rng() < 0.22) {
+        node.affixId = pickWithRng(['berserk', 'warded', 'frail_open'], rng);
+        node.hpMul = 1.1;
+      } else if (type === 'boss') {
+        node.hpMul = 1.05 + actIndex * 0.06;
+      }
+    }
+
+    if (type === 'event') {
+      node.eventId = pickWithRng(act.eventPool, rng);
+      node.title = TOWER_PATH_EVENTS[node.eventId].title;
+    }
+
+    node.previewRewards = describeNodeRewards(node);
+    return node;
+  }
+
+  function buildTowerRows(rng) {
+    const rows = [];
+    let globalRowIndex = 0;
+    let previousNodes = null;
+
+    TOWER_PATH_ACTS.forEach((act, actIndex) => {
+      const blueprintRows = TOWER_ROW_BLUEPRINTS[actIndex] || TOWER_ROW_BLUEPRINTS[TOWER_ROW_BLUEPRINTS.length - 1];
+      blueprintRows.forEach((variants) => {
+        const pickedTypes = pickWithRng(variants, rng);
+        const lanes = laneSlotsForCount(pickedTypes.length);
+        const nodes = pickedTypes.map((type, idx) => createTowerNode(type, act, actIndex, globalRowIndex, lanes[idx], rng));
+        if (previousNodes) connectTowerRows(previousNodes, nodes);
+        rows.push({ id: `tower-row-${globalRowIndex}`, actIndex, rowIndex: globalRowIndex, actName: act.name, nodes });
+        previousNodes = nodes;
+        globalRowIndex += 1;
+      });
+    });
+
+    const nodeMap = {};
+    rows.forEach(row => row.nodes.forEach(node => { nodeMap[node.id] = node; }));
+    rows.forEach(row => row.nodes.forEach(node => {
+      node.nextPreview = (node.nextIds || []).map(id => {
+        const nextNode = nodeMap[id];
+        return nextNode ? TOWER_NODE_META[nextNode.type].shortLabel : '';
+      }).filter(Boolean);
+    }));
+    return rows;
+  }
+
+  function getTowerTotalNodeCount(rows) {
+    return (rows || []).reduce((sum, row) => sum + row.nodes.length, 0);
+  }
+
   /* ============================================================
      GAME STATE CLASS
      ============================================================ */
@@ -724,6 +921,11 @@
       this.maxHp = cls ? cls.statMod.maxHp : 90;
       this.floorIndex = 0;
       this.nodeIndex = 0;
+      this.towerRows = [];
+      this.towerNodeMap = {};
+      this.availableNodeIds = [];
+      this.currentNodeId = null;
+      this.completedNodeIds = [];
       this.enemiesKilled = 0;
       this.floorsCleared = 0;
       this.deck = cls ? cls.starterDeck() : this._buildStarterDeck();
@@ -794,9 +996,11 @@
     startBattle(enemyKeys) {
       const s = this.game.state;
       const ascMul = 1 + (s.ascension || 0) * 0.1;
-      this.enemies = enemyKeys.map(key => {
+      const descriptors = enemyKeys.map(entry => typeof entry === 'string' ? { key: entry } : entry);
+      this.enemies = descriptors.map(descriptor => {
+        const key = descriptor.key;
         const tmpl = BOSS_TEMPLATES[key] || ENEMY_TEMPLATES[key];
-        const scaledHp = Math.floor(tmpl.maxHp * ascMul);
+        const scaledHp = Math.floor(tmpl.maxHp * ascMul * (descriptor.hpMul || 1));
         return {
           ...tmpl,
           maxHp: scaledHp,
@@ -809,7 +1013,8 @@
           enrageBonus: 0,
           charged: false,
           vulnerable: 0,
-          weak: 0
+          weak: 0,
+          affixId: descriptor.affixId || null
         };
       });
       this.turn = 0;
@@ -825,15 +1030,70 @@
       s.drawNextBonus = 0;
       s.burn = 0;
 
-      // Prepare piles
       s.drawPile = this._shuffle([...s.deck]);
       s.discardPile = [];
       s.hand = [];
-
+      this.enemies.forEach(enemy => this._applyEnemyAffixBattleStart(enemy));
       this.startPlayerTurn();
     }
 
+    _getEnemyAffix(enemy) {
+      return enemy && enemy.affixId ? ENEMY_AFFIXES[enemy.affixId] : null;
+    }
+
+    _applyEnemyAffixBattleStart(enemy) {
+      const affix = this._getEnemyAffix(enemy);
+      const s = this.game.state;
+      if (!affix) return;
+      if (affix.id === 'warded') {
+        enemy.block += 12;
+      }
+      if (affix.id === 'frail_open') {
+        s.vulnerable = Math.max(s.vulnerable, 1);
+        this.game.ui.logMessage(`${enemy.name} ?${affix.name}?????? 1`, 'damage');
+      }
+    }
+
+    _applyEnemyAffixTurnStart(enemy) {
+      const affix = this._getEnemyAffix(enemy);
+      if (!affix) return;
+      if (affix.id === 'warded') {
+        enemy.block += 4;
+        this.game.ui.logMessage(`${enemy.name} ?${affix.name}?? 4 ??`, 'block');
+      }
+    }
+
+    _applyEnemyAffixAfterAction(enemy) {
+      const affix = this._getEnemyAffix(enemy);
+      if (!affix) return;
+      if (affix.id === 'berserk') {
+        enemy.enrageBonus += 2;
+        this.game.ui.logMessage(`${enemy.name} ?${affix.name}????? +2`, 'damage');
+      }
+    }
+
+    _damagePlayerFromAffix(enemy, dmg) {
+      const s = this.game.state;
+      const blocked = Math.min(s.block, dmg);
+      s.block -= blocked;
+      const actual = dmg - blocked;
+      s.hp -= actual;
+      if (actual > 0) {
+        this.game.ui.flashPlayerHit();
+      }
+      this.game.ui.logMessage(`${enemy.name} ????? ${dmg} ??`, 'damage');
+    }
+
+    _applyEnemyAffixOnDamaged(enemy, dealtDamage) {
+      const affix = this._getEnemyAffix(enemy);
+      if (!affix || dealtDamage <= 0) return;
+      if (affix.id === 'thorns') {
+        this._damagePlayerFromAffix(enemy, 2);
+      }
+    }
+
     getTurnSpellDiscount(card) {
+
       const s = this.game.state;
       if (!card || card.type !== 'spell') return 0;
       const disc = s.getRelicEffect('spellFirstDiscount');
@@ -1032,6 +1292,12 @@
 
       // Resolve card effects
       this._resolveCard(card);
+      if (s.hp <= 0) {
+        s.hp = 0;
+        this.game.ui.renderAll();
+        setTimeout(() => this.endGame(false), 600);
+        return;
+      }
 
       // Check enemies dead
       this.enemies = this.enemies.filter(e => e.hp > 0);
@@ -1142,6 +1408,8 @@
             totalDealt += dmg;
 
             this.game.ui.showEnemyDamage(t, baseDmg, blocked);
+            this._applyEnemyAffixOnDamaged(t, dmg);
+            if (s.hp <= 0) return;
             if (t.hp <= 0) {
               s.enemiesKilled++;
               this.game.ui.logMessage(`${t.name} 被击败！`, 'heal');
@@ -1374,6 +1642,7 @@
 
       // Reset enemy block at start of their turn
       enemy.block = 0;
+      this._applyEnemyAffixTurnStart(enemy);
 
       // Poison on enemy
       if (enemy.poison > 0) {
@@ -1608,7 +1877,7 @@
       updateLeaderboard('cardtower', score);
 
       // Daily challenge record
-      if (this._isDaily) {
+      if (this.game._isDaily) {
         var dailyBest = Storage.get('cardtower_daily_best', { date: '', score: 0 });
         var todayStr = new Date().toISOString().slice(0, 10);
         if (todayStr !== dailyBest.date || score > dailyBest.score) {
@@ -1694,8 +1963,12 @@
         battlePanel: $('ct-battle-panel'),
         relicReward: $('ct-relic-reward'),
         relicChoices: $('ct-relic-choices'),
+        relicTitle: document.querySelector('#ct-relic-reward .ct-overlay-title'),
+        relicSubtitle: document.querySelector('#ct-relic-reward .ct-overlay-subtitle'),
         restShop: $('ct-rest-shop'),
         restChoices: $('ct-rest-choices'),
+        restTitle: document.querySelector('#ct-rest-shop .ct-overlay-title'),
+        restSubtitle: document.querySelector('#ct-rest-shop .ct-overlay-subtitle'),
         cardRemoval: $('ct-card-removal'),
         removalCards: $('ct-removal-cards'),
         btnSkipRemoval: $('ct-btn-skip-removal')
@@ -1728,6 +2001,12 @@
       this.els.btnRestart.addEventListener('click', () => this.game.restartGame());
       this.els.btnEndTurn.addEventListener('click', () => this.game.battle.endPlayerTurn());
       this.els.btnSkipReward.addEventListener('click', () => this.game.skipReward());
+      this.els.towerMap.addEventListener('click', (e) => {
+        const nodeEl = e.target.closest('.ct-tower-node.available[data-node-id]');
+        if (!nodeEl) return;
+        const nodeId = nodeEl.dataset.nodeId;
+        if (nodeId) this.game.selectTowerNode(nodeId);
+      });
       document.addEventListener('keydown', (e) => {
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
@@ -2094,33 +2373,40 @@
     /* --- Tower Map --- */
     renderTowerMap() {
       const s = this.game.state;
-      let html = '';
+      if (!s.towerRows || s.towerRows.length === 0) {
+        this.els.towerMap.innerHTML = '<div class="ct-node-empty">????????</div>';
+        return;
+      }
 
-      FLOORS.forEach((floor, fi) => {
-        html += `<div class="ct-tower-floor-divider">${floor.name}</div>`;
-        floor.enemies.forEach((eid, ei) => {
-          const nodeIdx = fi * 4 + ei;
-          const globalNode = s.floorIndex * 4 + s.nodeIndex;
-          const completed = nodeIdx < globalNode || (s.gameOver && s.victory);
-          const current = nodeIdx === globalNode && !s.gameOver;
-          const tmpl = ENEMY_TEMPLATES[eid];
-          html += `<div class="ct-tower-node ${completed ? 'completed' : ''} ${current ? 'current' : ''}">
-            <span class="ct-tower-node-icon">${tmpl.sprite}</span>
-            <span class="ct-tower-node-label">${tmpl.name}</span>
-            ${completed ? '<span class="ct-tower-node-check">&#10003;</span>' : ''}
-          </div>`;
+      let html = '';
+      let currentAct = -1;
+      s.towerRows.forEach(row => {
+        if (row.actIndex !== currentAct) {
+          currentAct = row.actIndex;
+          html += `<div class="ct-tower-floor-divider">?${row.actIndex + 1}? ? ${escapeHtml(row.actName)}</div>`;
+        }
+        html += '<div class="ct-tower-row">';
+        row.nodes.forEach(node => {
+          const meta = TOWER_NODE_META[node.type];
+          const completed = s.completedNodeIds.includes(node.id) || (s.gameOver && s.victory);
+          const current = s.currentNodeId === node.id && !s.gameOver;
+          const available = s.availableNodeIds.includes(node.id) && !s.gameOver;
+          const affix = node.affixId ? ENEMY_AFFIXES[node.affixId] : null;
+          const previewText = node.previewRewards.filter(Boolean).join(' ? ');
+          const nextText = node.nextPreview.length ? node.nextPreview.join(' / ') : (node.type === 'boss' && node.actIndex === TOWER_PATH_ACTS.length - 1 ? '??' : '??');
+          html += `<button type="button" class="ct-tower-node ${node.type === 'boss' ? 'boss' : ''} ${completed ? 'completed' : ''} ${current ? 'current' : ''} ${available ? 'available' : ''}" data-node-id="${node.id}" data-node-type="${node.type}">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">${meta.icon}</span>
+              <span class="ct-tower-node-label">${meta.name}</span>
+              ${affix ? `<span class="ct-node-affix" title="${escapeHtml(affix.desc)}">${affix.name}</span>` : ''}
+              ${completed ? '<span class="ct-tower-node-check">&#10003;</span>' : ''}
+            </div>
+            <div class="ct-tower-node-title">${escapeHtml(node.title)}</div>
+            <div class="ct-node-preview" data-node-preview="${escapeHtml(previewText)}">${escapeHtml(previewText)}</div>
+            <div class="ct-node-next">???${escapeHtml(nextText)}</div>
+          </button>`;
         });
-        // Boss node
-        const bossIdx = fi * 4 + 3;
-        const globalNode = s.floorIndex * 4 + s.nodeIndex;
-        const completed = bossIdx < globalNode || (s.gameOver && s.victory);
-        const current = bossIdx === globalNode && !s.gameOver;
-        const bossTmpl = BOSS_TEMPLATES[floor.boss];
-        html += `<div class="ct-tower-node boss ${completed ? 'completed' : ''} ${current ? 'current' : ''}">
-          <span class="ct-tower-node-icon">${bossTmpl.sprite}</span>
-          <span class="ct-tower-node-label">${bossTmpl.name}</span>
-          ${completed ? '<span class="ct-tower-node-check">&#10003;</span>' : ''}
-        </div>`;
+        html += '</div>';
       });
 
       this.els.towerMap.innerHTML = html;
@@ -2148,29 +2434,32 @@
       this.els.enemyArea.innerHTML = enemies.map((e, i) => {
         const hpPct = Math.max(0, (e.hp / e.maxHp) * 100);
         const intent = this.game.battle.getEnemyIntent(e);
+        const affix = e.affixId ? ENEMY_AFFIXES[e.affixId] : null;
         let intentClass = 'intent-attack';
         if (intent.type === 'defend') intentClass = 'intent-defend';
         if (intent.type === 'special') intentClass = 'intent-special';
 
         let statuses = '';
-        if (e.block > 0) statuses += `<span class="ct-status-badge block">护甲 ${e.block}</span>`;
-        if (e.poison > 0) statuses += `<span class="ct-status-badge poison">毒 ${e.poison}</span>`;
-        if (e.burn > 0) statuses += `<span class="ct-status-badge burn">灼烧 ${e.burn}</span>`;
-        if (e.frozen > 0) statuses += `<span class="ct-status-badge frozen">冻结 ${e.frozen}</span>`;
-        if (e.enrageBonus > 0) statuses += `<span class="ct-status-badge enraged">狂暴 +${e.enrageBonus}</span>`;
-        if (e.charged) statuses += `<span class="ct-status-badge enraged">蓄力中</span>`;
-        if (e.vulnerable > 0) statuses += `<span class="ct-status-badge vulnerable">易伤 ${e.vulnerable}</span>`;
-        if (e.weak > 0) statuses += `<span class="ct-status-badge weak">虚弱 ${e.weak}</span>`;
+        if (e.block > 0) statuses += `<span class="ct-status-badge block">?? ${e.block}</span>`;
+        if (e.poison > 0) statuses += `<span class="ct-status-badge poison">? ${e.poison}</span>`;
+        if (e.burn > 0) statuses += `<span class="ct-status-badge burn">?? ${e.burn}</span>`;
+        if (e.frozen > 0) statuses += `<span class="ct-status-badge frozen">?? ${e.frozen}</span>`;
+        if (e.enrageBonus > 0) statuses += `<span class="ct-status-badge enraged">?? +${e.enrageBonus}</span>`;
+        if (e.charged) statuses += `<span class="ct-status-badge enraged">???</span>`;
+        if (e.vulnerable > 0) statuses += `<span class="ct-status-badge vulnerable">?? ${e.vulnerable}</span>`;
+        if (e.weak > 0) statuses += `<span class="ct-status-badge weak">?? ${e.weak}</span>`;
+        if (affix) statuses += `<span class="ct-status-badge affix" data-enemy-affix="${affix.id}" title="${escapeHtml(affix.desc)}">${affix.name}</span>`;
 
-        let intentHtml = `意图: ${intent.label}`;
+        let intentHtml = `??: ${intent.label}`;
         if (e.isBoss && s.hasRelic('seeIntent')) {
           const next = e.pattern[(e.patternIndex + 1) % e.pattern.length];
-          if (next && next.label) intentHtml += `<div class="ct-intent-next">下一步: ${next.label}</div>`;
+          if (next && next.label) intentHtml += `<div class="ct-intent-next">???: ${next.label}</div>`;
         }
 
         return `<div class="ct-enemy ${e.isBoss ? 'boss-enemy' : ''}" data-idx="${i}">
           <span class="ct-enemy-sprite">${e.sprite}</span>
           <div class="ct-enemy-name">${e.name}</div>
+          ${affix ? `<div class="ct-enemy-affix" data-enemy-affix="${affix.id}" title="${escapeHtml(affix.desc)}">${affix.name} ? ${affix.shortDesc}</div>` : ''}
           <div class="ct-enemy-hp-bar"><div class="ct-enemy-hp-fill" style="width:${hpPct}%"></div></div>
           <div class="ct-enemy-hp-text">${e.hp} / ${e.maxHp}</div>
           <div class="ct-enemy-intent ${intentClass}">${intentHtml}</div>
@@ -2327,25 +2616,37 @@
       this.els.eventTitle.textContent = event.title;
       this.els.eventDesc.textContent = event.desc;
 
+      if (event.choices && event.onChoice) {
+        this.els.eventChoices.innerHTML = event.choices.map(choice => `
+          <button class="ct-event-choice" data-choice-id="${choice.id}">
+            <span class="ct-event-choice-label">${choice.label}</span>
+            <span class="ct-event-choice-desc">${choice.desc || ''}</span>
+          </button>
+        `).join('');
+        this.els.eventChoices.querySelectorAll('[data-choice-id]').forEach(button => {
+          button.addEventListener('click', () => event.onChoice(button.dataset.choiceId));
+        });
+        this.els.eventOverlay.classList.add('active');
+        return;
+      }
+
       if (event.resolve === 'upgrade') {
-        // Show upgrade UI instead
         this.els.eventOverlay.classList.remove('active');
         this.showUpgradeOverlay();
         return;
       }
 
       if (event.resolve === 'sacrifice') {
-        // Show card removal UI
         this.els.eventOverlay.classList.remove('active');
         this.game.showCardRemovalForEvent();
         return;
       }
 
-      this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="accept">接受</button>`;
+      this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="accept">??</button>`;
       this.els.eventChoices.querySelector('[data-action="accept"]').addEventListener('click', () => {
         const result = event.resolve(this.game);
         this.els.eventDesc.textContent = result;
-        this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="continue">继续</button>`;
+        this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="continue">??</button>`;
         this.els.eventChoices.querySelector('[data-action="continue"]').addEventListener('click', () => {
           this.els.eventOverlay.classList.remove('active');
           this.game.proceedAfterEvent();
@@ -2391,9 +2692,11 @@
     }
 
     /* --- Relic Reward --- */
-    showRelicReward(relics) {
+    showRelicReward(relics, options = {}) {
       const s = this.game.state;
       const setCounts = getRelicSetCounts(s.relics);
+      if (this.els.relicTitle && options.title) this.els.relicTitle.textContent = options.title;
+      if (this.els.relicSubtitle && options.subtitle) this.els.relicSubtitle.textContent = options.subtitle;
       this.els.relicChoices.innerHTML = relics.map(r => {
         const set = r.setId ? RELIC_SETS_MAP[r.setId] : null;
         const cur = set ? (setCounts[r.setId] || 0) : 0;
@@ -2419,6 +2722,16 @@
     }
 
     /* --- Rest Shop --- */
+
+    showRestShop(config = {}) {
+      const choices = config.choices || [];
+      if (this.els.restTitle) this.els.restTitle.textContent = config.title || '??';
+      if (this.els.restSubtitle) this.els.restSubtitle.textContent = config.subtitle || '????????????';
+      this.els.restChoices.innerHTML = choices.map(choice => `
+        <div class="ct-rest-choice" data-choice="${choice.id}">
+          <div class="ct-rest-choice-icon">${choice.icon || '?'}</div>
+          <div class="ct-rest-choice-name">${choice.name}</div>
+          <div class="ct-rest-choice-desc">${choice.desc || ''}</div>
     showRestShop() {
       const s = this.game.state;
       const healAmt = Math.floor(s.maxHp * 0.45);
@@ -2433,12 +2746,7 @@
           <div class="ct-rest-choice-name">净化</div>
           <div class="ct-rest-choice-desc">移除一张卡牌</div>
         </div>
-        <div class="ct-rest-choice" data-choice="skip">
-          <div class="ct-rest-choice-icon">➡️</div>
-          <div class="ct-rest-choice-name">跳过</div>
-          <div class="ct-rest-choice-desc">直接进入下一层</div>
-        </div>
-      `;
+      `).join('');
       this.els.restShop.classList.add('active');
     }
 
@@ -2505,7 +2813,7 @@
         ? `<div class="ct-gameover-encourage" style="text-align:center;font-size:0.85rem;color:var(--cyan);font-style:italic;margin:8px 0">${getEncouragement()}</div>` : '';
 
       let statsHtml = `
-        <div class="ct-gameover-stat"><span class="ct-gameover-stat-label">通过楼层</span><span class="ct-gameover-stat-value">${s.floorsCleared} / ${FLOORS.length}</span></div>
+        <div class="ct-gameover-stat"><span class="ct-gameover-stat-label">通过楼层</span><span class="ct-gameover-stat-value">${s.floorsCleared} / ${this.game._getTotalTowerNodes()}</span></div>
         <div class="ct-gameover-stat"><span class="ct-gameover-stat-label">击败敌人</span><span class="ct-gameover-stat-value">${s.enemiesKilled}</span></div>
         <div class="ct-gameover-stat"><span class="ct-gameover-stat-label">剩余生命</span><span class="ct-gameover-stat-value">${Math.max(0, s.hp)}</span></div>
         <div class="ct-gameover-stat"><span class="ct-gameover-stat-label">最终牌组</span><span class="ct-gameover-stat-value">${s.deck.length} 张</span></div>`;
@@ -2557,33 +2865,58 @@
     init() {
       initNav('cardtower');
       initParticles('#particles', 20);
+      var resetState = typeof Phase2SaveReset !== 'undefined' ? Phase2SaveReset.ensure('cardtower') : null;
+      if (resetState && resetState.status === 'cancelled') {
+        this.renderResetBlocked();
+        return;
+      }
       this.ui.showScreen('start');
       this.ui.renderLeaderboard();
+    }
+
+    renderResetBlocked() {
+      var app = document.getElementById('ct-app');
+      if (!app) return;
+      app.innerHTML = `
+        <div class="ct-screen ct-start-screen active">
+          <div class="ct-start-inner">
+            <h1 class="ct-start-title">阶段2更新需清档</h1>
+            <p class="ct-start-subtitle">你刚才取消了新版清档确认。斩仙塔当前版本不兼容旧进度，确认清档后才能继续进入。</p>
+            <button class="btn btn-outline btn-lg" type="button" onclick="window.location.href='../index.html'">返回首页</button>
+          </div>
+        </div>
+      `;
     }
 
     startGame(daily) {
       this.state.reset();
       this._isDaily = !!daily;
       if (daily) {
-        var now = new Date();
-        var seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+        const now = new Date();
+        const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
         this._dailyRng = seededRandom(seed);
       } else {
         this._dailyRng = null;
       }
+      this.pendingRewardCards = null;
+      this.pendingRelicChoices = null;
+      this.afterCardRewardCallback = null;
+      this.afterRelicCallback = null;
+      this.afterUpgradeCallback = null;
+      this.cardRemovalCallback = null;
+      this.pendingCampChoices = [];
+      this.pendingPathEvent = null;
 
-      // 仙缘联动: 检查跨游戏奖励
       if (typeof CrossGameRewards !== 'undefined') {
-        var ctRewards = CrossGameRewards.checkAndClaim('cardtower');
-        var ctState = this.state;
+        const ctRewards = CrossGameRewards.checkAndClaim('cardtower');
+        const ctState = this.state;
         ctRewards.forEach(function(r) {
           if (r.reward.type === 'hp_bonus') { ctState.hp += r.reward.value; ctState.maxHp += r.reward.value; }
-          showToast('仙缘联动: ' + r.name, 'success');
+          showToast('????: ' + r.name, 'success');
         });
       }
 
-      // 仙缘兑换：永久加成 / 下局一次性加成
-      var towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0, extraRelicChoices: 0 });
+      const towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0, extraRelicChoices: 0 });
       if (towerBonuses.hp > 0) {
         this.state.hp += towerBonuses.hp;
         this.state.maxHp += towerBonuses.hp;
@@ -2596,12 +2929,95 @@
       if (towerBonuses.extraRelicChoices) towerBonuses.extraRelicChoices = 0;
       Storage.set('xianyuan_tower_bonuses', towerBonuses);
 
+      this._buildTowerRun();
       this.ui.showScreen('game');
-      this.ui.logMessage('仙塔之旅开始...', '');
+      this.ui.logMessage('???????????????', '');
       if (typeof CrossGameAchievements !== 'undefined') {
-        var runStats = Storage.get('cross_game_stats', {});
+        const runStats = Storage.get('cross_game_stats', {});
         CrossGameAchievements.trackStat('cardtower_runs', (runStats.cardtower_runs || 0) + 1);
       }
+      this.ui.renderAll();
+    }
+
+    random() {
+      return (this._dailyRng || Math.random)();
+    }
+
+    _shuffleList(items) {
+      return shuffleWithRng(items, () => this.random());
+    }
+
+    _buildTowerRun() {
+      const rows = buildTowerRows(() => this.random());
+      const nodeMap = {};
+      rows.forEach(row => row.nodes.forEach(node => { nodeMap[node.id] = node; }));
+      rows.forEach(row => row.nodes.forEach(node => {
+        node.nextPreview = (node.nextIds || []).map(id => {
+          const nextNode = nodeMap[id];
+          return nextNode ? TOWER_NODE_META[nextNode.type].name : '';
+        }).filter(Boolean);
+      }));
+      this.state.towerRows = rows;
+      this.state.towerNodeMap = nodeMap;
+      this.state.availableNodeIds = rows[0] ? rows[0].nodes.map(node => node.id) : [];
+      this.state.currentNodeId = null;
+      this.state.completedNodeIds = [];
+      this.state.floorIndex = 0;
+      this.state.nodeIndex = 0;
+      this.state.floorsCleared = 0;
+    }
+
+    _getTotalTowerNodes() {
+      return getTowerTotalNodeCount(this.state.towerRows);
+    }
+
+    _getNode(nodeId) {
+      return nodeId ? this.state.towerNodeMap[nodeId] || null : null;
+    }
+
+    _getCurrentNode() {
+      return this._getNode(this.state.currentNodeId);
+    }
+
+    _canSelectTowerNode() {
+      if (this.state.gameOver || this.battle.inBattle) return false;
+      if (this.ui.els.cardReward.classList.contains('active')) return false;
+      if (this.ui.els.eventOverlay.classList.contains('active')) return false;
+      if (this.ui.els.relicReward.classList.contains('active')) return false;
+      if (this.ui.els.restShop.classList.contains('active')) return false;
+      if (this.ui.els.upgradeOverlay.classList.contains('active')) return false;
+      if (this.ui.els.cardRemoval.classList.contains('active')) return false;
+      return true;
+    }
+
+    _buildEnemyDescriptor(node) {
+      return { key: node.enemyKey, affixId: node.affixId || null, hpMul: node.hpMul || 1 };
+    }
+
+    _healPlayer(amount) {
+      if (!amount) return 0;
+      const healed = Math.min(amount, this.state.maxHp - this.state.hp);
+      this.state.hp += healed;
+      return healed;
+    }
+
+    _payHp(hpCostFlat = 0, hpCostPct = 0) {
+      const pctCost = hpCostPct > 0 ? Math.floor(this.state.maxHp * hpCostPct) : 0;
+      const cost = Math.max(0, hpCostFlat, pctCost);
+      if (cost === 0) return true;
+      if (this.state.hp <= cost) {
+        showToast('????????????', 'error');
+        return false;
+      }
+      this.state.hp -= cost;
+      return true;
+    }
+
+    selectTowerNode(nodeId) {
+      if (!this._canSelectTowerNode()) return;
+      if (!this.state.availableNodeIds.includes(nodeId)) return;
+      this.state.currentNodeId = nodeId;
+      this.state.availableNodeIds = [];
       this.startCurrentNode();
     }
 
@@ -2613,154 +3029,251 @@
     }
 
     startCurrentNode() {
-      const s = this.state;
-
-      // Daily/achievement stat: node reached (1-based, 4 nodes per floor)
+      const node = this._getCurrentNode();
+      if (!node) return;
+      this.state.floorIndex = node.rowIndex;
+      this.state.nodeIndex = node.lane;
       if (typeof CrossGameAchievements !== 'undefined') {
-        const nodeNum = s.floorIndex * 4 + s.nodeIndex + 1;
-        CrossGameAchievements.trackStat('cardtower_max_floor', nodeNum);
+        CrossGameAchievements.trackStat('cardtower_max_floor', this.state.completedNodeIds.length + 1);
       }
-
-      const floor = FLOORS[s.floorIndex];
-      if (!floor) {
-        // All floors cleared -- victory!
-        s.floorsCleared = FLOORS.length;
-        this.battle.endGame(true);
+      const meta = TOWER_NODE_META[node.type];
+      const affix = node.affixId ? ENEMY_AFFIXES[node.affixId] : null;
+      this.ui.logMessage(`??${meta.name}: ${node.title}${affix ? ` ? ${affix.name}` : ''}`, '');
+      if (node.type === 'battle' || node.type === 'elite' || node.type === 'boss') {
+        this.battle.startBattle([this._buildEnemyDescriptor(node)]);
+        this.ui.renderAll();
         return;
       }
-
-      let enemyKey;
-      if (s.nodeIndex < 3) {
-        enemyKey = floor.enemies[s.nodeIndex];
-      } else {
-        enemyKey = floor.boss;
+      if (node.type === 'event') {
+        const eventDef = TOWER_PATH_EVENTS[node.eventId];
+        if (!eventDef) {
+          this.finishCurrentNode();
+        } else {
+          this.pendingPathEvent = eventDef;
+          this.ui.showEvent({
+            title: eventDef.title,
+            desc: eventDef.desc,
+            choices: eventDef.choices,
+            onChoice: (choiceId) => this.handlePathEventChoice(choiceId)
+          });
+          this.ui.renderAll();
+        }
+        return;
       }
-
-      this.ui.logMessage(`遭遇: ${(BOSS_TEMPLATES[enemyKey] || ENEMY_TEMPLATES[enemyKey]).name}`, '');
-      this.battle.startBattle([enemyKey]);
-      this.ui.renderAll();
+      if (node.type === 'rest') {
+        const healAmt = Math.floor(this.state.maxHp * 0.3);
+        this.pendingCampChoices = [
+          { id: 'rest', run: () => { const healed = this._healPlayer(healAmt); showToast(`???? ${healed} ?`, 'success'); return () => this.finishCurrentNode(); } },
+          { id: 'forge', run: () => () => { this.afterUpgradeCallback = () => this.finishCurrentNode(); this.ui.showUpgradeOverlay(); } },
+          { id: 'purge', run: () => () => { this.cardRemovalCallback = () => this.finishCurrentNode(); this.ui.showCardRemoval(); } }
+        ];
+        this.ui.showRestShop({
+          title: '??',
+          subtitle: '?????????????',
+          choices: [
+            { id: 'rest', icon: '?', name: '??', desc: `?? ${healAmt} ??` },
+            { id: 'forge', icon: '?', name: '??', desc: '?? 1 ???' },
+            { id: 'purge', icon: '?', name: '??', desc: '?? 1 ???' }
+          ]
+        });
+        this.ui.renderAll();
+        return;
+      }
+      if (node.type === 'shop') {
+        const rareCost = 12;
+        const forgeCost = 8;
+        const purgeCost = 6;
+        this.pendingCampChoices = [
+          { id: 'rare', run: () => { if (!this._payHp(rareCost)) return false; showToast('????????????????', 'success'); return () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() }); } },
+          { id: 'forge', run: () => { if (!this._payHp(forgeCost)) return false; return () => { this.afterUpgradeCallback = () => this.finishCurrentNode(); this.ui.showUpgradeOverlay(); }; } },
+          { id: 'purge', run: () => { if (!this._payHp(purgeCost)) return false; return () => { this.cardRemovalCallback = () => this.finishCurrentNode(); this.ui.showCardRemoval(); }; } },
+          { id: 'leave', run: () => { showToast('??????????', 'info'); return () => this.finishCurrentNode(); } }
+        ];
+        this.ui.showRestShop({
+          title: '??',
+          subtitle: '???????????',
+          choices: [
+            { id: 'rare', icon: '??', name: '????', desc: `?? ${rareCost} ?????????` },
+            { id: 'forge', icon: '?', name: '????', desc: `?? ${forgeCost} ????? 1 ???` },
+            { id: 'purge', icon: '?', name: '????', desc: `?? ${purgeCost} ????? 1 ???` },
+            { id: 'leave', icon: '?', name: '??', desc: '?????????' }
+          ]
+        });
+        this.ui.renderAll();
+      }
     }
 
     advanceNode() {
-      const s = this.state;
-      s.nodeIndex++;
-
-      if (s.nodeIndex > 3) {
-        // Floor complete (boss killed)
-        s.floorsCleared++;
-        s.floorIndex++;
-        s.nodeIndex = 0;
-
-        if (s.floorIndex >= FLOORS.length) {
-          // All floors cleared
-          this.battle.endGame(true);
-          return;
-        }
-
-        // Inter-act full heal at floors 5→6 and 10→11
-        if (s.floorIndex === 5 || s.floorIndex === 10) {
-          s.hp = s.maxHp;
-          this.ui.logMessage('幕间休整：生命完全恢复！', '');
-          showToast('进入新篇章！生命完全恢复！', 'success');
-        }
-
-        // Between floors: show relic reward first, then rest shop
-        this.showRelicRewardAfterBoss();
+      const node = this._getCurrentNode();
+      if (!node) return;
+      if (node.type === 'battle') {
+        this.showCardReward({ onComplete: () => this.finishCurrentNode() });
         return;
       }
-
-      // Show card reward
-      this.showCardReward();
+      if (node.type === 'elite') {
+        this.showRelicRewardAfterBoss({ title: '?????', subtitle: '????????????', onComplete: () => this.finishCurrentNode() });
+        return;
+      }
+      if (node.type === 'boss') {
+        const isFinalBoss = node.actIndex === TOWER_PATH_ACTS.length - 1;
+        this.showRelicRewardAfterBoss({
+          title: '????',
+          subtitle: isFinalBoss ? '?????????????' : '??????????????',
+          onComplete: () => {
+            if (!isFinalBoss) {
+              this.state.hp = this.state.maxHp;
+              showToast('????????????', 'success');
+            }
+            this.finishCurrentNode();
+          }
+        });
+        return;
+      }
+      this.finishCurrentNode();
     }
 
-    showCardReward() {
-      // Pick 3 (+ rewardExtra relic) random obtainable cards
+    finishCurrentNode() {
+      const node = this._getCurrentNode();
+      if (!node) {
+        this.ui.renderAll();
+        return;
+      }
+      if (!this.state.completedNodeIds.includes(node.id)) {
+        this.state.completedNodeIds.push(node.id);
+      }
+      this.state.floorsCleared = this.state.completedNodeIds.length;
+      const nextIds = (node.nextIds || []).filter(id => !this.state.completedNodeIds.includes(id));
+      this.state.currentNodeId = null;
+      this.state.availableNodeIds = nextIds;
+      this.ui.renderAll();
+      if (nextIds.length > 0) {
+        const nextNames = nextIds.map(id => { const nextNode = this._getNode(id); return nextNode ? TOWER_NODE_META[nextNode.type].name : ''; }).filter(Boolean).join(' / ');
+        this.ui.logMessage(`?????: ${nextNames}`, '');
+        return;
+      }
+      this.battle.endGame(true);
+    }
+
+    showCardReward(options = {}) {
       const s = this.state;
       const ascReduction = Math.min(2, Math.floor((s.ascension || 0) / 3));
-      const rewardCount = Math.max(2, 3 + s.getRelicEffect('rewardExtra') - ascReduction);
-      const pool = [...OBTAINABLE_IDS];
-      // Add class-exclusive cards to pool
-      if (s.chosenClass) {
+      const rewardCount = options.count || Math.max(2, 3 + s.getRelicEffect('rewardExtra') - ascReduction);
+      let pool = options.pool ? [...options.pool] : [...OBTAINABLE_IDS];
+      if (!options.disableClassCards && s.chosenClass) {
         const cls = CLASSES.find(c => c.id === s.chosenClass);
         if (cls && cls.exclusiveCards) {
           cls.exclusiveCards.forEach(id => { if (!pool.includes(id)) pool.push(id); });
         }
       }
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
-      const choices = pool.slice(0, rewardCount).map(id => makeCard(id, false));
-      this.pendingRewardCards = choices;
-      this.ui.showCardReward(choices);
+      const drafted = options.cards || this._shuffleList([...new Set(pool)]).slice(0, rewardCount).map(id => makeCard(id, false));
+      this.pendingRewardCards = drafted;
+      this.afterCardRewardCallback = options.onComplete || null;
+      this.ui.showCardReward(drafted);
     }
 
     pickRewardCard(cardId) {
       const s = this.state;
       const card = this.pendingRewardCards.find(c => c.id === cardId);
       if (card) {
-        // star_dust relic: chance to auto-upgrade
         const upgradeChance = s.getRelicEffect('autoUpgradeChance');
-        if (upgradeChance > 0 && Math.random() < upgradeChance && !card.upgraded) {
+        if (upgradeChance > 0 && this.random() < upgradeChance && !card.upgraded) {
           const upgraded = makeCard(card.id, true);
           upgraded.uid = card.uid;
           s.deck.push(upgraded);
-          showToast(`获得: ${upgraded.name} (星尘升级!)`, 'success');
+          showToast(`??: ${upgraded.name} (????!)`, 'success');
         } else {
           s.deck.push(card);
-          showToast(`获得: ${card.name}`, 'success');
+          showToast(`??: ${card.name}`, 'success');
         }
       }
       this.ui.hideCardReward();
       this.pendingRewardCards = null;
-      this.checkRandomEvent();
+      const cb = this.afterCardRewardCallback;
+      this.afterCardRewardCallback = null;
+      if (cb) { cb(); return; }
+      this.finishCurrentNode();
     }
 
     skipReward() {
       this.ui.hideCardReward();
       this.pendingRewardCards = null;
-      this.checkRandomEvent();
-    }
-
-    checkRandomEvent() {
-      // 1/3 chance of random event between battles
-      if (Math.random() < 0.33) {
-        const event = pick(EVENTS);
-        this.ui.showEvent(event);
-      } else {
-        this.proceedToBattle();
-      }
+      const cb = this.afterCardRewardCallback;
+      this.afterCardRewardCallback = null;
+      if (cb) { cb(); return; }
+      this.finishCurrentNode();
     }
 
     proceedAfterEvent() {
-      this.proceedToBattle();
+      if (this.afterUpgradeCallback) {
+        const cb = this.afterUpgradeCallback;
+        this.afterUpgradeCallback = null;
+        cb();
+        return;
+      }
+      this.finishCurrentNode();
     }
 
-    proceedToBattle() {
-      this.ui.renderAll();
-      setTimeout(() => this.startCurrentNode(), 500);
+    handlePathEventChoice(choiceId) {
+      const eventDef = this.pendingPathEvent;
+      if (!eventDef) return;
+      const choice = eventDef.choices.find(item => item.id === choiceId);
+      if (!choice) return;
+      const effect = choice.effect || { type: 'leave' };
+      let followUp = null;
+      if (effect.type === 'relic') {
+        if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
+        followUp = () => this.showRelicRewardAfterBoss({ title: '????', subtitle: '????????????????', onComplete: () => this.finishCurrentNode() });
+      } else if (effect.type === 'rare_card') {
+        followUp = () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() });
+      } else if (effect.type === 'remove') {
+        followUp = () => { this.cardRemovalCallback = () => this.finishCurrentNode(); this.ui.showCardRemoval(); };
+      } else if (effect.type === 'heal') {
+        const healed = this._healPlayer(effect.healFlat || Math.floor(this.state.maxHp * (effect.healPct || 0)));
+        showToast(effect.toast || `?? ${healed} ?`, 'success');
+      } else if (effect.type === 'max_hp') {
+        if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
+        this.state.maxHp += effect.maxHpGain || 0;
+        this.state.hp = Math.min(this.state.maxHp, this.state.hp + (effect.healGain || 0));
+        showToast(effect.toast || '???????', 'success');
+      } else if (effect.type === 'gamble_card') {
+        if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
+        if (this.random() < (effect.winChance || 0.5)) {
+          followUp = () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() });
+        } else {
+          showToast(effect.failToast || '????????', 'error');
+        }
+      } else if (effect.type === 'gamble_relic') {
+        if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
+        if (this.random() < (effect.winChance || 0.45)) {
+          followUp = () => this.showRelicRewardAfterBoss({ title: '????', subtitle: '?????????', onComplete: () => this.finishCurrentNode() });
+        } else {
+          showToast(effect.failToast || '??????????', 'error');
+        }
+      } else {
+        showToast(effect.toast || '?????????', 'info');
+      }
+      this.pendingPathEvent = null;
+      this.ui.hideEvent();
+      if (followUp) { followUp(); return; }
+      this.finishCurrentNode();
     }
 
-    /* --- Relic reward after boss --- */
-    showRelicRewardAfterBoss() {
+    showRelicRewardAfterBoss(options = {}) {
       const s = this.state;
       const available = RELICS.filter(r => !s.relics.includes(r.id));
       if (available.length === 0) {
-        // No relics left, go to rest shop
-        this.ui.showRestShop();
+        if (options.onComplete) { options.onComplete(); return; }
+        this.finishCurrentNode();
         return;
       }
-      // Shuffle and pick 3 (+ 仙缘兑换额外选项)
-      const shuffled = [...available];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
+      const shuffled = this._shuffleList(available);
       const extraChoices = Math.min(3, Math.max(0, s._xianyuanExtraRelicChoices || 0));
-      const choices = shuffled.slice(0, 3 + extraChoices);
+      const count = Math.min(available.length, options.count || 3 + extraChoices);
+      const choices = shuffled.slice(0, count);
       if (extraChoices > 0) s._xianyuanExtraRelicChoices = 0;
       this.pendingRelicChoices = choices;
-      this.ui.showRelicReward(choices);
+      this.afterRelicCallback = options.onComplete || null;
+      this.ui.showRelicReward(choices, { title: options.title || '????', subtitle: options.subtitle || '???????????????' });
     }
 
     pickRelic(relicId) {
@@ -2768,27 +3281,27 @@
       const relic = RELICS_MAP[relicId];
       if (!relic || s.relics.includes(relicId)) return;
       s.relics.push(relicId);
-      // Apply immediate effects
-      if (relic.effect.maxHpBonus) {
-        s.maxHp += relic.effect.maxHpBonus;
-        s.hp += relic.effect.maxHpBonus;
-      }
-      if (relic.effect.strengthBonus) {
-        s.strength += relic.effect.strengthBonus;
-      }
-      if (relic.effect.maxEnergyBonus) {
-        s.maxEnergy += relic.effect.maxEnergyBonus;
-      }
-      showToast(`获得法宝: ${relic.icon} ${relic.name}`, 'success');
+      if (relic.effect.maxHpBonus) { s.maxHp += relic.effect.maxHpBonus; s.hp += relic.effect.maxHpBonus; }
+      if (relic.effect.strengthBonus) { s.strength += relic.effect.strengthBonus; }
+      if (relic.effect.maxEnergyBonus) { s.maxEnergy += relic.effect.maxEnergyBonus; }
+      showToast(`????: ${relic.icon} ${relic.name}`, 'success');
       this.ui.hideRelicReward();
       this.pendingRelicChoices = null;
-      // After relic, show rest shop
-      this.ui.showRestShop();
+      const cb = this.afterRelicCallback;
+      this.afterRelicCallback = null;
+      if (cb) { cb(); return; }
+      this.finishCurrentNode();
     }
 
-    handleRestChoice(choice) {
-      const s = this.state;
+    handleRestChoice(choiceId) {
+      const choice = (this.pendingCampChoices || []).find(item => item.id === choiceId);
+      if (!choice) return;
+      const followUp = choice.run ? choice.run() : null;
+      if (followUp === false) return;
       this.ui.hideRestShop();
+
+      this.pendingCampChoices = [];
+      if (typeof followUp === 'function') followUp();
       if (choice === 'rest') {
         const healAmt = Math.floor(s.maxHp * 0.45);
         const healed = Math.min(healAmt, s.maxHp - s.hp);
@@ -2821,7 +3334,7 @@
       const idx = s.deck.findIndex(c => c.uid === uid);
       if (idx === -1) return;
       const removed = s.deck.splice(idx, 1)[0];
-      showToast(`移除了 ${removed.name}`, 'info');
+      showToast(`??? ${removed.name}`, 'info');
       this.ui.hideCardRemoval();
       if (this.cardRemovalCallback) {
         const cb = this.cardRemovalCallback;
@@ -2840,10 +3353,9 @@
     }
 
     showCardRemovalForEvent() {
-      // For sacrifice event: remove a card, gain maxHP+5
       this.cardRemovalCallback = () => {
         this.state.maxHp += 5;
-        showToast('最大生命 +5', 'success');
+        showToast('???? +5', 'success');
         this.proceedAfterEvent();
       };
       this.ui.showCardRemoval();
@@ -2855,9 +3367,12 @@
       if (idx === -1) return;
       const old = s.deck[idx];
       const upgraded = makeCard(old.id, true);
-      upgraded.uid = old.uid; // preserve uid
+      upgraded.uid = old.uid;
       s.deck[idx] = upgraded;
-      showToast(`${upgraded.name} 强化成功！`, 'success');
+      showToast(`${upgraded.name} ????`, 'success');
+      const cb = this.afterUpgradeCallback;
+      this.afterUpgradeCallback = null;
+      if (cb) { cb(); return; }
       this.proceedAfterEvent();
     }
   }
@@ -2866,7 +3381,8 @@
      BOOTSTRAP
      ============================================================ */
   document.addEventListener('DOMContentLoaded', () => {
-    new Game();
+    const game = new Game();
+    window.__cardtowerGame = game;
     // 新手引导
     if (typeof GuideSystem !== 'undefined') {
       GuideSystem.start('cardtower', [

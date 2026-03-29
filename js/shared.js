@@ -14,8 +14,27 @@ const CONSTANTS = {
   MAX_IMPORT_FILE_SIZE: 10 * 1024 * 1024, // 10MB
   STORAGE_DEBOUNCE_MS: 300,
   LEADERBOARD_MAX_ENTRIES: 10,
-  SAVE_VERSION: 1,
+  SAVE_VERSION: 2,
 };
+
+const PHASE2_RESET_CONFIRM_KEY = 'phase2_reset_confirmations';
+const PHASE2_SAVE_RESET_CONFIG = Object.freeze({
+  cultivation: Object.freeze({
+    version: 2,
+    label: '修仙之路',
+    patterns: [/^cultivation_save_/]
+  }),
+  cardtower: Object.freeze({
+    version: 2,
+    label: '斩仙塔',
+    patterns: [/^cardtower_/, /^xianyuan_tower_bonuses$/]
+  }),
+  guigu: Object.freeze({
+    version: 2,
+    label: '鬼谷八荒',
+    patterns: [/^guigu_save_/, /^xianyuan_guigu_bonuses$/]
+  })
+});
 
 /* --- Storage工具 (带防抖写入) --- */
 const Storage = (() => {
@@ -108,6 +127,62 @@ const Storage = (() => {
     }
   };
 })();
+
+function getPhase2ResetMarks() {
+  const marks = Storage.get(PHASE2_RESET_CONFIRM_KEY, {});
+  return marks && typeof marks === 'object' && !Array.isArray(marks) ? marks : {};
+}
+
+function getLocalStorageKeys() {
+  const keys = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) keys.push(key);
+    }
+  } catch {
+    return keys;
+  }
+  return keys;
+}
+
+function matchesPhase2ResetPattern(key, patterns) {
+  return patterns.some(pattern => pattern.test(key));
+}
+
+function ensurePhase2SaveReset(gameId) {
+  const config = PHASE2_SAVE_RESET_CONFIG[gameId];
+  if (!config) return { status: 'unsupported', cleared: 0, version: null };
+
+  const marks = getPhase2ResetMarks();
+  if (marks[gameId] === config.version) {
+    return { status: 'already-confirmed', cleared: 0, version: config.version };
+  }
+
+  const message = `${config.label} 已升级到阶段2新版。\n确认后将清空该玩法旧档与相关联动数据，且本次变更不兼容旧进度。\n是否继续？`;
+  if (typeof window !== 'undefined' && typeof window.confirm === 'function' && !window.confirm(message)) {
+    return { status: 'cancelled', cleared: 0, version: config.version };
+  }
+
+  Storage.flush();
+  let cleared = 0;
+  getLocalStorageKeys().forEach((key) => {
+    if (!matchesPhase2ResetPattern(key, config.patterns)) return;
+    Storage.remove(key);
+    cleared += 1;
+  });
+
+  const nextMarks = { ...marks, [gameId]: config.version };
+  Storage.setImmediate(PHASE2_RESET_CONFIRM_KEY, nextMarks);
+  return { status: 'reset', cleared, version: config.version };
+}
+
+window.Phase2SaveReset = Object.freeze({
+  ensure: ensurePhase2SaveReset,
+  getConfig(gameId) {
+    return PHASE2_SAVE_RESET_CONFIG[gameId] || null;
+  }
+});
 
 /* --- 数据导出/导入 --- */
  
@@ -1427,6 +1502,7 @@ window.GuideSystem = (function() {
   var steps = [];
   var currentStep = 0;
   var gameKey = '';
+  var pendingStartTimer = null;
 
   function isCompleted(key) {
     var done = Storage.get(GUIDE_KEY, {});
@@ -1437,6 +1513,13 @@ window.GuideSystem = (function() {
     var done = Storage.get(GUIDE_KEY, {});
     done[key] = true;
     Storage.set(GUIDE_KEY, done);
+  }
+
+  function clearPendingStartTimer() {
+    if (pendingStartTimer !== null) {
+      clearTimeout(pendingStartTimer);
+      pendingStartTimer = null;
+    }
   }
 
   function createOverlay() {
@@ -1498,7 +1581,9 @@ window.GuideSystem = (function() {
   }
 
   function showStep(idx) {
+    if (!overlay) return;
     var step = steps[idx];
+    if (!step) return;
     var tooltip = overlay.querySelector('.guide-tooltip');
     var indicator = overlay.querySelector('.guide-step-indicator');
     var text = overlay.querySelector('.guide-text');
@@ -1536,6 +1621,7 @@ window.GuideSystem = (function() {
   }
 
   function finish() {
+    clearPendingStartTimer();
     if (overlay) {
       overlay.classList.remove('active');
       var hl = document.querySelector('.guide-highlight');
@@ -1547,11 +1633,16 @@ window.GuideSystem = (function() {
   return {
     start: function(key, guideSteps) {
       if (isCompleted(key)) return false;
+      clearPendingStartTimer();
       gameKey = key;
       steps = guideSteps;
       currentStep = 0;
       createOverlay();
-      setTimeout(function() { showStep(0); }, 600);
+      pendingStartTimer = setTimeout(function() {
+        pendingStartTimer = null;
+        if (isCompleted(key)) return;
+        showStep(0);
+      }, 600);
       return true;
     },
     isCompleted: isCompleted,

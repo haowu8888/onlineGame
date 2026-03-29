@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>转转刀 - 仙界游坊</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/knife.css">
+</head>
+<body>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
+  <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
+    <span class="game-nav-title">转转刀</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="game-container knife-container">
+
+      <!-- HUD 顶栏 -->
+      <div class="knife-hud" id="knife-hud">
+        <div class="hud-left">
+          <div class="hud-bars">
+            <div class="hud-bar hp-bar">
+              <span class="hud-bar-label">HP</span>
+              <div class="hud-bar-track"><div class="hud-bar-fill hp-fill" id="hp-fill"></div></div>
+              <span class="hud-bar-text" id="hp-text">100/100</span>
+            </div>
+            <div class="hud-bar xp-bar">
+              <span class="hud-bar-label">XP</span>
+              <div class="hud-bar-track"><div class="hud-bar-fill xp-fill" id="xp-fill"></div></div>
+              <span class="hud-bar-text">Lv.<span id="hud-level">1</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div class="hud-stat">
+            <span class="hud-stat-label">波次</span>
+            <span class="hud-stat-value" id="hud-wave">1</span>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-stat-label">击杀</span>
+            <span class="hud-stat-value" id="hud-kills">0</span>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-stat-label">金币</span>
+            <span class="hud-stat-value" id="hud-gold" style="color:#ffd700">0</span>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-stat-label">时间</span>
+            <span class="hud-stat-value" id="hud-time">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boss 血条 -->
+      <div class="knife-boss-bar" id="knife-boss-bar">
+        <span class="boss-name" id="knife-boss-name"></span>
+        <div class="boss-hp-track">
+          <div class="boss-hp-fill" id="knife-boss-hp-fill"></div>
+        </div>
+      </div>
+
+      <!-- 波次公告 -->
+      <div class="wave-announce" id="wave-announce"></div>
+
+      <!-- 游戏画布 -->
+      <div class="knife-main">
+        <canvas id="knife-canvas" role="img" aria-label="转转刀游戏画面 - 使用WASD或方向键移动角色，旋转刀刃击败敌人"></canvas>
+
+        <!-- 覆盖层（菜单/暂停/结束） -->
+        <div class="knife-overlay" id="knife-overlay">
+          <h2 class="knife-overlay-title" id="knife-overlay-title">转转刀</h2>
+          <p class="knife-overlay-desc" id="knife-overlay-desc"></p>
+          <button class="btn btn-gold btn-lg" id="knife-overlay-btn">拔刀出鞘</button>
+        </div>
+      </div>
+
+      <!-- 技能栏 -->
+      <div id="skill-bar" class="skill-bar"></div>
+
+      <!-- 升级选择面板 -->
+      <div class="upgrade-panel" id="upgrade-panel">
+        <h3 class="upgrade-title">武功精进 - 选择一项强化</h3>
+        <div class="upgrade-cards" id="upgrade-cards"></div>
+      </div>
+
+      <!-- 移动端摇杆 -->
+      <div class="joystick-wrapper">
+        <div class="mobile-controls-row">
+          <div class="joystick-area" id="joystick-area">
+            <div class="joystick-knob" id="joystick-knob"></div>
+          </div>
+          <div class="mobile-skills" id="mobile-skills">
+            <button class="mobile-skill-btn locked" data-skill-idx="0"><span class="mobile-skill-icon">🗡️</span><span class="mobile-skill-key">1</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="1"><span class="mobile-skill-icon">👤</span><span class="mobile-skill-key">2</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="2"><span class="mobile-skill-icon">🛡️</span><span class="mobile-skill-key">3</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="3"><span class="mobile-skill-icon">🌀</span><span class="mobile-skill-key">4</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="4"><span class="mobile-skill-icon">⚡</span><span class="mobile-skill-key">5</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="5"><span class="mobile-skill-icon">🩸</span><span class="mobile-skill-key">6</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="6"><span class="mobile-skill-icon">⏳</span><span class="mobile-skill-key">7</span></button>
+            <button class="mobile-skill-btn locked" data-skill-idx="7"><span class="mobile-skill-icon">💥</span><span class="mobile-skill-key">8</span></button>
+          </div>
+        </div>
+        <div class="joystick-hint">移动 / 技能</div>
+      </div>
+
+      <!-- 操作提示 -->
+      <div class="knife-hint">
+        WASD / 方向键移动 &nbsp;|&nbsp; 1-8 释放技能 &nbsp;|&nbsp; ESC 暂停 &nbsp;|&nbsp; 刀刃自动旋转攻击
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/shared.js" defer></script>
+  <script src="./knife.exposed.js" defer></script>
+</body>
+</html>

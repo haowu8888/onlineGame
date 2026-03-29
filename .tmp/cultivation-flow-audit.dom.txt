@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+  <title>cultivation phase2 flow audit</title>
+</head>
+<body><nav class="nav">
+    <a href="../index.html" class="nav-brand">仙界游坊</a>
+    <button class="nav-toggle" aria-label="菜单">☰</button>
+    <ul class="nav-links">
+      <li><a href="../index.html" class="">主页</a></li>
+      <li><a href="cultivation.html" class="active">修仙之路</a></li><li><a href="lifesim.html" class="">仙途模拟器</a></li><li><a href="guigu.html" class="">鬼谷八荒</a></li><li><a href="knife.html" class="">转转刀</a></li><li><a href="cardtower.html" class="">斩仙塔</a></li><li><a href="cardbattle.html" class="">灵卡对决</a></li><li><a href="cardcollect.html" class="">仙卡录</a></li>
+    </ul>
+    <button class="nav-daily-btn" title="每日仙令" aria-label="每日仙令">📜<span class="nav-badge hidden" aria-hidden="true">0</span></button>
+    <button class="nav-settings-btn" title="设置">⚙</button>
+  <div class="nav-backdrop"></div></nav>
+  <pre id="result">{
+  "immediateChoices": [
+    "rest",
+    "harvest"
+  ],
+  "blessingBeforeBattle": 3,
+  "blessingAfterBattle": 3,
+  "battleChoiceType": "battle",
+  "battleResolved": true,
+  "finalChoiceCount": 3,
+  "finalStep": 3,
+  "finalBlessingCount": 1,
+  "errors": [],
+  "pass": true
+}</pre>
+  <div id="particles"><div class="particle" style="width: 2.82426px; height: 2.82426px; background: var(--cyan); left: 3.48063%; animation-duration: 18.4808s; animation-delay: -16.4425s;"></div><div class="particle" style="width: 4.28604px; height: 4.28604px; background: var(--cyan); left: 7.78738%; animation-duration: 17.2148s; animation-delay: -12.2285s;"></div><div class="particle" style="width: 5.48305px; height: 5.48305px; background: var(--gold); left: 94.2215%; animation-duration: 11.2982s; animation-delay: -3.14779s;"></div><div class="particle" style="width: 4.14629px; height: 4.14629px; background: var(--gold); left: 47.5766%; animation-duration: 10.8736s; animation-delay: -9.8113s;"></div><div class="particle" style="width: 4.9883px; height: 4.9883px; background: var(--cyan); left: 85.0563%; animation-duration: 24.5213s; animation-delay: -8.52123s;"></div><div class="particle" style="width: 2.65019px; height: 2.65019px; background: var(--purple-light); left: 53.7057%; animation-duration: 15.3534s; animation-delay: -2.88403s;"></div><div class="particle" style="width: 3.56918px; height: 3.56918px; background: var(--purple-light); left: 91.8032%; animation-duration: 18.8799s; animation-delay: -11.0505s;"></div><div class="particle" style="width: 3.81898px; height: 3.81898px; background: var(--gold); left: 13.0705%; animation-duration: 15.7257s; animation-delay: -2.0114s;"></div><div class="particle" style="width: 4.6464px; height: 4.6464px; background: var(--gold); left: 45.8411%; animation-duration: 15.4013s; animation-delay: -0.0827591s;"></div><div class="particle" style="width: 3.60723px; height: 3.60723px; background: var(--cyan); left: 14.6248%; animation-duration: 24.7907s; animation-delay: -14.8944s;"></div><div class="particle" style="width: 3.59442px; height: 3.59442px; background: var(--cyan); left: 62.6556%; animation-duration: 16.415s; animation-delay: -11.2371s;"></div><div class="particle" style="width: 4.59494px; height: 4.59494px; background: var(--purple-light); left: 7.99688%; animation-duration: 18.4375s; animation-delay: -12.9345s;"></div></div>
+  <div id="char-create" style="display: none;"><h2>踏入仙途</h2><div class="slot-grid"><div class="save-slot"><div class="slot-info"><div class="slot-name">流转审计</div><div class="slot-realm">化神期</div><div class="slot-details">御剑宗 | 击杀: 0</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-enter="1">进入</button><button class="btn btn-outline btn-sm" data-delete="1" style="color:var(--red);">删除</button></div></div><div class="save-slot"><div class="slot-info"><div class="slot-empty">空存档</div></div><div class="slot-actions"><button class="btn btn-cyan btn-sm" data-create="2">创建角色</button></div></div><div class="save-slot"><div class="slot-info"><div class="slot-empty">空存档</div></div><div class="slot-actions"><button class="btn btn-cyan btn-sm" data-create="3">创建角色</button></div></div></div></div>
+  <div id="cult-game" class="active">
+    <div id="world-event-banner" style="display: none; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(212, 164, 74, 0.15); border: 1px solid var(--gold-dark); border-radius: var(--radius-md); margin-bottom: 12px; font-size: 0.85rem; color: var(--gold);"></div><div id="status-bar">
+        <div class="status-item"><div class="status-label">道号</div><div class="status-value" id="sb-name">流转审计</div></div>
+        <div class="status-item"><div class="status-label">境界</div><div class="status-value purple" id="sb-realm">化神期</div></div>
+        <div class="status-item"><div class="status-label">生命</div><div class="status-value cyan" id="sb-hp">3200/3200</div></div>
+        <div class="status-item"><div class="status-label">攻击</div><div class="status-value" id="sb-atk">598</div></div>
+        <div class="status-item"><div class="status-label">防御</div><div class="status-value" id="sb-def">180</div></div>
+        <div class="status-item"><div class="status-label">灵力</div><div class="status-value blue" id="sb-spirit">260/260</div></div>
+        <div class="status-item"><div class="status-label">灵石</div><div class="status-value" id="sb-gold">1.8万</div></div>
+        <div class="exp-bar-wrap">
+          <div class="exp-bar-label"><span id="sb-exp-text">修为 6,819 / 30.0万</span><span id="sb-exp-pct">2.3%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="sb-exp-fill" style="width: 2.273%;"></div></div>
+        </div>
+        <div class="spirit-bar-wrap">
+          <div class="spirit-bar-label"><span id="sb-spirit-text">灵力 260/260</span><span id="sb-spirit-pct">100%</span></div>
+          <div class="progress-bar spirit-bar"><div class="progress-fill" id="sb-spirit-fill" style="width: 100%;"></div></div>
+        </div>
+        <div id="sb-companion-slot"></div>
+      </div>
+    <div id="cult-tabs">
+      <button class="cult-tab" data-tab="cultivate">cultivate</button>
+      <button class="cult-tab active" data-tab="battle">battle</button>
+      <button class="cult-tab" data-tab="alchemy">alchemy</button>
+      <button class="cult-tab" data-tab="forge">forge</button>
+      <button class="cult-tab" data-tab="shop">shop</button>
+      <button class="cult-tab" data-tab="inventory">inventory</button>
+      <button class="cult-tab" data-tab="pet">pet</button>
+      <button class="cult-tab" data-tab="technique">technique</button>
+      <button class="cult-tab" data-tab="sect">sect</button>
+      <button class="cult-tab" data-tab="world">world</button>
+      <button class="cult-tab" data-tab="inbox" id="tab-inbox">inbox</button>
+      <button class="cult-tab" data-tab="bestiary">bestiary</button>
+      <button class="cult-tab" data-tab="achievement">achievement</button>
+    </div>
+    <div class="cult-panel" id="panel-cultivate" data-panel="cultivate"><div class="cultivation-area">
+        <div class="meditation-visual meditating">🧘</div>
+        <div class="cultivation-info" id="cult-info">修炼速度：<strong>7 修为/秒</strong> （修炼中...）</div>
+        <div class="cultivation-actions"><button class="btn btn-outline btn-sm" id="btn-meditate">停止修炼</button><button class="btn btn-outline btn-sm" id="btn-meditation-game" style="margin-left:8px;">灵气吐纳 (小游戏)</button></div>
+        <div class="breakthrough-area"><div class="breakthrough-info" id="cult-break-info">下一境界：<strong>渡劫期</strong> | 需要修为：30.0万 | 基础成功率：10%</div>
+        <div class="insight-area">
+          <div class="insight-label" id="cult-insight-label">悟道值：0 / 1200</div>
+          <div class="progress-bar insight-bar"><div class="progress-fill insight-fill " id="cult-insight-fill" style="width:0%"></div></div>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btn-breakthrough" aria-disabled="true" data-disabled-reason="修为不足">修为不足</button></div>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border-color);"><div style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:8px;">轮回次数：<strong style="color:var(--gold);">0</strong> | 轮回加成：攻/防/血+0% 修炼+0%</div><button class="btn btn-gold btn-sm" id="btn-rebirth">轮回转世</button><button class="btn btn-outline btn-sm" id="btn-rebirth-preview" style="margin-left:8px;">轮回预览</button><span style="font-size:0.75rem;color:var(--text-muted);margin-left:8px;">保留功法、成就，携带部分灵石重新开始</span></div>
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border-color);"><button class="btn btn-outline btn-sm" id="btn-back-slots">返回存档列表</button></div>
+      </div><div class="quest-board"><h4 style="color:var(--gold);margin-bottom:12px;">宗门任务 <span style="font-size:0.7rem;color:var(--text-muted);">重置于 00:00</span></h4><div class="quest-grid"><div class="quest-card ">
+          <div class="quest-name">批量炼丹</div>
+          <div class="quest-desc">成功炼制3颗丹药</div>
+          <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:0%"></div></div>
+          <div class="quest-progress-text">0/3</div>
+          <div class="quest-reward">奖励: 1750灵石 1400修为 宗门经验+35</div>
+          
+        </div><div class="quest-card ">
+          <div class="quest-name">静心修炼</div>
+          <div class="quest-desc">打坐修炼60秒</div>
+          <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:0%"></div></div>
+          <div class="quest-progress-text">0/60</div>
+          <div class="quest-reward">奖励: 350灵石 700修为 宗门经验+35</div>
+          
+        </div><div class="quest-card ">
+          <div class="quest-name">奇遇之旅</div>
+          <div class="quest-desc">触发1次随机事件</div>
+          <div class="quest-progress-bar"><div class="quest-progress-fill" style="width:0%"></div></div>
+          <div class="quest-progress-text">0/1</div>
+          <div class="quest-reward">奖励: 700灵石 525修为 宗门经验+35</div>
+          
+        </div></div></div><div class="quest-board" style="margin-top:16px;"><h4 style="color:var(--gold);margin-bottom:12px;">悬赏令</h4><div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">选择一个悬赏令执行：</div><div class="quest-grid"><div class="quest-card bounty-choice" data-bounty="b_sr_10" style="cursor:pointer;">
+              <div class="quest-name">秘境征服者</div>
+              <div class="quest-desc">通关秘境</div>
+              <div class="quest-reward">奖励: 5000灵石 4000修为</div>
+              <div style="font-size:0.7rem;color:var(--cyan);margin-top:4px;">点击接取</div>
+            </div><div class="quest-card bounty-choice" data-bounty="b_kill_wolf_5" style="cursor:pointer;">
+              <div class="quest-name">灵狼之患</div>
+              <div class="quest-desc">击杀5只灵狼</div>
+              <div class="quest-reward">奖励: 500灵石 400修为</div>
+              <div style="font-size:0.7rem;color:var(--cyan);margin-top:4px;">点击接取</div>
+            </div><div class="quest-card bounty-choice" data-bounty="b_kill_element" style="cursor:pointer;">
+              <div class="quest-name">五行猎手</div>
+              <div class="quest-desc">击杀3只不同五行的怪物</div>
+              <div class="quest-reward">奖励: 1800灵石 1500修为</div>
+              <div style="font-size:0.7rem;color:var(--cyan);margin-top:4px;">点击接取</div>
+            </div></div></div></div>
+    <div class="cult-panel" id="panel-world" data-panel="world"></div>
+    <div class="cult-panel" id="panel-inbox" data-panel="inbox"></div>
+    <div class="cult-panel active" id="panel-battle" data-panel="battle" style="position: relative;"><div class="battle-zone"><div style="margin-bottom:18px;padding:16px;border-radius:18px;border:1px solid rgba(212,164,74,0.22);background:linear-gradient(180deg,rgba(18,26,42,0.95),rgba(10,16,28,0.92));">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+          <div>
+            <h3 style="color:var(--gold);margin-bottom:6px;">阶段2·秘境三选一路线</h3>
+            <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.7;">当前倾向：<strong style="color:var(--cyan);">稳修</strong> · 疗伤与机缘更稳 · 预兆：附近似有宝材与矿脉</div>
+          </div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);text-align:right;">推进步数：3<br>势头：3</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;"><button data-route-bias="steady" class="btn btn-gold btn-sm" style="flex:1 1 120px;">稳修</button><button data-route-bias="greedy" class="btn btn-outline btn-sm" style="flex:1 1 120px;">夺宝</button><button data-route-bias="gamble" class="btn btn-outline btn-sm" style="flex:1 1 120px;">赌命</button></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:14px;"><button class="phase2-route-card" data-route-choice="3-0-harvest-101" style="text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(212,164,74,0.35);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong style="color:var(--gold);">灵材闪烁</strong><span style="font-size:0.75rem;color:var(--cyan);">风险 1</span></div><div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">附近似有宝材与矿脉</div><div style="margin-top:10px;font-size:0.75rem;color:var(--cyan);">收益：材料 / 灵石</div></button><button class="phase2-route-card" data-route-choice="3-1-battle-593" style="text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(212,164,74,0.35);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong style="color:var(--gold);">妖兽拦路</strong><span style="font-size:0.75rem;color:var(--red-light);">风险 2</span></div><div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">妖气翻涌，杀机逼近</div><div style="margin-top:10px;font-size:0.75rem;color:var(--cyan);">收益：修为 / 战利品</div></button><button class="phase2-route-card" data-route-choice="3-2-event-233" style="text-align:left;padding:14px;border-radius:16px;border:1px solid rgba(212,164,74,0.35);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong style="color:var(--gold);">残碑机缘</strong><span style="font-size:0.75rem;color:var(--cyan);">风险 1</span></div><div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">古碑发光，可悟道</div><div style="margin-top:10px;font-size:0.75rem;color:var(--cyan);">收益：悟道 / 修为</div></button></div>
+        <div style="margin-top:16px;padding:14px;border-radius:16px;border:1px solid rgba(74,218,212,0.28);background:rgba(12,20,34,0.92);"><div style="color:var(--gold);font-weight:bold;margin-bottom:10px;">战后祝福三选一</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;"><button data-route-blessing="spring_breath" style="text-align:left;padding:12px;border-radius:14px;border:1px solid rgba(74,218,212,0.3);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="font-weight:bold;color:var(--cyan);margin-bottom:6px;">回息诀</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">休整节点恢复更多生命与灵力</div></button><button data-route-blessing="jade_skin" style="text-align:left;padding:12px;border-radius:14px;border:1px solid rgba(74,218,212,0.3);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="font-weight:bold;color:var(--cyan);margin-bottom:6px;">玉骨护体</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">路线受伤减少 50%，战后额外回复 12% 生命</div></button><button data-route-blessing="fortune_seek" style="text-align:left;padding:12px;border-radius:14px;border:1px solid rgba(74,218,212,0.3);background:rgba(8,15,26,0.88);color:var(--text-primary);"><div style="font-weight:bold;color:var(--cyan);margin-bottom:6px;">寻宝灵嗅</div><div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">采集节点额外产出灵石与材料</div></button></div></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">路线记录</div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• 击退 幽魂，额外夺得 270 修为与 315 灵石。</div><div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• 你踏入【妖兽拦路】，一场恶战在所难免。</div><div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• 获得祝福：血战淬体</div><div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• 采得 3 份兽核，另获 165 灵石。</div><div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• 在灵泉歇息，恢复 576 点生命与 91 点灵力。</div><div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.6;">• 秘境路线已展开，先选一道落子。</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;"><span class="status-chip" style="padding:4px 10px;border-radius:999px;background:rgba(74,218,212,0.14);border:1px solid rgba(74,218,212,0.35);font-size:0.75rem;">血战淬体</span></div>
+      </div><div class="secret-realm-entry">
+        <button class="btn btn-gold btn-sm" id="btn-secret-realm" aria-disabled="false">
+          秘境探索 (500灵石)
+        </button>
+        
+        <span class="sr-best">最高：0层</span>
+      </div><h3 style="color:var(--gold);margin-bottom:16px;">选择秘境</h3><div class="realm-select"><div class="realm-card " data-dungeon="forest"><div class="realm-card-name">灵兽森林</div><div class="realm-card-desc">低级灵兽出没</div><div class="realm-card-level">可进入</div></div><div class="realm-card " data-dungeon="cave"><div class="realm-card-name">灵矿洞穴</div><div class="realm-card-desc">矿脉深处有守护兽</div><div class="realm-card-level">可进入</div></div><div class="realm-card " data-dungeon="valley"><div class="realm-card-name">落凰谷</div><div class="realm-card-desc">传说中凤凰陨落之地</div><div class="realm-card-level">可进入</div></div><div class="realm-card " data-dungeon="tower"><div class="realm-card-name">天魔塔</div><div class="realm-card-desc">魔修盘踞之地</div><div class="realm-card-level">可进入</div></div><div class="realm-card " data-dungeon="void"><div class="realm-card-name">虚空裂缝</div><div class="realm-card-desc">时空交错，危机四伏</div><div class="realm-card-level">可进入</div></div><div class="realm-card locked" data-dungeon="heaven"><div class="realm-card-name">天劫之地</div><div class="realm-card-desc">天道考验</div><div class="realm-card-level">需要渡劫期</div></div></div></div></div>
+    <div class="cult-panel" id="panel-alchemy" data-panel="alchemy"></div>
+    <div class="cult-panel" id="panel-forge" data-panel="forge"></div>
+    <div class="cult-panel" id="panel-shop" data-panel="shop"></div>
+    <div class="cult-panel" id="panel-inventory" data-panel="inventory"></div>
+    <div class="cult-panel" id="panel-pet" data-panel="pet"></div>
+    <div class="cult-panel" id="panel-technique" data-panel="technique"></div>
+    <div class="cult-panel" id="panel-sect" data-panel="sect"></div>
+    <div class="cult-panel" id="panel-bestiary" data-panel="bestiary"></div>
+    <div class="cult-panel" id="panel-achievement" data-panel="achievement"></div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ cultivation: 2 }));
+    localStorage.setItem('cultivation_save_1', JSON.stringify({
+      name: '流转审计',
+      spiritRoot: 'fire',
+      sect: 'sword',
+      realm: 5,
+      exp: 0,
+      gold: 9000,
+      hp: 3200,
+      maxHp: 3200,
+      atk: 400,
+      def: 200,
+      spirit: 260,
+      maxSpirit: 260,
+      inventory: { herb: 12, crystal: 8, beast_core: 6, ore: 6, capture_talisman: 0 },
+      pills: { hp_pill: 3, atk_pill: 1, def_pill: 1 },
+      equipment: { weapon: null, armor: null, accessory: null },
+      ownedEquips: [],
+      totalExp: 0,
+      totalKills: 0,
+      totalCrafts: 0,
+      totalEvents: 0,
+      achievements: [],
+      insight: 0,
+      lastOnline: Date.now(),
+      created: Date.now(),
+      currentLocation: 'mist_forest'
+    }));
+    window.__errors = [];
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer=""></script>
+  <script src="../js/cultivation.js" defer=""></script>
+  <script>
+    function wait(ms) {
+      return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+      });
+    }
+
+    function getPhase2State() {
+      return JSON.parse(localStorage.getItem('cultivation_save_1') || '{}').phase2Adventure || {};
+    }
+
+    async function ensureRouteChoices() {
+      if (document.querySelectorAll('.phase2-route-card').length) return;
+      const startBtn = document.getElementById('btn-phase2-adventure-start');
+      if (startBtn) {
+        startBtn.click();
+        await wait(120);
+      }
+    }
+
+    async function rerollRoutes(routeBias) {
+      const biasBtn = document.querySelector('[data-route-bias="' + routeBias + '"]');
+      if (biasBtn) {
+        biasBtn.click();
+        await wait(120);
+      }
+      await ensureRouteChoices();
+    }
+
+    async function pickRouteByType(types, routeBiases, maxAttempts) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        await ensureRouteChoices();
+        const state = getPhase2State();
+        const choice = (state.currentChoices || []).find(function (item) {
+          return types.includes(item.type);
+        });
+        if (choice) {
+          document.querySelector('[data-route-choice="' + choice.choiceId + '"]')?.click();
+          await wait(180);
+          return choice;
+        }
+        await rerollRoutes(routeBiases[attempt % routeBiases.length]);
+      }
+      return null;
+    }
+
+    async function finishBattle() {
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const backBtn = document.querySelector('[data-action="back"]');
+        if (backBtn) {
+          backBtn.click();
+          await wait(180);
+          return true;
+        }
+        const attackBtn = document.querySelector('[data-action="attack"]');
+        if (!attackBtn) break;
+        attackBtn.click();
+        await wait(180);
+      }
+      return false;
+    }
+
+    window.addEventListener('load', function () {
+      (async function () {
+        await wait(80);
+        document.querySelector('[data-enter="1"]')?.click();
+        await wait(120);
+        document.querySelector('.cult-tab[data-tab="battle"]')?.click();
+        await wait(120);
+
+        const result = {
+          immediateChoices: [],
+          blessingBeforeBattle: null,
+          blessingAfterBattle: null,
+          battleChoiceType: null,
+          battleResolved: false,
+          finalChoiceCount: 0,
+          finalStep: 0,
+          finalBlessingCount: 0,
+          errors: window.__errors
+        };
+
+        const firstImmediate = await pickRouteByType(['event', 'rest', 'harvest'], ['steady', 'greedy'], 4);
+        if (firstImmediate) {
+          result.immediateChoices.push(firstImmediate.type);
+        }
+
+        const secondImmediate = await pickRouteByType(['event', 'rest', 'harvest'], ['steady', 'greedy'], 4);
+        if (secondImmediate) {
+          result.immediateChoices.push(secondImmediate.type);
+        }
+
+        result.blessingBeforeBattle = document.querySelectorAll('[data-route-blessing]').length;
+        if (result.blessingBeforeBattle) {
+          document.querySelector('[data-route-blessing]')?.click();
+          await wait(120);
+        }
+
+        const battleChoice = await pickRouteByType(['battle'], ['gamble', 'steady', 'greedy'], 8);
+        result.battleChoiceType = battleChoice ? battleChoice.type : null;
+        if (battleChoice) {
+          result.battleResolved = await finishBattle();
+        }
+
+        result.blessingAfterBattle = document.querySelectorAll('[data-route-blessing]').length;
+        const finalState = getPhase2State();
+        result.finalChoiceCount = document.querySelectorAll('.phase2-route-card').length;
+        result.finalStep = finalState.step || 0;
+        result.finalBlessingCount = (finalState.blessings || []).length;
+        result.pass =
+          result.immediateChoices.length === 2 &&
+          result.blessingBeforeBattle >= 1 &&
+          result.battleChoiceType === 'battle' &&
+          result.battleResolved &&
+          result.blessingAfterBattle >= 1 &&
+          result.finalChoiceCount === 3 &&
+          result.finalStep >= 3 &&
+          result.finalBlessingCount >= 1 &&
+          result.errors.length === 0;
+
+        document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+      })();
+    });
+  </script>
+
+
+<div class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal" aria-labelledby="settings-title">
+        <div class="modal-header">
+          <h3 class="modal-title" id="settings-title">设置</h3>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+      <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 14px; padding-bottom: 14px;">
+        <label class="form-label">玩家昵称</label>
+        <input type="text" class="form-input" data-profile="name" maxlength="12" value="" placeholder="用于排行榜显示">
+        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 6px;">跨游戏通用（最多 12 字）</div>
+      </div>
+    <div class="form-group"><label class="form-label">自动打坐</label><label class="form-check">
+            <input type="checkbox" data-key="autoMeditate" checked="">
+            <span>进入游戏时自动开始打坐</span>
+          </label></div><div class="form-group"><label class="form-label">事件频率</label><select class="form-select" data-key="eventFrequency"><option value="low">低（120秒冷却）</option><option value="normal" selected="">正常（60秒冷却）</option><option value="high">高（30秒冷却）</option></select></div><div class="form-group"><label class="form-label">动画效果</label><label class="form-check">
+            <input type="checkbox" data-key="enableAnimations" checked="">
+            <span>启用战斗和突破动画</span>
+          </label></div><div class="form-group"><label class="form-label">自动收集事件</label><label class="form-check">
+            <input type="checkbox" data-key="autoCollectEvents">
+            <span>冲突时自动存入事件簿</span>
+          </label></div></div>
+        <div style="border-top: 1px solid var(--border-color); margin: 16px 0; padding-top: 16px;">
+          <label class="form-label">数据管理</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <button class="btn btn-outline btn-sm modal-export">导出存档</button>
+            <button class="btn btn-outline btn-sm modal-import">导入存档</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-sm modal-reset">重置</button>
+          <button class="btn btn-gold btn-sm modal-save">保存</button>
+        </div>
+      </div>
+    </div><div class="guide-overlay active"><div class="guide-backdrop"></div><div class="guide-tooltip" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"><div class="guide-step-indicator">1 / 4</div><div class="guide-text"><strong>欢迎来到修仙之路！</strong><p>在这里你将选择灵根、拜入仙门，踏上修仙之旅。</p></div><div class="guide-actions"><button class="btn btn-sm guide-skip-btn">跳过引导</button><button class="btn btn-gold btn-sm guide-next-btn">下一步</button></div></div></div><button class="sound-toggle" aria-label="音效开关">🔊</button><div class="toast-container" aria-live="polite" role="status"></div></body></html>
