@@ -428,6 +428,17 @@
   };
 
   /* Tower Structure */
+  ENEMY_TEMPLATES.xiaoyao.maxHp = 18;
+  ENEMY_TEMPLATES.xiaoyao.pattern[0].dmg = 7;
+  ENEMY_TEMPLATES.yaoxiu.maxHp = 32;
+  ENEMY_TEMPLATES.yaoxiu.pattern[0].dmg = 11;
+  ENEMY_TEMPLATES.yaoxiu.pattern[1].dmg = 7;
+  ENEMY_TEMPLATES.moxiu.maxHp = 46;
+  ENEMY_TEMPLATES.moxiu.pattern[0].dmg = 9;
+  ENEMY_TEMPLATES.moxiu.pattern[1].dmg = 13;
+  BOSS_TEMPLATES.sheyao.maxHp = 75;
+  BOSS_TEMPLATES.sheyao.pattern[0].dmg = 14;
+
   const FLOORS = [
     // 第一幕：妖域
     { name:'第一层 · 练气', enemies:['xiaoyao','xiaoyao','xiaoyao'], boss:'sheyao' },
@@ -560,6 +571,7 @@
     { id:'time_hourglass', name:'时之沙', desc:'每场战斗第1回合打出的牌费用-1', icon:'⏳', setId:'talisman', effect:{firstTurnDiscount:1} },
     { id:'life_root', name:'生命之根', desc:'每回合回复2HP', icon:'🌱', setId:'iron', effect:{autoHeal:2} },
   ];
+  RELICS.push({ id:'calm_talisman', name:'静心符', desc:'每回合回复1HP', icon:'🧘', setId:'iron', effect:{autoHeal:1} });
   const RELICS_MAP = Object.fromEntries(RELICS.map(r => [r.id, r]));
 
   const RELIC_SETS = [
@@ -708,8 +720,8 @@
     }
     reset() {
       const cls = this.chosenClass ? CLASSES.find(c => c.id === this.chosenClass) : null;
-      this.hp = cls ? cls.statMod.hp : 85;
-      this.maxHp = cls ? cls.statMod.maxHp : 85;
+      this.hp = cls ? cls.statMod.hp : 90;
+      this.maxHp = cls ? cls.statMod.maxHp : 90;
       this.floorIndex = 0;
       this.nodeIndex = 0;
       this.enemiesKilled = 0;
@@ -737,6 +749,7 @@
       this.drawNextBonus = 0;
       this.shenhunmieDmg = 0;
       this.phoenixUsed = false;
+      this.restShield = 0;
 
       // Apply class start bonus
       if (cls) cls.startBonus(this);
@@ -865,6 +878,10 @@
         // Relic: startBlock (spirit_armor) - first turn only
         const startBlk = s.getRelicEffect('startBlock');
         if (startBlk > 0) s.block += startBlk;
+        if (s.restShield) {
+          s.block += s.restShield;
+          s.restShield = 0;
+        }
       }
 
       // Relic: autoPoison (poison_fang) - apply to all enemies each turn
@@ -2404,12 +2421,12 @@
     /* --- Rest Shop --- */
     showRestShop() {
       const s = this.game.state;
-      const healAmt = Math.floor(s.maxHp * 0.3);
+      const healAmt = Math.floor(s.maxHp * 0.45);
       this.els.restChoices.innerHTML = `
         <div class="ct-rest-choice" data-choice="rest">
           <div class="ct-rest-choice-icon">🧘</div>
           <div class="ct-rest-choice-name">休息</div>
-          <div class="ct-rest-choice-desc">恢复 ${healAmt} 生命</div>
+          <div class="ct-rest-choice-desc">恢复 ${healAmt} 生命（生命≥90%则下战斗获得6护甲）</div>
         </div>
         <div class="ct-rest-choice" data-choice="remove">
           <div class="ct-rest-choice-icon">🗑️</div>
@@ -2773,13 +2790,23 @@
       const s = this.state;
       this.ui.hideRestShop();
       if (choice === 'rest') {
-        const healAmt = Math.floor(s.maxHp * 0.3);
+        const healAmt = Math.floor(s.maxHp * 0.45);
         const healed = Math.min(healAmt, s.maxHp - s.hp);
         s.hp += healed;
         showToast(`休息恢复了 ${healed} 生命`, 'success');
+        if (s.hp >= s.maxHp * 0.9) {
+          s.restShield = Math.max(s.restShield || 0, 6);
+          showToast('静养充沛：下场战斗获得6护甲', 'info');
+        }
         this.showCardReward();
       } else if (choice === 'remove') {
         this.cardRemovalCallback = () => {
+          const healAmt = Math.floor(s.maxHp * 0.1);
+          const healed = Math.min(healAmt, s.maxHp - s.hp);
+          s.hp += healed;
+          if (healed > 0) {
+            showToast(`净化后回复 ${healed} 生命`, 'success');
+          }
           this.showCardReward();
         };
         this.ui.showCardRemoval();

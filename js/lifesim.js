@@ -52,6 +52,21 @@
     { id: 'minigame', icon: '🎮', name: '试炼', desc: '挑战试炼小游戏', effect: null, isMinigame: true },
   ];
 
+  FREE_ACTIONS_MORTAL.push({
+    id: 'exercise',
+    icon: '🏋️',
+    name: '锻炼',
+    desc: '强身健体',
+    effect: g => {
+      g.data.attrs.str = Math.min(10, g.data.attrs.str + 1);
+      if (Math.random() < 0.25) {
+        g.data.attrs.luk += 1;
+        return '坚持锻炼，体质+1，顺带好运+1';
+      }
+      return '坚持锻炼，体质+1';
+    }
+  });
+
   const FREE_ACTIONS_CULTIVATOR = [
     { id: 'cultivate', icon: '🧘', name: '修炼', desc: '潜心修炼', effect: g => { const exp = 10 + g.getAttrWithTalent('spr') * 3; if (g.data.realm >= 1 && g.data.realm < 6) g.data.cultivationExp = Math.min((g.data.cultivationExp || 0) + exp, REALM_EXP[g.data.realm]); if (Math.random() < 0.12) { g.data.attrs.spr += 1; return `潜心修炼，获得${exp}修为。灵光一闪！灵根+1`; } return `潜心修炼，获得${exp}修为。`; } },
     { id: 'explore', icon: '🗺️', name: '历练', desc: '外出历练', effect: g => { const roll = Math.random() * 10 + g.getAttrWithTalent('luk'); if (roll >= 12) { const gold = randomInt(30, 80); g.data.gold += gold; g.data.attrs.luk += 1; return `发现宝物！金币+${gold}，运气+1`; } if (roll >= 7) { g.data.gold += randomInt(10, 30); return '小有收获。'; } if (roll >= 4) { g.data.attrs.str += 1; return '与妖兽搏斗，体魄增强。体质+1'; } g.data.attrs.str = Math.max(1, g.data.attrs.str - 1); return '遭遇埋伏受伤。体质-1'; } },
@@ -61,6 +76,80 @@
     { id: 'minigame', icon: '🎮', name: '试炼', desc: '挑战试炼小游戏', effect: null, isMinigame: true },
     { id: 'dialogue', icon: '💬', name: '对话', desc: '与熟识之人深入交谈', effect: null, isDialogue: true },
   ];
+
+  FREE_ACTIONS_CULTIVATOR.push({
+    id: 'spar',
+    icon: '⚔️',
+    name: '切磋',
+    desc: '与同门切磋磨炼',
+    effect: g => {
+      const power = g.getAttrWithTalent('str') + g.getAttrWithTalent('spr');
+      const exp = 6 + g.getAttrWithTalent('spr');
+      if (g.data.realm >= 1 && g.data.realm < 6) {
+        g.data.cultivationExp = Math.min((g.data.cultivationExp || 0) + exp, REALM_EXP[g.data.realm]);
+      }
+      if (power >= 10 || Math.random() < 0.5) {
+        g.data.attrs.str += 1;
+        return `切磋有所得，体质+1，修为+${exp}`;
+      }
+      g.data.gold = Math.max(0, g.data.gold - 10);
+      return '切磋失利，略有损失。金币-10';
+    }
+  });
+
+  const cultivateAction = FREE_ACTIONS_CULTIVATOR.find(a => a.id === 'cultivate');
+  if (cultivateAction) {
+    cultivateAction.effect = g => {
+      const exp = 12 + g.getAttrWithTalent('spr') * 3;
+      if (g.data.realm >= 1 && g.data.realm < 6) {
+        g.data.cultivationExp = Math.min((g.data.cultivationExp || 0) + exp, REALM_EXP[g.data.realm]);
+      }
+      if (Math.random() < 0.15) {
+        g.data.attrs.spr += 1;
+        return `潜心修炼，获得${exp}修为。灵光一闪！灵根+1`;
+      }
+      return `潜心修炼，获得${exp}修为。`;
+    };
+  }
+
+  const tradeAction = FREE_ACTIONS_CULTIVATOR.find(a => a.id === 'trade');
+  if (tradeAction) {
+    tradeAction.effect = g => {
+      if (g.data.gold < 20) return '身无分文，无法经商。';
+      const inv = Math.min(g.data.gold, randomInt(20, 60));
+      if (Math.random() + g.getAttrWithTalent('int') * 0.05 > 0.55) {
+        const profit = Math.floor(inv * (0.3 + Math.random() * 0.7));
+        g.data.gold += profit;
+        return `投入${inv}金币，赚了${profit}。`;
+      }
+      const loss = Math.floor(inv * 0.4);
+      g.data.gold -= loss;
+      return `经商亏损。金币-${loss}`;
+    };
+  }
+
+  const exploreAction = FREE_ACTIONS_CULTIVATOR.find(a => a.id === 'explore');
+  if (exploreAction) {
+    exploreAction.effect = g => {
+      const roll = Math.random() * 10 + g.getAttrWithTalent('luk');
+      if (roll >= 11) {
+        const gold = randomInt(30, 90);
+        g.data.gold += gold;
+        g.data.attrs.luk += 1;
+        return `发现宝物！金币+${gold}，运气+1`;
+      }
+      if (roll >= 6) {
+        g.data.gold += randomInt(15, 35);
+        return '小有收获。';
+      }
+      if (roll >= 4) {
+        g.data.attrs.str += 1;
+        return '与妖兽搏斗，体魄增强。体质+1';
+      }
+      g.data.gold += 5;
+      return '遭遇埋伏但勉强脱身，金币+5。';
+    };
+  }
 
   const FREE_ACTIONS_MORTAL_MAP = Object.fromEntries(FREE_ACTIONS_MORTAL.map(x => [x.id, x]));
   const FREE_ACTIONS_CULTIVATOR_MAP = Object.fromEntries(FREE_ACTIONS_CULTIVATOR.map(x => [x.id, x]));

@@ -27,6 +27,8 @@
     shakeDecay: 0.85,
   };
 
+  CFG.enemySpawnInterval = 65;
+
   /* ---- 难度倍率 ---- */
   const DIFF = {
     easy:   { hpMul: 0.7, spdMul: 0.8, spawnMul: 1.3, dmgMul: 0.7 },
@@ -279,6 +281,7 @@
       this.dodgeChance = 0;
       this.vampireBlade = 0;
       this.xpMultiplier = 1.0;
+      this.comboBonus = 0;
       this.invincible = 0;
       this.kills = 0;
       this.totalDmgDealt = 0;
@@ -288,6 +291,7 @@
       this.facingAngle = 0;
       this.goldEarned = 0;
       this.startShield = 0;
+      this.reviveCharges = 0;
     }
 
     xpToNext() {
@@ -690,6 +694,11 @@
       this.waveTransition = 90;
       this.enemiesKilledThisWave = 0;
       if (typeof SoundManager !== 'undefined') SoundManager.play('wave');
+      if (this.player && this.wave > 1 && this.player.hp < this.player.maxHp * 0.45) {
+        const heal = Math.max(1, Math.floor(this.player.maxHp * 0.06));
+        this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
+        showToast(`波次补给：回复${heal}生命`, 'success', 1200);
+      }
 
       // 地形切换：每10波
       if (this.wave > 1 && (this.wave - 1) % 10 === 0) {
@@ -701,7 +710,7 @@
         this.spawnBoss();
       } else {
         // 非Boss波有概率刷精英怪
-        if (this.wave >= 3 && Math.random() < 0.4 + this.wave * 0.03) {
+      if (this.wave >= 3 && Math.random() < Math.min(0.55, 0.25 + this.wave * 0.02)) {
           const eliteCount = Math.random() < 0.3 ? 2 : 1;
           for (let i = 0; i < eliteCount; i++) this.spawnElite();
         }
@@ -709,7 +718,7 @@
 
       // 第3波后生成环境危害
       if (this.wave > 3) {
-        const hazardCount = Math.random() < 0.4 ? 2 : 1;
+        const hazardCount = Math.random() < 0.3 ? 2 : 1;
         for (let i = 0; i < hazardCount; i++) this.spawnHazard();
       }
 
@@ -720,7 +729,7 @@
 
       this.spawnInterval = Math.max(
         CFG.enemySpawnMin,
-        Math.floor((CFG.enemySpawnInterval - this.wave * 4) * this.diff.spawnMul)
+        Math.floor((CFG.enemySpawnInterval - this.wave * 3) * this.diff.spawnMul)
       );
     }
 
@@ -1134,6 +1143,16 @@
       filterAlive(this.goldPickups);
 
       if (!this.player.alive) {
+        if (this.player.reviveCharges && this.player.reviveCharges > 0) {
+          this.player.reviveCharges--;
+          this.player.alive = true;
+          this.player.hp = Math.max(1, Math.floor(this.player.maxHp * 0.35));
+          this.player.invincible = Math.max(this.player.invincible, 90);
+          this.addShake(10);
+          if (typeof SoundManager !== 'undefined') SoundManager.play('heal');
+          showToast('涅槃复生！', 'success', 1200);
+          return;
+        }
         // 挑战修饰符金币加成 + 仙缘兑换加成
         let goldMul = 1;
         for (const mod of this.activeModifiers) goldMul *= (mod.goldMul || 1);
@@ -1413,7 +1432,7 @@
 
       // 连杀计数
       this.killCombo++;
-      this.killComboTimer = 90; // 1.5 seconds at 60fps
+      this.killComboTimer = 90 + (this.player.comboBonus || 0); // 1.5 seconds at 60fps
 
       this.pickups.push(new Pickup(enemy.x, enemy.y, enemy.xp));
 
@@ -1441,6 +1460,9 @@
             Math.ceil(enemy.xp * 0.3)
           ));
         }
+        const heal = Math.max(1, Math.floor(this.player.maxHp * 0.04));
+        this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
+        this.dmgTexts.push(new DmgText(this.player.x + rnd(-8, 8), this.player.y - 25, '+' + heal, '#55dd88', false));
       }
 
       // 增强死亡粒子（18个主粒子）
@@ -1464,6 +1486,9 @@
       if (enemy.isBoss) {
         this.addShake(15);
         this.bossFlash = 10; // 10帧金色闪光
+        const heal = Math.max(2, Math.floor(this.player.maxHp * 0.08));
+        this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
+        this.dmgTexts.push(new DmgText(this.player.x + rnd(-8, 8), this.player.y - 25, '+' + heal, '#55dd88', false));
         // Boss掉落多个经验球
         for (let i = 0; i < 5; i++) {
           this.pickups.push(new Pickup(
@@ -4022,6 +4047,13 @@
   }
 
   /* ---- 启动 ---- */
+  BLESSINGS.push(
+    { id: 'bless_guard', name: '护体', desc: '获得1层护盾并回复15%生命', icon: '🛡️', unique: true, apply: (g) => { if (g.player) { g.player.startShield += 1; g.player.hp = Math.min(g.player.maxHp, g.player.hp + Math.floor(g.player.maxHp * 0.15)); } } },
+    { id: 'bless_combo', name: '连斩', desc: '连杀计时+0.6秒', icon: '⏱️', unique: false, apply: (g) => { if (g.player) g.player.comboBonus += 36; } },
+    { id: 'bless_focus', name: '气定', desc: '获得小回复并减速敌人', icon: '🧿', unique: false, apply: (g) => { if (g.player) { g.player.hp = Math.min(g.player.maxHp, g.player.hp + Math.floor(g.player.maxHp * 0.1)); g._enemySpeedMul = (g._enemySpeedMul || 1) * 0.9; } } },
+    { id: 'bless_rebirth', name: '涅槃', desc: '获得一次复生(35%生命)', icon: '🔥', unique: true, apply: (g) => { if (g.player) g.player.reviveCharges = (g.player.reviveCharges || 0) + 1; } }
+  );
+
   initNav('knife');
   initParticles('#particles', 20);
   new GameUI();

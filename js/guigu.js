@@ -14,8 +14,8 @@ const Effects={
 
 const REALMS=[
   {name:'凡人',expReq:0,baseAtk:10,baseDef:5,baseHp:100,baseSpi:50,lifespan:80,breakRate:1},
-  {name:'练气',expReq:500,baseAtk:25,baseDef:12,baseHp:250,baseSpi:120,lifespan:150,breakRate:.8},
-  {name:'筑基',expReq:2000,baseAtk:60,baseDef:30,baseHp:600,baseSpi:300,lifespan:300,breakRate:.6},
+  {name:'练气',expReq:420,baseAtk:25,baseDef:12,baseHp:250,baseSpi:120,lifespan:150,breakRate:.82},
+  {name:'筑基',expReq:1600,baseAtk:60,baseDef:30,baseHp:600,baseSpi:300,lifespan:300,breakRate:.62},
   {name:'金丹',expReq:8000,baseAtk:150,baseDef:75,baseHp:1500,baseSpi:750,lifespan:500,breakRate:.45},
   {name:'元婴',expReq:30000,baseAtk:400,baseDef:200,baseHp:4000,baseSpi:2000,lifespan:800,breakRate:.3},
   {name:'化神',expReq:100000,baseAtk:1000,baseDef:500,baseHp:10000,baseSpi:5000,lifespan:1500,breakRate:.2},
@@ -715,7 +715,7 @@ class GuiguGame {
     }
     s.exp+=expGain;
     // Meditation reduces heart demon
-    const hdReduce=s.talents.includes('calm')?5:3;
+    const hdReduce=s.talents.includes('calm')?6:4;
     if(s.heartDemon>0){s.heartDemon=Math.max(0,s.heartDemon-hdReduce);this.addCultLog('心神宁静，心魔-'+hdReduce);this.recalcStats();}
     this.addCultLog('修炼'+days+'天，获得'+formatNumber(expGain)+'经验'+(dc.partnerId&&dc.daysLeft>0?' (双修加成×1.5)':''));
     // Enlightenment check
@@ -814,7 +814,7 @@ class GuiguGame {
       return{success:true,realm:r.name};
     }else{
       s.heartDemon=Math.min(100,s.heartDemon+5);
-      s.exp=Math.floor(s.exp*0.8);
+    s.exp=Math.floor(s.exp*0.85);
       s.breakBonus=0;
       this.addCultLog('突破失败...心魔+5');
       this.emit('breakthroughFailed');
@@ -1806,6 +1806,7 @@ class GuiguUI {
     this.createConfig={};
     this._domCache={};
     this._createOptionListenerBound=false;
+    this._overviewQuickActionsBound=false;
     this.init();
   }
 
@@ -1842,6 +1843,99 @@ class GuiguUI {
     this.renderCalendarBar();
     this.renderNewsTicker();
     this.renderCurrentPanel();
+  }
+
+  runMeditateBatch(times){
+    if(!this.game.state||this.game.state.dead)return;
+    let totalExp=0;
+    let actual=0;
+    let enlightenEvent=null;
+    for(let i=0;i<times;i++){
+      const r=this.game.meditate();
+      if(!r)break;
+      actual++;
+      totalExp+=r.expGain||0;
+      if(r.enlightenEvent&&!enlightenEvent)enlightenEvent=r.enlightenEvent;
+      if(this.game.state&&this.game.state.dead)break;
+    }
+    if(actual>0){
+      showToast(`闭关${actual*TIME_COSTS.meditate}天，经验+${formatNumber(totalExp)}`, 'success');
+    }
+    if(enlightenEvent)this.showEnlightenmentModal(enlightenEvent);
+    this.refreshUI();
+  }
+
+  runQuickExplore(){
+    const s=this.game.state;
+    if(!s||s.dead)return;
+    const curTerrain=TERRAIN[s.map[s.position.y][s.position.x].terrain];
+    if(curTerrain.res.length&&Math.random()<0.4){
+      const matId=curTerrain.res[Math.floor(Math.random()*curTerrain.res.length)];
+      const mat=MATERIALS_MAP[matId];
+      if(mat){
+        this.game.addItem({id:mat.id,name:mat.name,type:'material',count:1});
+        showToast('快速探索发现了'+mat.name+'！','success');
+      }
+    }else if(Math.random()<0.3){
+      const goldFind=randomInt(10,100)*(s.realm+1);
+      s.gold+=goldFind;
+      showToast('快速探索获得了'+goldFind+'灵石！','success');
+    }else{
+      showToast('快速探索暂无收获','info');
+    }
+    this.game.advanceDays(TIME_COSTS.explore);
+    this.refreshUI();
+  }
+
+  runQuickGather(){
+    const s=this.game.state;
+    if(!s||s.dead)return;
+    const curTerrain=TERRAIN[s.map[s.position.y][s.position.x].terrain];
+    if(!curTerrain.res.length){
+      showToast('此地暂无可采集资源', 'info');
+      return;
+    }
+    if(Math.random()<0.7){
+      const matId=curTerrain.res[Math.floor(Math.random()*curTerrain.res.length)];
+      const mat=MATERIALS_MAP[matId];
+      if(mat){
+        this.game.addItem({id:mat.id,name:mat.name,type:'material',count:1});
+        this.game.updateBountyProgress('collect_herb',1);
+        this.game.updateNpcQuestProgress('collect_herb',1);
+        showToast('快速采集获得 '+mat.name,'success');
+      }
+    }else{
+      showToast('快速采集未获得材料','info');
+    }
+    this.game.advanceDays(TIME_COSTS.explore);
+    this.refreshUI();
+  }
+
+  runQuickRest(times=2){
+    const s=this.game.state;
+    if(!s||s.dead)return;
+    let totalHp=0;
+    let totalSp=0;
+    let actual=0;
+    for(let i=0;i<times;i++){
+      if(s.hp>=s.maxHp*0.95&&s.sp>=s.maxSp*0.95)break;
+      const hpBefore=s.hp;
+      const spBefore=s.sp;
+      const hpRecover=Math.floor(s.maxHp*0.38);
+      const spRecover=Math.floor(s.maxSp*0.28);
+      s.hp=Math.min(s.maxHp,s.hp+hpRecover);
+      s.sp=Math.min(s.maxSp,s.sp+spRecover);
+      totalHp+=s.hp-hpBefore;
+      totalSp+=s.sp-spBefore;
+      this.game.advanceDays(TIME_COSTS.rest);
+      actual++;
+    }
+    if(actual>0){
+      showToast(`快速休息${actual}次，恢复${totalHp}气血、${totalSp}灵力`, 'success');
+    }else{
+      showToast('气血与灵力已充盈', 'info');
+    }
+    this.refreshUI();
   }
 
   renderCurrentPanel(){
@@ -2003,6 +2097,7 @@ class GuiguUI {
     this._getEl('char-create').style.display='none';
     this._getEl('guigu-game').style.display='';
     this.setupTabs();
+    this.bindOverviewQuickActions();
     this.refreshUI();
     this.game.checkAchievements();
     if(typeof CrossGameAchievements!=='undefined'){
@@ -2068,6 +2163,64 @@ class GuiguUI {
       document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===this.currentTab));
       this.renderCurrentPanel();
     });
+  }
+
+  bindOverviewQuickActions(){
+    if(this._overviewQuickActionsBound)return;
+    const panel=this._getEl('panel-overview');
+    if(!panel)return;
+    this._overviewQuickActionsBound=true;
+    panel.addEventListener('click',e=>{
+      const actionBtn=e.target.closest('[data-overview-action]');
+      if(!actionBtn)return;
+      this.handleOverviewQuickAction(actionBtn.dataset.overviewAction);
+    });
+  }
+
+  handleOverviewQuickAction(action){
+    if(!this.game.state||this.game.state.dead)return;
+    switch(action){
+      case 'meditate': {
+        const r=this.game.meditate();
+        if(r&&r.enlightenEvent)this.showEnlightenmentModal(r.enlightenEvent);
+        this.refreshUI();
+        return;
+      }
+      case 'meditate-90':
+        this.runMeditateBatch(3);
+        return;
+      case 'meditate-180':
+        this.runMeditateBatch(6);
+        return;
+      case 'explore':
+        this.runQuickExplore();
+        return;
+      case 'gather':
+        this.runQuickGather();
+        return;
+      case 'rest':
+        this.runQuickRest();
+        return;
+      case 'wudao':
+        this._showWudaoTraining();
+        return;
+      case 'map':
+        this.currentTab='map';
+        this._getEl('guigu-tabs').querySelectorAll('.guigu-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='map'));
+        document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel==='map'));
+        this.renderMapPanel();
+        return;
+      case 'save':
+        this.game.saveGame();
+        showToast('存档成功','success');
+        return;
+      case 'back':
+        this.game.saveGame();
+        this.renderSlotSelection();
+        return;
+      default:
+        return;
+    }
   }
 
   _bindHotkeys(){
@@ -2189,30 +2342,19 @@ class GuiguUI {
       </div>
       <div class="overview-card" style="grid-column:1/-1"><h3>快捷操作</h3>
         <div class="quick-actions">
-          <button class="btn btn-gold btn-sm" id="qa-meditate">修炼30天</button>
-          <button class="btn btn-outline btn-sm" id="qa-wudao">悟道修炼</button>
-          <button class="btn btn-outline btn-sm" id="qa-map">查看地图</button>
-          <button class="btn btn-outline btn-sm" id="qa-save">手动存档</button>
-          <button class="btn btn-outline btn-sm" id="qa-back">返回存档</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="meditate-90">闭关90天</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="meditate-180">闭关180天</button>
+          <button class="btn btn-gold btn-sm" data-overview-action="meditate">修炼30天</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="wudao">悟道修炼</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="map">查看地图</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="explore">快速探索</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="gather">快速采集</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="rest">快速休息</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="save">手动存档</button>
+          <button class="btn btn-outline btn-sm" data-overview-action="back">返回存档</button>
         </div>
       </div>
     </div>`;
-    document.getElementById('qa-meditate')?.addEventListener('click',()=>{
-      const r=this.game.meditate();
-      if(r&&r.enlightenEvent)this.showEnlightenmentModal(r.enlightenEvent);
-      this.refreshUI();
-    });
-    document.getElementById('qa-wudao')?.addEventListener('click',()=>{
-      this._showWudaoTraining();
-    });
-    document.getElementById('qa-map')?.addEventListener('click',()=>{
-      this.currentTab='map';
-      this._getEl('guigu-tabs').querySelectorAll('.guigu-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='map'));
-      document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel==='map'));
-      this.renderMapPanel();
-    });
-    document.getElementById('qa-save')?.addEventListener('click',()=>{this.game.saveGame();showToast('存档成功','success')});
-    document.getElementById('qa-back')?.addEventListener('click',()=>{this.game.saveGame();this.renderSlotSelection()});
   }
 
   /* === 修炼面板 === */
@@ -2256,6 +2398,14 @@ class GuiguUI {
       <div class="enlightenment-section"><h3>悟道</h3>${pathsHtml}</div>
       <div class="cult-log"><h4 style="color:var(--gold-light);margin-bottom:8px">修炼日志</h4>${logHtml}</div>`;
 
+    const wudaoBtn=document.getElementById('btn-wudao-cult');
+    if(wudaoBtn&&!document.getElementById('btn-meditate-90')){
+      const batchWrap=document.createElement('div');
+      batchWrap.style.cssText='margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;';
+      batchWrap.innerHTML='<button class="btn btn-outline" id="btn-meditate-90">闭关90天</button><button class="btn btn-outline" id="btn-meditate-180">闭关180天</button>';
+      wudaoBtn.parentNode.insertBefore(batchWrap,wudaoBtn);
+    }
+
     document.getElementById('btn-meditate')?.addEventListener('click',()=>{
       const circle=document.getElementById('med-circle');
       circle?.classList.add('meditating');
@@ -2264,6 +2414,8 @@ class GuiguUI {
       if(r&&r.enlightenEvent)this.showEnlightenmentModal(r.enlightenEvent);
       this.refreshUI();
     });
+    document.getElementById('btn-meditate-90')?.addEventListener('click',()=>{this.runMeditateBatch(3)});
+    document.getElementById('btn-meditate-180')?.addEventListener('click',()=>{this.runMeditateBatch(6)});
     document.getElementById('btn-wudao-cult')?.addEventListener('click',()=>{
       this._showWudaoTraining();
     });
@@ -2566,14 +2718,14 @@ class GuiguUI {
         }else if(action==='explore'){
           // Search the area for hidden resources/encounters
           const terrain=curTerrain;
-          if(terrain.res.length&&Math.random()<0.4){
+          if(terrain.res.length&&Math.random()<0.5){
             const matId=terrain.res[Math.floor(Math.random()*terrain.res.length)];
             const mat=MATERIALS_MAP[matId];
             if(mat){
               this.game.addItem({id:mat.id,name:mat.name,type:'material',count:1});
               showToast('搜索发现了 '+mat.name+'！','success');
             }
-          }else if(Math.random()<0.3){
+          }else if(Math.random()<0.38){
             const goldFind=randomInt(10,100)*(s.realm+1);
             s.gold+=goldFind;
             showToast('搜索发现了 '+goldFind+' 灵石！','success');
@@ -2583,8 +2735,8 @@ class GuiguUI {
           this.game.advanceDays(TIME_COSTS.explore);
           this.refreshUI();
         }else if(action==='rest'){
-          const hpRecover=Math.floor(s.maxHp*0.3);
-          const spRecover=Math.floor(s.maxSp*0.2);
+          const hpRecover=Math.floor(s.maxHp*0.38);
+          const spRecover=Math.floor(s.maxSp*0.28);
           s.hp=Math.min(s.maxHp,s.hp+hpRecover);
           s.sp=Math.min(s.maxSp,s.sp+spRecover);
           this.game.advanceDays(TIME_COSTS.rest);
@@ -2595,7 +2747,7 @@ class GuiguUI {
           if(terrain.res.length){
             const matId=terrain.res[Math.floor(Math.random()*terrain.res.length)];
             const mat=MATERIALS_MAP[matId];
-            if(mat&&Math.random()<0.6){
+            if(mat&&Math.random()<0.7){
               this.game.addItem({id:mat.id,name:mat.name,type:'material',count:1});
               this.game.updateBountyProgress('collect_herb',1);
               this.game.updateNpcQuestProgress('collect_herb',1);
