@@ -1,0 +1,15 @@
+{
+  "name": "xianjieyoufang",
+  "version": "1.0.0",
+  "private": true,
+  "description": "仙界游坊 - 修仙主题在线游戏合集，含本地 Three.js 3D 演武场与 PWA 离线支持",
+  "scripts": {
+    "test": "node tests/run.js && node scripts/check-sw-assets.js",
+    "test:unit": "node tests/run.js",
+    "check:sw": "node scripts/check-sw-assets.js",
+    "serve": "deno run --allow-net --allow-read serve.ts"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

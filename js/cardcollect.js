@@ -21,46 +21,11 @@
   ];
 
   // ===== 角色数据 =====
-  const CHARACTER_DATA = [
-    // 凡 (12)
-    { id: 1, name: '散修弟子', quality: '凡', role: 'ATK', atk: 30, hp: 100, skillName: '基础剑击', skillDesc: '攻击1个敌人', skillType: 'single' },
-    { id: 2, name: '山野猎人', quality: '凡', role: 'ATK', atk: 35, hp: 90, skillName: '连射', skillDesc: '攻击2次，每次60%伤害', skillType: 'double' },
-    { id: 3, name: '村庄守卫', quality: '凡', role: 'DEF', atk: 20, hp: 150, skillName: '坚守', skillDesc: '减少全队受到伤害10%', skillType: 'teamDef' },
-    { id: 4, name: '草药师', quality: '凡', role: 'SUP', atk: 15, hp: 120, skillName: '回春', skillDesc: '治疗血量最低的队友20%最大生命', skillType: 'healLowest' },
-    { id: 5, name: '符箓学徒', quality: '凡', role: 'ATK', atk: 28, hp: 110, skillName: '灵符', skillDesc: '攻击敌人，20%几率眩晕', skillType: 'singleStun' },
-    { id: 6, name: '采药童子', quality: '凡', role: 'SUP', atk: 18, hp: 130, skillName: '百草', skillDesc: '治疗全队8%最大生命', skillType: 'healAll' },
-    { id: 7, name: '灵兽幼崽', quality: '凡', role: 'ATK', atk: 32, hp: 95, skillName: '撕咬', skillDesc: '攻击无视20%防御', skillType: 'armorPen' },
-    { id: 8, name: '铁匠学徒', quality: '凡', role: 'DEF', atk: 22, hp: 140, skillName: '铁壁', skillDesc: '获得15%最大生命护盾', skillType: 'selfShield' },
-    { id: 9, name: '书生', quality: '凡', role: 'SUP', atk: 20, hp: 115, skillName: '鼓舞', skillDesc: '提升全队攻击力10%持续2回合', skillType: 'atkBuff' },
-    { id: 10, name: '乞丐', quality: '凡', role: 'ATK', atk: 38, hp: 80, skillName: '脏拳', skillDesc: '攻击敌人，30%几率中毒', skillType: 'singlePoison' },
-    { id: 11, name: '护院', quality: '凡', role: 'DEF', atk: 25, hp: 135, skillName: '格挡', skillDesc: '格挡下一次攻击', skillType: 'block' },
-    { id: 12, name: '小道士', quality: '凡', role: 'SUP', atk: 16, hp: 125, skillName: '祈福', skillDesc: '治疗自身25%最大生命', skillType: 'healSelf' },
-    // 灵 (10)
-    { id: 13, name: '剑修弟子', quality: '灵', role: 'ATK', atk: 50, hp: 150, skillName: '剑气斩', skillDesc: '对单体造成高额伤害', skillType: 'heavySingle' },
-    { id: 14, name: '体修弟子', quality: '灵', role: 'DEF', atk: 35, hp: 250, skillName: '金刚体', skillDesc: '大幅提升自身防御', skillType: 'selfDefBig' },
-    { id: 15, name: '丹修弟子', quality: '灵', role: 'SUP', atk: 30, hp: 180, skillName: '灵丹', skillDesc: '治疗全队15%最大生命', skillType: 'healAllMid' },
-    { id: 16, name: '符修弟子', quality: '灵', role: 'ATK', atk: 45, hp: 160, skillName: '五雷符', skillDesc: '对全体敌人造成伤害', skillType: 'aoe' },
-    { id: 17, name: '灵兽师', quality: '灵', role: 'ATK', atk: 48, hp: 155, skillName: '召唤灵兽', skillDesc: '召唤灵兽额外攻击一次', skillType: 'extraAttack' },
-    { id: 18, name: '阵法师', quality: '灵', role: 'SUP', atk: 32, hp: 190, skillName: '护阵', skillDesc: '全队获得10%最大生命护盾', skillType: 'teamShield' },
-    { id: 19, name: '御剑弟子', quality: '灵', role: 'ATK', atk: 55, hp: 140, skillName: '御剑术', skillDesc: '攻击2个随机敌人', skillType: 'randomTwo' },
-    { id: 20, name: '毒修弟子', quality: '灵', role: 'ATK', atk: 42, hp: 165, skillName: '蛊毒', skillDesc: '使全体敌人中毒', skillType: 'poisonAll' },
-    { id: 21, name: '铸器师', quality: '灵', role: 'DEF', atk: 38, hp: 220, skillName: '灵甲', skillDesc: '提升全队防御15%', skillType: 'teamDefBig' },
-    { id: 22, name: '医修弟子', quality: '灵', role: 'SUP', atk: 28, hp: 200, skillName: '济世', skillDesc: '复活1个阵亡队友并恢复30%生命', skillType: 'revive' },
-    // 仙 (6)
-    { id: 23, name: '剑仙', quality: '仙', role: 'ATK', atk: 80, hp: 220, skillName: '万剑归宗', skillDesc: '对全体敌人造成大量伤害', skillType: 'aoeBig' },
-    { id: 24, name: '雷法真人', quality: '仙', role: 'ATK', atk: 75, hp: 230, skillName: '九天雷罚', skillDesc: '对单体造成巨额伤害并眩晕', skillType: 'heavyStun' },
-    { id: 25, name: '太乙真人', quality: '仙', role: 'SUP', atk: 50, hp: 300, skillName: '太乙真气', skillDesc: '治疗全队25%最大生命', skillType: 'healAllBig' },
-    { id: 26, name: '金刚尊者', quality: '仙', role: 'DEF', atk: 60, hp: 400, skillName: '不动明王', skillDesc: '嘲讽敌人并大幅提升防御', skillType: 'taunt' },
-    { id: 27, name: '天狐仙子', quality: '仙', role: 'ATK', atk: 85, hp: 200, skillName: '魅惑', skillDesc: '魅惑敌人使其跳过回合并造成伤害', skillType: 'charm' },
-    { id: 28, name: '药王', quality: '仙', role: 'SUP', atk: 55, hp: 280, skillName: '仙丹', skillDesc: '治疗全队+驱散负面+提升攻击力', skillType: 'healCleanseBuff' },
-    // 圣 (2)
-    { id: 29, name: '剑尊', quality: '圣', role: 'ATK', atk: 120, hp: 350, skillName: '一剑破万法', skillDesc: '对单体造成毁灭伤害并溅射全体', skillType: 'devastate' },
-    { id: 30, name: '仙帝', quality: '圣', role: 'SUP', atk: 80, hp: 500, skillName: '天道轮回', skillDesc: '全队满血+复活所有+提升攻击力', skillType: 'ultimate' },
-    { id: 31, name: '天机真人', quality: '仙', role: 'SUP', atk: 60, hp: 260, skillName: '天机妙术', skillDesc: '提升全队攻击力15%持续2回合', skillType: 'atkBuff' },
-  ];
-
-  // O(1) lookup map for character data by id
-  const CHAR_MAP = Object.fromEntries(CHARACTER_DATA.map(c => [c.id, c]));
+  const cardcollectCatalog = globalThis.CardCollectCatalog;
+  if (!cardcollectCatalog) {
+    throw new Error('CardCollectCatalog is required before cardcollect.js');
+  }
+  const { characters: CHARACTER_DATA, byId: CHAR_MAP } = cardcollectCatalog;
 
   // ===== 章节数据 =====
   const CHAPTERS = [
@@ -724,7 +689,14 @@
         case 'extraAttack':
           target = getPriorityTarget(aliveEnemies);
           { const dmg1 = dealDamage(unit, target, 1.0, 0); addLog(`${unit.name} 攻击 ${target.name} 造成 ${dmg1} 伤害`, 'damage'); showDamageFloat(target.id, `-${dmg1}`, 'damage'); }
-          { const t2 = enemies.filter(e => e.alive).reduce((a, b) => a.hp < b.hp ? a : b, null); if (t2) { const dmg2 = dealDamage(unit, t2, 0.7, 0); addLog(`灵兽追击 对 ${t2.name} 造成 ${dmg2} 伤害`, 'damage'); showDamageFloat(t2.id, `-${dmg2}`, 'damage'); } }
+          {
+            const remainingEnemies = enemies.filter(e => e.alive);
+            if (remainingEnemies.length === 0) break;
+            const extraTarget = getPriorityTarget(remainingEnemies);
+            const damage = dealDamage(unit, extraTarget, 0.7, 0);
+            addLog(`灵兽追击 对 ${extraTarget.name} 造成 ${damage} 伤害`, 'damage');
+            showDamageFloat(extraTarget.id, `-${damage}`, 'damage');
+          }
           break;
         case 'randomTwo':
           for (let i = 0; i < 2; i++) {
@@ -1180,7 +1152,6 @@
   }
 
   function showBattleResult(won, stones, exp, droppedEquip, failedChapter, autoEquipResult) {
-    const modal = document.getElementById('battle-result-modal');
     document.getElementById('result-title').textContent = won ? '战斗胜利' : '战斗失败';
     let equipHtml = droppedEquip
       ? `<div class="result-equip" style="margin-top:6px;color:#d4a5ff;">装备掉落：${droppedEquip.icon} ${droppedEquip.name} (${EQUIP_SLOT_NAMES[droppedEquip.slot]})</div>`
@@ -1211,7 +1182,7 @@
          ${lossRewards}
          ${compensationHint}
          <div class="result-encourage" style="margin-top:8px;font-size:0.8rem;color:var(--cyan);font-style:italic">${typeof getEncouragement==='function'?getEncouragement():''}</div>`;
-    modal.classList.add('active');
+    battleResultFocus.open();
     refreshUI();
   }
 
@@ -1313,159 +1284,70 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function renderTeam() {
-    const slotsEl = document.getElementById('team-slots');
-    let html = '';
-    for (let i = 0; i < 5; i++) {
-      const cid = state.team[i];
-      if (cid && state.owned[cid]) {
-        const base = getCharData(cid);
-        const own = state.owned[cid];
-        const stats = getEffectiveStats(cid);
-        const qcss = QUALITY_CSS[base.quality];
-        html += `<div class="cc-team-slot filled quality-border-${qcss}" data-slot="${i}" data-char-id="${cid}">
-          <button class="slot-remove" data-remove="${i}">&times;</button>
-          <div class="cc-mini-card">
-            <div class="card-icon">${ICONS[cid - 1]}</div>
-            <div class="card-name quality-${qcss}">${base.name}</div>
-            <div class="card-quality quality-${qcss}">${base.quality}·${ROLE_LABELS[base.role]}</div>
-            <div class="card-level">Lv.${own.level}</div>
-            <div class="card-stats">ATK ${stats.atk} HP ${stats.hp}</div>
-          </div>
-        </div>`;
-      } else {
-        html += `<div class="cc-team-slot" data-slot="${i}">
-          <span class="slot-empty-text">空位${i + 1}</span>
-        </div>`;
-      }
-    }
-    slotsEl.innerHTML = html;
+  let benchFilter = 'all';
+  let rosterSortMode = 'quality';
+  let selectedTeamSlot = null;
 
-    // Click filled slot to open detail (ignore remove button)
-    slotsEl.querySelectorAll('.cc-team-slot.filled').forEach(slotEl => {
-      slotEl.addEventListener('click', (e) => {
-        if (e.target && e.target.closest('.slot-remove')) return;
-        const cid = parseInt(slotEl.dataset.charId);
-        if (!isNaN(cid)) showCharDetail(cid);
-      });
+  function getRosterCards() {
+    return CardCollectRoster.buildCards({
+      ids: Object.keys(state.owned).map(Number), getCharacter: getCharData,
+      getStats: getEffectiveStats, roleLabels: ROLE_LABELS,
     });
-
-    // Team tools (insert once)
-    const panel = document.getElementById('panel-team');
-    if (panel) {
-      let actionsEl = document.getElementById('team-actions');
-      if (!actionsEl) {
-        actionsEl = document.createElement('div');
-        actionsEl.id = 'team-actions';
-        actionsEl.style.cssText = 'display:flex;justify-content:flex-end;gap:8px;margin:-8px 0 10px;';
-        panel.insertBefore(actionsEl, slotsEl);
-      }
-      actionsEl.innerHTML = `
-        <button class="btn btn-outline btn-sm" id="btn-auto-team">一键上阵</button>
-        <button class="btn btn-outline btn-sm" id="btn-clear-team">清空阵容</button>
-      `;
-      actionsEl.querySelector('#btn-auto-team').onclick = () => {
-        const ownedIds = Object.keys(state.owned).map(Number);
-        if (ownedIds.length === 0) { showToast('暂无角色，请先召唤', 'info'); return; }
-        const ranked = ownedIds.map(id => {
-          const base = getCharData(id);
-          const own = state.owned[id];
-          const stats = getEffectiveStats(id);
-          const q = base ? (QUALITY_ORDER[base.quality] || 0) : 0;
-          const score = q * 100000 + (own.level || 0) * 1000 + (stats.atk || 0) * 10 + (stats.hp || 0);
-          return { id, score };
-        }).sort((a, b) => b.score - a.score);
-        state.team = ranked.slice(0, 5).map(x => x.id);
-        while (state.team.length < 5) state.team.push(null);
-        saveGame();
-        showToast('已自动上阵最强的5位角色', 'success');
-        renderTeam();
-        renderBench();
-      };
-      actionsEl.querySelector('#btn-clear-team').onclick = () => {
-        state.team = [null, null, null, null, null];
-        saveGame();
-        showToast('阵容已清空', 'info');
-        renderTeam();
-        renderBench();
-      };
-    }
-
-    // Formation preview below team slots
-    const teamChars = getTeamChars();
-    const formations = detectFormations(teamChars);
-    let formEl = document.getElementById('team-formations');
-    if (!formEl) {
-      formEl = document.createElement('div');
-      formEl.id = 'team-formations';
-      formEl.className = 'cc-team-formations';
-      slotsEl.parentNode.insertBefore(formEl, slotsEl.nextSibling);
-    }
-    if (formations.length > 0) {
-      formEl.innerHTML = '<div class="cc-formation-label">激活阵法</div>' +
-        formations.map(f => `<span class="cc-formation-tag">${f.icon} ${f.name} <small>${f.desc}</small></span>`).join('');
-    } else {
-      formEl.innerHTML = '<div class="cc-formation-label" style="opacity:0.5;">无阵法激活（编排阵容以激活阵法加成）</div>';
-    }
   }
 
-  let benchFilter = 'all';
+  function rosterOptions() {
+    return {
+      cards: getRosterCards(), team: state.team, selectedSlot: selectedTeamSlot,
+      sortMode: rosterSortMode, filter: benchFilter, model: CardCollectRoster, escape: escapeHtml,
+      formations: detectFormations(getTeamChars()), onInspect: showCharDetail,
+      onSelectSlot: selectRosterSlot, onPlace: placeRosterCard, onAutoTeam: autoArrangeTeam,
+      onRemove: slot => saveRosterTeam(state.team.map((id, index) => index === slot ? null : id), '角色已下阵'),
+      onClear: () => saveRosterTeam(Array(CardCollectRoster.TEAM_SIZE).fill(null), '阵容已清空'),
+      onSort: mode => { rosterSortMode = mode; renderTeam(); renderBench(); },
+      onSummon: () => document.querySelector('.cc-tab[data-tab="gacha"]').click(),
+      onExplore: () => document.querySelector('.cc-tab[data-tab="chapter"]').click(),
+      onResetFilter: () => document.querySelector('#bench-filter [data-filter="all"]').click(),
+    };
+  }
+
+  function renderTeam() {
+    CardCollectRosterView.renderTeam(rosterOptions());
+  }
 
   function renderBench() {
-    const listEl = document.getElementById('bench-list');
-    const ownedIds = Object.keys(state.owned).map(Number);
-    let chars = ownedIds.map(id => ({ id, base: getCharData(id), own: state.owned[id] }));
+    CardCollectRosterView.renderBench(rosterOptions());
+  }
 
-    if (benchFilter !== 'all') {
-      chars = chars.filter(c => c.base.role === benchFilter);
-    }
+  function saveRosterTeam(team, message) {
+    state.team = team;
+    selectedTeamSlot = null;
+    saveGame();
+    renderTeam();
+    renderBench();
+    showToast(message, 'success');
+  }
 
-    // Sort by quality desc then level desc
-    chars.sort((a, b) => {
-      const qDiff = QUALITY_ORDER[b.base.quality] - QUALITY_ORDER[a.base.quality];
-      if (qDiff !== 0) return qDiff;
-      return b.own.level - a.own.level;
-    });
+  function selectRosterSlot(slot) {
+    selectedTeamSlot = slot;
+    renderTeam();
+    renderBench();
+    document.getElementById('cc-replace-hint').scrollIntoView({ block: 'nearest' });
+  }
 
-    const teamSet = new Set(state.team.filter(Boolean));
+  function placeRosterCard(cardId) {
+    if (!state.owned[cardId]) { showToast('尚未拥有该角色', 'error'); return; }
+    const slot = selectedTeamSlot === null ? state.team.indexOf(null) : selectedTeamSlot;
+    if (slot < 0) { showToast('先点击出战角色的“换将”，选择要替换的阵位', 'info'); return; }
+    const nextTeam = CardCollectRoster.replaceMember({ team: state.team, cardId, slot });
+    saveRosterTeam(nextTeam, getCharData(cardId).name + '已上阵');
+  }
 
-    listEl.innerHTML = chars.map(c => {
-      const qcss = QUALITY_CSS[c.base.quality];
-      const inTeam = teamSet.has(c.id);
-      return `<div class="cc-bench-card quality-border-${qcss} ${inTeam ? 'in-team' : ''}" data-char-id="${c.id}">
-        <div class="card-icon">${ICONS[c.id - 1]}</div>
-        <div class="card-name quality-${qcss}">${c.base.name}</div>
-        <div class="card-info">Lv.${c.own.level} ${ROLE_LABELS[c.base.role]}</div>
-      </div>`;
-    }).join('');
-
-    if (chars.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">暂无角色，请前往召唤</div>';
-    }
-
-    // Click to add to team
-    listEl.querySelectorAll('.cc-bench-card:not(.in-team)').forEach(card => {
-      card.addEventListener('click', () => {
-        const cid = parseInt(card.dataset.charId);
-        // Find first empty slot
-        const emptyIdx = state.team.indexOf(null);
-        if (emptyIdx === -1) {
-          showToast('阵容已满，请先移除角色', 'error');
-          return;
-        }
-        state.team[emptyIdx] = cid;
-        saveGame();
-        renderTeam();
-        renderBench();
-      });
-    });
-
-    // In-team feedback
-    listEl.querySelectorAll('.cc-bench-card.in-team').forEach(card => {
-      card.addEventListener('click', () => {
-        showToast('该角色已在阵容中', 'info');
-      });
-    });
+  function autoArrangeTeam() {
+    const cards = getRosterCards();
+    if (!cards.length) { showToast('暂无角色，请先召唤', 'info'); return; }
+    const nextTeam = CardCollectRoster.autoTeam(cards, rosterSortMode);
+    const count = nextTeam.filter(id => id !== null).length;
+    saveRosterTeam(nextTeam, '已按当前排序上阵 ' + count + ' 位角色');
   }
 
   function renderChapters() {
@@ -1594,7 +1476,7 @@
       const isDupe = char.wasDupe;
       if (char.quality === '圣') hasSheng = true;
       return `<div class="cc-gacha-card gacha-glow-${qcss}" style="animation-delay: ${idx * 0.12}s">
-        <div class="card-icon">${ICONS[char.id - 1]}</div>
+        ${CardCollectRosterView.portraitMarkup(char.id, 'cc-gacha-portrait')}
         <div class="card-name quality-${qcss}">${char.name}</div>
         <div class="card-quality-tag quality-${qcss}" style="background:rgba(128,128,128,0.15);">${char.quality}·${ROLE_LABELS[char.role]}</div>
         ${isDupe ? `<div class="card-dupe">碎片+1 (${own.dupes})</div>` : '<div class="card-dupe" style="color:var(--green);">新获得!</div>'}
@@ -1615,17 +1497,18 @@
 
     let chars = CHARACTER_DATA.slice();
     if (filter !== 'all') {
-      chars = chars.filter(c => c.quality === filter);
+      chars = chars.filter(c => (state.owned[c.id]?.quality || c.quality) === filter);
     }
 
     grid.innerHTML = chars.map(c => {
       const owned = state.owned[c.id];
-      const qcss = QUALITY_CSS[c.quality];
+      const quality = owned?.quality || c.quality;
+      const qcss = QUALITY_CSS[quality];
       return `<div class="cc-collection-card ${owned ? '' : 'not-owned'} quality-border-${qcss}" data-char-id="${c.id}">
         ${owned ? `<span class="card-count">x${owned.dupes}</span>` : ''}
-        <div class="card-icon">${ICONS[c.id - 1]}</div>
+        ${CardCollectRosterView.portraitMarkup(c.id, 'cc-collection-portrait')}
         <div class="card-name quality-${qcss}">${c.name}</div>
-        <div class="card-quality-tag quality-${qcss}" style="background:rgba(128,128,128,0.15);">${c.quality}</div>
+        <div class="card-quality-tag quality-${qcss}" style="background:rgba(128,128,128,0.15);">${quality}</div>
         ${owned ? `<div class="card-level">Lv.${owned.level}</div>` : '<div class="card-level">未获得</div>'}
       </div>`;
     }).join('');
@@ -1650,7 +1533,7 @@
     if (!base || !own) return;
 
     const stats = getEffectiveStats(charId);
-    const qcss = QUALITY_CSS[base.quality];
+    const qcss = QUALITY_CSS[stats.quality];
     const expNeeded = own.level >= MAX_LEVEL ? 0 : expForLevel(own.level);
     const expPct = expNeeded > 0 ? Math.floor(own.exp / expNeeded * 100) : 100;
 
@@ -1663,20 +1546,20 @@
     if (btInfo) {
       const canBt = canBreakthrough(charId);
       btHtml = `<div class="cc-detail-breakthrough">
-        <strong>突破：${base.quality} → ${btInfo.targetQuality}</strong><br>
+        <strong>突破：${stats.quality} → ${btInfo.targetQuality}</strong><br>
         需要：等级 ${btInfo.needLevel} + 碎片 ${btInfo.needDupes}个<br>
         <div class="cc-detail-dupes">当前碎片：${own.dupes} | 等级：${own.level}</div>
         ${canBt ? `<button class="btn btn-gold btn-sm" style="margin-top:8px;" id="btn-breakthrough">突破进阶</button>` : ''}
       </div>`;
-    } else if (base.quality === '圣') {
+    } else if (stats.quality === '圣') {
       btHtml = `<div class="cc-detail-breakthrough"><strong>已达最高品质</strong></div>`;
     }
 
     document.getElementById('char-detail-body').innerHTML = `
       <div class="cc-detail-top">
-        <div class="cc-detail-icon">${ICONS[charId - 1]}</div>
+        <div class="cc-detail-icon">${CardCollectRosterView.portraitMarkup(charId, 'cc-detail-portrait')}</div>
         <div class="cc-detail-info">
-          <div class="cc-detail-quality quality-${qcss}">${base.quality}品 · ${ROLE_LABELS[base.role]}</div>
+          <div class="cc-detail-quality quality-${qcss}">${stats.quality}品 · ${ROLE_LABELS[base.role]}</div>
           <div class="cc-detail-stats">
             <span>攻击：<strong>${stats.atk}</strong></span>
             <span>生命：<strong>${stats.hp}</strong></span>
@@ -1703,7 +1586,7 @@
     `;
 
     const modal = document.getElementById('char-detail-modal');
-    modal.classList.add('active');
+    charDetailFocus.open();
 
     // Auto equip
     const autoEquipBtn = document.getElementById('btn-auto-equip');
@@ -1720,8 +1603,8 @@
     if (btBtn) {
       btBtn.addEventListener('click', () => {
         if (doBreakthrough(charId)) {
-          showToast(`${base.name} 突破成功！品质提升为 ${base.quality}`, 'success');
-          modal.classList.remove('active');
+          showToast(`${base.name} 突破成功！品质提升为 ${getEffectiveStats(charId).quality}`, 'success');
+          charDetailFocus.close();
           refreshUI();
         }
       });
@@ -1884,7 +1767,7 @@
   function refreshUI() {
     document.getElementById('stone-count').textContent = formatNumber(state.stones);
     document.getElementById('chapter-info').textContent = state.highestChapter > 0 ? `最高通关：第${state.highestChapter}章` : '尚未通关';
-    document.getElementById('card-count').textContent = `卡牌：${getUniqueCount()}/30`;
+    document.getElementById('card-count').textContent = `卡牌：${getUniqueCount()}/${CHARACTER_DATA.length}`;
     // Pity counter display
     var pityEl = document.getElementById('pity-info');
     if (!pityEl) {
@@ -2001,29 +1884,21 @@
     });
   }
 
-  function initModals() {
-    // Char detail close
-    document.getElementById('char-detail-close').addEventListener('click', () => {
-      document.getElementById('char-detail-modal').classList.remove('active');
-    });
-    document.getElementById('char-detail-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'char-detail-modal') {
-        document.getElementById('char-detail-modal').classList.remove('active');
-      }
-    });
+  let charDetailFocus;
+  let battleResultFocus;
 
-    // Battle result close
-    document.getElementById('result-close').addEventListener('click', () => {
-      document.getElementById('battle-result-modal').classList.remove('active');
-    });
-    document.getElementById('result-ok').addEventListener('click', () => {
-      document.getElementById('battle-result-modal').classList.remove('active');
-    });
-    document.getElementById('battle-result-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'battle-result-modal') {
-        document.getElementById('battle-result-modal').classList.remove('active');
-      }
-    });
+  function createGameDialog(id, closeIds) {
+    const overlay = document.getElementById(id);
+    const focus = new ModalFocus(overlay);
+    closeIds.forEach(closeId => document.getElementById(closeId).addEventListener('click', () => focus.close()));
+    overlay.addEventListener('click', event => { if (event.target === overlay) focus.close(); });
+    overlay.addEventListener('keydown', event => { if (event.key === 'Escape') focus.close(); });
+    return focus;
+  }
+
+  function initModals() {
+    charDetailFocus = createGameDialog('char-detail-modal', ['char-detail-close']);
+    battleResultFocus = createGameDialog('battle-result-modal', ['result-close', 'result-ok']);
   }
 
   // ===== Settings =====
@@ -2109,29 +1984,21 @@
     initGacha();
     initBattleControls();
     initModals();
+    CardCollectRosterView.renderPool({ characters: CHARACTER_DATA, rates: QUALITY_RATES, escape: escapeHtml });
     trackAchievements();
     refreshUI();
     renderTeam();
     renderBench();
 
-    // Delegated event listener for team slot remove buttons (avoids listener leaks)
-    document.getElementById('team-slots').addEventListener('click', (e) => {
-      const btn = e.target.closest('.slot-remove');
-      if (!btn) return;
-      e.stopPropagation();
-      const idx = parseInt(btn.dataset.remove);
-      state.team[idx] = null;
-      saveGame();
-      renderTeam();
-      renderBench();
-    });
-
     if (!window._cardcollectHotkeysBound) {
       window._cardcollectHotkeysBound = true;
       document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
         const key = e.key.toLowerCase();
+        const activeModal = document.querySelector('.modal-overlay.active');
+        if (activeModal && (activeModal.id !== 'char-detail-modal' || key !== 'e')) return;
         if (key === 'a') {
           const btn = document.getElementById('btn-auto-team');
           if (btn && btn.offsetParent !== null) {
@@ -2159,7 +2026,7 @@
     // 新手引导
     if (typeof GuideSystem !== 'undefined') {
       GuideSystem.start('cardcollect', [
-        { title: '欢迎来到仙卡录！', desc: '抽取修仙角色卡，编排阵容自动战斗，通关十章秘境。' },
+        { title: '欢迎来到仙卡录！', desc: `抽取修仙角色卡，编排阵容自动战斗，探索${CHAPTERS.length}章秘境。` },
         { title: '抽卡', desc: '使用灵石抽取角色卡，收集各品质英雄。', target: '#btn-pull1' },
         { title: '编排阵容', desc: '从收集的角色中编排五人阵容进行战斗。', target: '#team-slots' },
         { title: '章节挑战', desc: '派出阵容挑战各章秘境Boss。', target: '#panel-chapter' }

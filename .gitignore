@@ -1,1 +1,6 @@
 .worktrees/
+
+# 本地浏览器审计产物（headless Chrome 用户数据、审计页、服务日志）
+.tmp/
+*.log
+node_modules/

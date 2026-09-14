@@ -3,69 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="灵卡对决 - 召唤弟子、布阵法宝，与AI仙师回合制对战。策略出牌，击败三位强敌。">
+  <meta name="theme-color" content="#182a43">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <title>灵卡对决 - 仙界游坊</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
   <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="../css/shared.css">
-  <link rel="stylesheet" href="../css/cardbattle.css">
+  <link rel="stylesheet" href="../css/shared.css?v=33">
+  <link rel="stylesheet" href="../css/pwa.css?v=33">
+  <link rel="stylesheet" href="../css/cardbattle.css?v=33">
+  <link rel="stylesheet" href="../css/game-shell.css?v=33">
+  <link rel="stylesheet" href="../css/cardbattle-theme.css?v=33">
+  <link rel="stylesheet" href="../css/cardbattle-board.css?v=33">
 </head>
-<body>
+<body class="game-page cardbattle-page">
   <div class="app-loading"><div class="app-loading-spinner"></div></div>
   <div class="particles-container" id="particles"></div>
   <nav class="game-nav">
     <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
     <span class="game-nav-title">灵卡对决</span>
   </nav>
-  <div class="page-wrapper">
+  <main class="page-wrapper" id="main-content">
     <div class="game-container">
 
       <!-- 开始界面 -->
       <div class="cb-start" id="cb-start">
-        <h1 class="cb-logo">灵卡对决</h1>
-        <p class="cb-subtitle">召唤弟子、布阵法宝，击败三位仙师</p>
-        <div class="cb-difficulty-select">
+        <div class="cb-lobby-intro">
+          <div class="cb-lobby-copy">
+            <p class="cb-eyebrow">灵力为筹 · 落子成阵</p>
+            <h1 class="cb-logo">灵卡对决</h1>
+            <p class="cb-subtitle">召唤你的弟子，算准每一分灵力。<br>在六个阵位之间，打出属于你的胜局。</p>
+            <div class="cb-lobby-facts"><span><strong>3</strong> 道仙师试炼</span><span><strong>6</strong> 个随从阵位</span><span><strong>30</strong> 初始生命</span></div>
+            <div class="cb-lobby-actions">
+              <button class="btn btn-outline" id="btn-collection">卡牌收藏</button>
+              <button class="btn btn-outline" id="btn-deckbuild">组建套牌</button>
+              <button class="btn btn-outline" id="btn-arena">竞技场</button>
+            </div>
+          </div>
+          <img class="cb-lobby-art" src="../assets/cardbattle/tableau.svg" width="640" height="440" alt="象牙白卡牌与青瓷灵力筹码铺在靛蓝棋盘上">
+        </div>
+        <div class="cb-trials-heading"><h2>选择你的对手</h2><span>逐一击败仙师，解锁更高难度</span></div>
+        <div class="cb-difficulty-select" aria-label="选择试炼">
           <button class="cb-diff-btn" data-diff="0">
-            <span class="cb-diff-icon">🟢</span>
+            <span class="cb-diff-number">壹</span>
             <span class="cb-diff-name">练气</span>
             <span class="cb-diff-desc">对手生命 30 · 基础牌组</span>
+            <span class="cb-diff-enter">进入对决 →</span>
           </button>
           <button class="cb-diff-btn locked" data-diff="1">
-            <span class="cb-diff-icon">🟡</span>
+            <span class="cb-diff-number">贰</span>
             <span class="cb-diff-name">筑基</span>
             <span class="cb-diff-desc">对手生命 38 · 进阶牌组</span>
             <span class="cb-lock-hint">击败练气对手解锁</span>
+            <span class="cb-diff-enter">进入对决 →</span>
           </button>
           <button class="cb-diff-btn locked" data-diff="2">
-            <span class="cb-diff-icon">🔴</span>
+            <span class="cb-diff-number">叁</span>
             <span class="cb-diff-name">金丹</span>
             <span class="cb-diff-desc">对手生命 46 · 强力牌组</span>
             <span class="cb-lock-hint">击败筑基对手解锁</span>
+            <span class="cb-diff-enter">进入对决 →</span>
           </button>
-        </div>
-        <div style="display:flex;gap:12px;justify-content:center;margin-bottom:24px;">
-          <button class="btn btn-outline" id="btn-collection">📦 卡牌收藏</button>
-          <button class="btn btn-outline" id="btn-deckbuild">🃏 组建套牌</button>
-          <button class="btn btn-outline" id="btn-arena">🏟️ 竞技场</button>
         </div>
         <div class="cb-leaderboard" id="cb-leaderboard"></div>
       </div>
 
       <!-- 战斗界面 -->
       <div class="cb-battle" id="cb-battle" style="display:none;">
+        <header class="cb-battle-heading"><h1>灵卡对决</h1><span id="cb-round-count">回合 1</span></header>
         <!-- 对手区域 -->
         <div class="cb-enemy-area">
-          <div class="cb-master cb-enemy-master" id="enemy-master">
-            <div class="cb-master-portrait">👹</div>
-            <div class="cb-master-info">
-              <div class="cb-master-name" id="enemy-name">对手</div>
-              <div class="cb-hp-bar">
-                <div class="cb-hp-fill enemy-hp" id="enemy-hp-fill"></div>
+          <button type="button" class="cb-master cb-enemy-master" id="enemy-master" aria-disabled="true">
+            <span class="cb-master-portrait" aria-hidden="true"></span>
+            <span class="cb-master-info">
+              <span class="cb-master-name" id="enemy-name">对手</span>
+              <span class="cb-hp-bar">
+                <span class="cb-hp-fill enemy-hp" id="enemy-hp-fill"></span>
                 <span class="cb-hp-text" id="enemy-hp-text">30/30</span>
-              </div>
-            </div>
-          </div>
+              </span>
+            </span>
+          </button>
           <div class="cb-deck-info cb-enemy-deck">
             <span class="cb-deck-count" id="enemy-deck-count">牌库: 27</span>
             <span class="cb-hand-count" id="enemy-hand-count">手牌: 3</span>
@@ -74,18 +94,27 @@
 
         <!-- 战场 -->
         <div class="cb-board">
+          <div class="cb-field-label"><span>敌方阵线</span><span id="enemy-field-count">0 / 6</span></div>
           <div class="cb-field cb-enemy-field" id="enemy-field"></div>
           <div class="cb-divider">
             <span class="cb-turn-indicator" id="turn-indicator">你的回合</span>
           </div>
+          <div class="cb-field-label player-label"><span>我方阵线</span><span id="player-field-count">0 / 6</span></div>
           <div class="cb-field cb-player-field" id="player-field"></div>
+        </div>
+
+        <div class="cb-target-hint" id="target-hint" style="display:none;">
+          <div class="cb-target-copy" role="status">
+            <strong id="cb-target-title"></strong><span id="cb-target-instruction"></span><small id="cb-target-detail"></small>
+          </div>
+          <button class="btn btn-outline btn-sm cb-cancel-btn" id="btn-cancel">取消 <kbd>Esc</kbd></button>
         </div>
 
         <!-- 玩家区域 -->
         <div class="cb-player-area">
           <div class="cb-player-controls">
             <div class="cb-master cb-player-master" id="player-master">
-              <div class="cb-master-portrait">🧙</div>
+              <div class="cb-master-portrait" aria-hidden="true"><svg class="cb-sigil" viewBox="0 0 96 112" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="../assets/cardbattle/sigils.svg#caster"></use></svg></div>
               <div class="cb-master-info">
                 <div class="cb-master-name">你</div>
                 <div class="cb-hp-bar">
@@ -95,22 +124,21 @@
               </div>
             </div>
             <div class="cb-energy-display" id="energy-display">
-              <span class="cb-energy-icon">💎</span>
+              <span class="cb-energy-icon">灵力</span>
               <span class="cb-energy-text" id="energy-text">1/1</span>
             </div>
-            <button class="btn btn-outline cb-hero-power" id="btn-hero-power" title="灵气冲击：造成2点伤害（每回合1次，费用2）">⚡ 灵技(2)</button>
-            <button class="btn btn-gold cb-end-turn" id="btn-end-turn">结束回合</button>
+            <div class="cb-turn-actions">
+              <button class="btn btn-outline cb-hero-power" id="btn-hero-power">灵技 · 2费</button>
+              <button class="btn btn-gold cb-end-turn" id="btn-end-turn">结束回合</button>
+            </div>
           </div>
-          <div class="cb-deck-info cb-player-deck-info">
-            <span class="cb-deck-count" id="player-deck-count">牌库: 27</span>
+          <p class="cb-power-plan" id="cb-power-plan"></p>
+          <div class="cb-hand-heading">
+            <div><h2 id="cb-hand-count">手牌 4</h2><span class="cb-deck-count" id="player-deck-count">牌库: 32</span></div>
+            <p id="cb-action-summary" role="status"></p>
           </div>
           <div class="cb-hand" id="player-hand"></div>
-        </div>
-
-        <!-- 目标选择提示 -->
-        <div class="cb-target-hint" id="target-hint" style="display:none;">
-          选择攻击目标（点击敌方随从或对手头像）
-          <button class="btn btn-outline btn-sm cb-cancel-btn" id="btn-cancel">取消</button>
+          <div class="cb-key-help"><span class="cb-desktop-help"><kbd>1–9</kbd> 出牌 · <kbd>E</kbd> 结束回合 · <kbd>H</kbd> 灵技 · <kbd>Esc</kbd> 取消选目标</span><span class="cb-mobile-help">横向滑动查看手牌 · 点击高亮随从发起攻击</span></div>
         </div>
       </div>
 
@@ -130,8 +158,28 @@
       <div class="cb-collection" id="cb-collection" style="display:none;"></div>
 
     </div>
-  </div>
-  <script src="../js/shared.js" defer></script>
-  <script src="../js/cardbattle.js" defer></script>
+  </main>
+  <script src="../js/shared-storage.js?v=33" defer></script>
+  <script src="../js/shared.js?v=33" defer></script>
+  <script src="../js/shared-data.js?v=33" defer></script>
+  <script src="../js/shared-ui.js?v=33" defer></script>
+  <script src="../js/shared-dialog.js?v=33" defer></script>
+  <script src="../js/shared-transfer.js?v=33" defer></script>
+  <script src="../js/shared-stats.js?v=33" defer></script>
+  <script src="../js/shared-missions.js?v=33" defer></script>
+  <script src="../js/shared-daily-ui.js?v=33" defer></script>
+  <script src="../js/shared-nav.js?v=33" defer></script>
+  <script src="../js/shared-settings.js?v=33" defer></script>
+  <script src="../js/shared-sound.js?v=33" defer></script>
+  <script src="../js/shared-lifecycle.js?v=33" defer></script>
+  <script src="../js/shared-guide.js?v=33" defer></script>
+  <script src="../js/pwa-updates.js?v=33" defer></script>
+  <script src="../js/cardcollect-catalog.js?v=33" defer></script>
+  <script src="../js/cardbattle-collection.js?v=33" defer></script>
+  <script src="../js/cardbattle-tactics.js?v=33" defer></script>
+  <script src="../js/cardbattle-presentation.js?v=33" defer></script>
+  <script src="../js/cardbattle-deck-view.js?v=33" defer></script>
+  <script src="../js/cardbattle-input.js?v=33" defer></script>
+  <script src="../js/cardbattle.js?v=33" defer></script>
 </body>
 </html>

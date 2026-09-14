@@ -78,6 +78,7 @@ const TERRAIN=[
 ];
 
 const TIME_COSTS={meditate:30,explore:7,battle:1,craft:15,breakthrough:90,rest:3,trade:1,npcInteract:1};
+const MAP_ENCOUNTER_DELAY_MS=300;
 
 const MATERIALS=[
   {id:'mat001',name:'灵草',tier:0,desc:'普通灵草'},
@@ -934,6 +935,15 @@ class GuiguGame {
     }
   }
 
+  getTravelDays(){
+    const s=this.state;
+    return GuiguRoute.getStepDays({
+      baseDays:TIME_COSTS.explore,
+      mount:s.activeMount?MOUNTS_MAP[s.activeMount]:null,
+      feed:s.mountFeed||0,
+    });
+  }
+
   moveTo(x,y){
     const s=this.state;if(!s||s.dead)return null;
     const dx=Math.abs(x-s.position.x),dy=Math.abs(y-s.position.y);
@@ -944,18 +954,10 @@ class GuiguGame {
     this.revealFog(x,y,1);
     this.updateBountyProgress('explore',1);
     this.updateNpcQuestProgress('explore',1);
-    let exploreDays=TIME_COSTS.explore;
-    if(s.activeMount){
-      const mt=MOUNTS_MAP[s.activeMount];
-      if(mt){
-        // mountFeed: each 10 adds ~1.5% speed (cap 15%)
-        const extra=Math.min(0.15,(s.mountFeed||0)*0.0015);
-        const spd=Math.min(0.7,mt.speedBonus+extra);
-        exploreDays=Math.max(1,Math.round(exploreDays*(1-spd)));
-
-        s.mountRides=(s.mountRides||0)+1;
-        if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_mount_rides',s.mountRides);
-      }
+    const exploreDays=this.getTravelDays();
+    if(s.activeMount&&MOUNTS_MAP[s.activeMount]){
+      s.mountRides=(s.mountRides||0)+1;
+      if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_mount_rides',s.mountRides);
     }
     this.advanceDays(exploreDays);
     const cell=s.map[y][x];
@@ -1798,7 +1800,7 @@ class GuiguGame {
 class GuiguUI {
   constructor(){
     this.game=new GuiguGame();
-    this.currentTab='overview';
+    this.currentTab='map';
     this.currentInvTab='equipment';
     this.currentMarketTab='buy';
     this.npcFilter='all';
@@ -1819,7 +1821,7 @@ class GuiguUI {
   init(){
     initNav('guigu');
     initParticles('#particles');
-    new SettingsModal([
+    this.settings = new SettingsModal([
       {key:'autoSave',label:'自动保存',type:'checkbox',default:true,checkLabel:'每分钟自动保存'},
       {key:'effects',label:'特效',type:'checkbox',default:true,checkLabel:'启用战斗特效'}
     ],'guigu_settings',()=>{});
@@ -1835,7 +1837,10 @@ class GuiguUI {
     this.game.on('yearChanged',()=>this.renderNewsTicker());
     // Auto-save
     if(this._autoSaveTimer)clearInterval(this._autoSaveTimer);
-    this._autoSaveTimer=setInterval(()=>{if(this.game.state&&!this.game.state.dead)this.game.saveGame()},60000);
+    this._autoSaveTimer = setInterval(() => {
+      if (!this.settings.get('autoSave')) return;
+      if (this.game.state && !this.game.state.dead) this.game.saveGame();
+    }, 60000);
   }
 
   refreshUI(){
@@ -1984,23 +1989,25 @@ class GuiguUI {
 
   _renderCreateStep(){
     const el=this._getEl('char-create');
+    const focusedId=document.activeElement?.id;
+    const focusedOption=document.activeElement?.dataset.id;
     const step=this.createStep;
     const cfg=this.createConfig;
     const steps=['道号','灵根','宗门','天赋','性格','确认'];
     let dots=steps.map((s,i)=>`<div class="step-dot ${i<step?'done':''} ${i===step?'active':''}">${i+1}</div>`).join('');
     let body='';
     if(step===0){
-      body=`<h3>起一个道号</h3><input class="form-input" id="create-name" placeholder="输入你的道号" value="${cfg.name}" maxlength="8"><div class="sex-select" style="margin-top:12px;text-align:center"><span style="color:var(--text-secondary);margin-right:8px">性别:</span><button class="btn btn-sm ${cfg.sex==='male'?'btn-gold':'btn-outline'}" id="sex-male" style="margin-right:4px">男</button><button class="btn btn-sm ${cfg.sex==='female'?'btn-gold':'btn-outline'}" id="sex-female">女</button></div>`;
+      body=`<h3><label for="create-name">起一个道号</label></h3><input class="form-input" id="create-name" placeholder="输入你的道号" value="${escapeHtml(cfg.name)}" maxlength="8" autocomplete="off"><div class="sex-select" style="margin-top:12px;text-align:center"><span style="color:var(--text-secondary);margin-right:8px">性别:</span><button class="btn btn-sm ${cfg.sex==='male'?'btn-gold':'btn-outline'}" id="sex-male" aria-pressed="${cfg.sex==='male'}" style="margin-right:4px">男</button><button class="btn btn-sm ${cfg.sex==='female'?'btn-gold':'btn-outline'}" id="sex-female" aria-pressed="${cfg.sex==='female'}">女</button></div>`;
     }else if(step===1){
       body='<h3>选择灵根</h3><div class="spirit-root-options">';
       SPIRIT_ROOTS.forEach(sr=>{
-        body+=`<div class="spirit-root-option ${cfg.spiritRoot===sr.id?'selected':''}" data-id="${sr.id}"><div class="option-icon">${sr.icon}</div><div class="option-name">${sr.name}</div><div class="option-desc">${sr.desc}</div><div class="option-stats">攻×${sr.atkMul} 防×${sr.defMul} 血×${sr.hpMul} 灵×${sr.spiMul}</div></div>`;
+        body+=`<button type="button" class="spirit-root-option ${cfg.spiritRoot===sr.id?'selected':''}" data-id="${sr.id}" aria-pressed="${cfg.spiritRoot===sr.id}"><span class="option-icon">${sr.icon}</span><span class="option-name">${sr.name}</span><span class="option-desc">${sr.desc}</span><span class="option-stats">攻×${sr.atkMul} 防×${sr.defMul} 血×${sr.hpMul} 灵×${sr.spiMul}</span></button>`;
       });
       body+='</div>';
     }else if(step===2){
       body='<h3>选择宗门</h3><div class="sect-options">';
       SECTS.forEach(s=>{
-        body+=`<div class="sect-option ${cfg.sect===s.id?'selected':''}" data-id="${s.id}"><div class="option-icon">${s.icon}</div><div class="option-name">${s.name}</div><div class="option-desc">${s.desc}</div></div>`;
+        body+=`<button type="button" class="sect-option ${cfg.sect===s.id?'selected':''}" data-id="${s.id}" aria-pressed="${cfg.sect===s.id}"><span class="option-icon">${s.icon}</span><span class="option-name">${s.name}</span><span class="option-desc">${s.desc}</span></button>`;
       });
       body+='</div>';
     }else if(step===3){
@@ -2008,13 +2015,13 @@ class GuiguUI {
       TALENTS.forEach(t=>{
         const sel=cfg.talents.includes(t.id);
         const dis=!sel&&cfg.talents.length>=2;
-        body+=`<div class="talent-option ${sel?'selected':''} ${dis?'disabled':''}" data-id="${t.id}"><div class="option-name">${t.name}</div><div class="option-desc">${t.desc}</div></div>`;
+        body+=`<button type="button" class="talent-option ${sel?'selected':''} ${dis?'disabled':''}" data-id="${t.id}" aria-pressed="${sel}" aria-disabled="${dis}"><span class="option-name">${t.name}</span><span class="option-desc">${t.desc}</span></button>`;
       });
       body+='</div>';
     }else if(step===4){
       body='<h3>选择性格</h3><div class="personality-options">';
       PERSONALITIES.forEach(p=>{
-        body+=`<div class="personality-option ${cfg.personality===p.id?'selected':''}" data-id="${p.id}"><div class="option-name">${p.name}</div><div class="option-desc">${p.desc}</div></div>`;
+        body+=`<button type="button" class="personality-option ${cfg.personality===p.id?'selected':''}" data-id="${p.id}" aria-pressed="${cfg.personality===p.id}"><span class="option-name">${p.name}</span><span class="option-desc">${p.desc}</span></button>`;
       });
       body+='</div>';
     }else if(step===5){
@@ -2023,7 +2030,7 @@ class GuiguUI {
       const ts=cfg.talents.map(id=>TALENTS_MAP[id].name).join('、');
       const pers=PERSONALITIES_MAP[cfg.personality];
       body=`<h3>确认角色</h3><div class="create-confirm">
-        <div class="confirm-row"><span class="label">道号</span><span class="value">${cfg.name}</span></div>
+        <div class="confirm-row"><span class="label">道号</span><span class="value">${escapeHtml(cfg.name)}</span></div>
         <div class="confirm-row"><span class="label">性别</span><span class="value">${cfg.sex==='male'?'男':'女'}</span></div>
         <div class="confirm-row"><span class="label">灵根</span><span class="value">${sr?sr.name:''}</span></div>
         <div class="confirm-row"><span class="label">宗门</span><span class="value">${sect?sect.name:''}</span></div>
@@ -2038,13 +2045,21 @@ class GuiguUI {
     else nav+='<button class="btn btn-gold" id="create-confirm">踏入鬼谷</button>';
     nav+='</div>';
 
-    el.innerHTML=`<span class="back-to-slots" id="back-slots">← 返回存档</span><h2>创建角色</h2><div class="step-indicator">${dots}</div><div class="create-step active">${body}</div>${nav}`;
+    el.innerHTML=`<button type="button" class="back-to-slots" id="back-slots">← 返回存档</button><h2>创建角色</h2><div class="step-indicator" aria-label="第 ${step+1} 步：${steps[step]}">${dots}</div><div class="create-step active">${body}</div>${nav}`;
     this._bindCreateEvents();
+    this._restoreCreateFocus({id:focusedId,option:focusedOption});
+  }
+
+  _restoreCreateFocus(options){
+    if(options.id){document.getElementById(options.id)?.focus({preventScroll:true});return}
+    if(!options.option)return;
+    this._getEl('char-create').querySelector(`button[data-id="${CSS.escape(options.option)}"]`)?.focus({preventScroll:true});
   }
 
   _bindCreateEvents(){
     const el=this._getEl('char-create');
     const cfg=this.createConfig;
+    document.getElementById('create-name')?.addEventListener('input',event=>{cfg.name=event.target.value});
     document.getElementById('back-slots')?.addEventListener('click',()=>this.renderSlotSelection());
     document.getElementById('sex-male')?.addEventListener('click',()=>{cfg.sex='male';this._renderCreateStep()});
     document.getElementById('sex-female')?.addEventListener('click',()=>{cfg.sex='female';this._renderCreateStep()});
@@ -2094,10 +2109,12 @@ class GuiguUI {
     // Clear incremental map render caches so the grid is rebuilt for the new/loaded game
     this._mapCells=null;
     this._mapStates=null;
+    this._routeTarget=null;
     this._getEl('char-create').style.display='none';
     this._getEl('guigu-game').style.display='';
     this.setupTabs();
     this.bindOverviewQuickActions();
+    this._selectGameTab('map');
     this.refreshUI();
     this.game.checkAchievements();
     if(typeof CrossGameAchievements!=='undefined'){
@@ -2158,11 +2175,15 @@ class GuiguUI {
     tabs.addEventListener('click',e=>{
       const btn=e.target.closest('.guigu-tab');
       if(!btn)return;
-      this.currentTab=btn.dataset.tab;
-      tabs.querySelectorAll('.guigu-tab').forEach(t=>t.classList.toggle('active',t===btn));
-      document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===this.currentTab));
+      this._selectGameTab(btn.dataset.tab);
       this.renderCurrentPanel();
     });
+  }
+
+  _selectGameTab(tab){
+    this.currentTab=tab;
+    this._getEl('guigu-tabs').querySelectorAll('.guigu-tab').forEach(button=>button.classList.toggle('active',button.dataset.tab===tab));
+    document.querySelectorAll('.guigu-panel').forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===tab));
   }
 
   bindOverviewQuickActions(){
@@ -2205,9 +2226,7 @@ class GuiguUI {
         this._showWudaoTraining();
         return;
       case 'map':
-        this.currentTab='map';
-        this._getEl('guigu-tabs').querySelectorAll('.guigu-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab==='map'));
-        document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel==='map'));
+        this._selectGameTab('map');
         this.renderMapPanel();
         return;
       case 'save':
@@ -2242,9 +2261,7 @@ class GuiguUI {
       const nextTab=tabs[nextIdx];
       if(!nextTab)return;
       e.preventDefault();
-      this.currentTab=nextTab.dataset.tab;
-      tabs.forEach(t=>t.classList.toggle('active',t===nextTab));
-      document.querySelectorAll('.guigu-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===this.currentTab));
+      this._selectGameTab(nextTab.dataset.tab);
       this.renderCurrentPanel();
     });
   }
@@ -2465,14 +2482,16 @@ class GuiguUI {
     if(!this._mapCells){
       this._mapCells=[];
       this._mapStates=[];
-      el.innerHTML='<div class="panel-title">大地图</div><div class="map-container"><div class="map-grid" id="map-grid-container"></div><div class="map-info" id="map-info-container"></div></div><div class="map-detail-sidebar empty" id="map-detail-sidebar"><span>点击已探索的格子查看详情</span></div>';
+      el.innerHTML='<div class="map-container"><section class="atlas-chart" aria-label="探索地图"><div class="map-grid" id="map-grid-container" aria-label="八荒地图，方向键选择地块，回车移动或规划路线"></div></section><aside class="atlas-sidebar" aria-label="当前位置与行动"><div class="map-info" id="map-info-container"></div><div class="map-detail-sidebar empty" id="map-detail-sidebar"></div></aside></div>';
       const gridContainer=document.getElementById('map-grid-container');
       const frag=document.createDocumentFragment();
       for(let y=0;y<mapSize;y++){
         this._mapCells[y]=[];
         this._mapStates[y]=[];
         for(let x=0;x<mapSize;x++){
-          const cell=document.createElement('div');
+          const cell=document.createElement('button');
+          cell.type='button';
+          cell.tabIndex=-1;
           cell.className='map-cell';
           cell.dataset.x=x;
           cell.dataset.y=y;
@@ -2493,38 +2512,10 @@ class GuiguUI {
         }
         // Handle movement for adjacent cells
         if(cellEl.classList.contains('adjacent')){
-          const r=this.game.moveTo(cx,cy);
-          if(r&&r.error){showToast(r.error,'error');return}
-          if(r&&r.encounter){
-            const enc=r.encounter;
-            if(enc.type==='monster'){
-              this.game.startBattle(enc.monster);
-              this.showBattleModal();
-            }
-            if(enc.material){
-              showToast('获得 '+enc.material.name,'success');
-            }
-            if(enc.spiritBeast){
-              setTimeout(()=>{
-                showToast('灵兽出没！发现'+enc.spiritBeast.monster.name+'！','success');
-                this.game.startBattle(enc.spiritBeast.monster);
-                this.showBattleModal();
-              },enc.type==='monster'?0:300);
-            }
-            if(enc.randomEvent){
-              showToast(enc.randomEvent.text,'success');
-            }
-            if(enc.ambush){
-              setTimeout(()=>{
-                showToast('遭遇伏击！'+enc.ambush.monster.name+'突然出现！','error');
-                this.game.startBattle(enc.ambush.monster);
-                this.showBattleModal();
-              },enc.type==='monster'?0:300);
-            }
-          }
-          this.refreshUI();
+          this._travelToCell({x:cx,y:cy});
         }
       });
+      this._mountMapAtlas(el);
     }
 
     // Incrementally update only changed cells
@@ -2561,11 +2552,13 @@ class GuiguUI {
           cellEl.className=cls;
           // Rebuild style (territory overlay)
           cellEl.style.cssText=territoryColor?'background:'+territoryColor+';':'';
+          cellEl.disabled=!explored;
+          cellEl.setAttribute('aria-label',explored?`${locName||t.name}，坐标 ${x}, ${y}${isPlayer?'，当前位置':''}`:`未探索区域，坐标 ${x}, ${y}`);
           // Rebuild innerHTML
           let innerHtml='';
-          if(explored)innerHtml+=t.icon;
+          if(explored)innerHtml+=GuiguAtlas.terrainIcon(t.cls);
           if(hasNpc&&!isPlayer)innerHtml+='<div class="npc-dot"></div>';
-          if(locName)innerHtml+='<span class="map-cell-label">'+locName+'</span>';
+          if(locName)innerHtml+='<span class="map-cell-label">'+escapeHtml(locName)+'</span>';
           cellEl.innerHTML=innerHtml;
         }
       }
@@ -2575,16 +2568,81 @@ class GuiguUI {
     const curTerrain=TERRAIN[s.map[s.position.y][s.position.x].terrain];
     const npcsHere=s.npcs.filter(n=>n.alive&&n.position.x===s.position.x&&n.position.y===s.position.y);
     const curTerritory=territoryMap[s.position.x+','+s.position.y];
-    let infoHtml=`<div class="location-name">${curTerrain.icon} ${curTerrain.name}${curTerritory?' <span style="font-size:0.8rem;color:var(--text-muted)">（'+curTerritory.name+'领地）</span>':''}</div><div class="location-desc">坐标 (${s.position.x}, ${s.position.y}) | 危险等级 ${'★'.repeat(curTerrain.danger)||'安全'}</div>`;
+    const currentCell=s.map[s.position.y][s.position.x];
+    let infoHtml=`<div class="atlas-section-label">当前所在</div><div class="location-name">${escapeHtml(currentCell.locName||curTerrain.name)}${curTerritory?' <span style="font-size:0.8rem;color:var(--text-muted)">（'+curTerritory.name+'领地）</span>':''}</div><div class="location-desc">${curTerrain.name} · (${s.position.x}, ${s.position.y}) · ${curTerrain.danger?'危险 '+curTerrain.danger:'安全地带'}</div>`;
     if(npcsHere.length)infoHtml+=`<div style="margin-top:8px;font-size:0.8rem;color:var(--text-secondary)">此处修士: ${npcsHere.map(n=>n.name).join('、')}</div>`;
-    infoHtml+=`<div class="map-legend" style="margin-top:12px">${TERRAIN.map(t=>`<span class="legend-item"><span class="legend-color terrain-${t.cls}" style="display:inline-block;width:12px;height:12px;border-radius:2px"></span>${t.icon}${t.name}</span>`).join('')}</div>`;
     const infoEl=this._getEl('map-info-container');
     if(infoEl)infoEl.innerHTML=infoHtml;
+    if(this._routeTarget)this._showMapCellDetail(this._routeTarget.x,this._routeTarget.y,el,territoryMap);
+    else this._updateMapAtlas(el);
+  }
+
+  _mountMapAtlas(panel){
+    GuiguAtlas.mount({
+      panel,terrain:TERRAIN,costs:TIME_COSTS,directions:GuiguRoute.DIRECTIONS,
+      getPosition:()=>this.game.state.position,
+      onMove:position=>this._travelToCell(position),
+      onAction:action=>this.handleOverviewQuickAction(action),
+      onViewportChange:()=>this._updateMapAtlas(panel),
+      onStep:()=>{
+        const path=this._getMapRoute();
+        if(path&&path.length)this._travelToCell(path[0]);
+      },
+    });
+  }
+
+  _getMapRoute(){
+    if(!this._routeTarget)return null;
+    const s=this.game.state;
+    return GuiguRoute.getKnownRoute({fog:s.fog,start:s.position,destination:this._routeTarget});
+  }
+
+  _updateMapAtlas(panel){
+    GuiguAtlas.update({
+      panel,state:this.game.state,terrain:TERRAIN,selected:this._routeTarget,
+      path:this._getMapRoute(),stepDays:this.game.getTravelDays(),
+      viewport:GuiguRoute.getViewport({map:this.game.state.map,position:this.game.state.position,overview:panel.dataset.atlasScale==='full'}),
+    });
+  }
+
+  _travelToCell(position){
+    const result=this.game.moveTo(position.x,position.y);
+    if(!result)return;
+    if(result.error){showToast(result.error,'error');return}
+    this._handleMapEncounter(result.encounter);
+    this.refreshUI();
+  }
+
+  _handleMapEncounter(encounter){
+    if(!encounter)return;
+    if(encounter.type==='monster'){
+      this.game.startBattle(encounter.monster);
+      this.showBattleModal();
+    }
+    if(encounter.material)showToast('获得 '+encounter.material.name,'success');
+    if(encounter.randomEvent)showToast(encounter.randomEvent.text,'success');
+    const delay=encounter.type==='monster'?0:MAP_ENCOUNTER_DELAY_MS;
+    if(encounter.spiritBeast){
+      this._scheduleMapEncounter({monster:encounter.spiritBeast.monster,delay,type:'success',message:'灵兽出没！发现'+encounter.spiritBeast.monster.name+'！'});
+    }
+    if(encounter.ambush){
+      this._scheduleMapEncounter({monster:encounter.ambush.monster,delay,type:'error',message:'遭遇伏击！'+encounter.ambush.monster.name+'突然出现！'});
+    }
+  }
+
+  _scheduleMapEncounter(options){
+    setTimeout(()=>{
+      showToast(options.message,options.type);
+      this.game.startBattle(options.monster);
+      this.showBattleModal();
+    },options.delay);
   }
 
   /* === 地图格子详情侧边栏 === */
   _showMapCellDetail(cx,cy,el,territoryMap){
     const s=this.game.state;if(!s)return;
+    this._routeTarget={x:cx,y:cy};
+    const walkingPath=this._getMapRoute();
     const sidebar=this._getEl('map-detail-sidebar');
     if(!sidebar)return;
     const cell=s.map[cy][cx];
@@ -2625,13 +2683,13 @@ class GuiguUI {
       <div class="map-detail-header">
         <div class="detail-icon">${t.icon}</div>
         <div>
-          <div class="detail-title">${cell.locName||t.name}</div>
+          <div class="detail-title">${escapeHtml(cell.locName||t.name)}</div>
           <div class="detail-subtitle">${t.name}${territory?' - '+territory.name+'领地':''}</div>
         </div>
       </div>
       <div class="map-detail-row"><span class="label">坐标</span><span class="value">(${cx}, ${cy})</span></div>
       <div class="map-detail-row"><span class="label">危险等级</span><span class="value"><span class="danger-indicator">${dangerHtml}</span></span></div>
-      <div class="map-detail-row"><span class="label">距离</span><span class="value">${dist===0?'当前位置':dist+'步'}</span></div>
+      <div class="map-detail-row"><span class="label">步行路程</span><span class="value">${dist===0?'当前位置':walkingPath?walkingPath.length+'步':'尚未连通'}</span></div>
       ${resHtml}${npcHtml}${teleportHtml}`;
     // Highlight selected cell
     el.querySelectorAll('.map-cell.detail-selected').forEach(c=>c.classList.remove('detail-selected'));
@@ -2651,6 +2709,7 @@ class GuiguUI {
         if(r&&r.success){showToast('传送至'+r.locName+'，花费'+r.cost+'灵石','success');this.refreshUI()}
       });
     }
+    this._updateMapAtlas(el);
   }
 
   /* === 历练面板 === */

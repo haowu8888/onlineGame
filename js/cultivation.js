@@ -132,6 +132,7 @@
 
   // 悟道值需求：每个境界突破前需要积累的悟道值
   const INSIGHT_REQUIREMENTS = [0, 30, 80, 150, 300, 600, 1200, 2500];
+  const MEDITATION_INSIGHT_PER_SECOND = 0.1;
 
   const SPIRIT_ROOTS = [
     { id: 'gold', name: '金灵根', desc: '攻击+20%', icon: '⚔️', atkMul: 1.2, defMul: 1.0, expMul: 1.0 },
@@ -1325,7 +1326,7 @@
       }
       // 悟道值积累（打坐时每tick +0.1）
       if (this.data.realm < REALMS.length - 1) {
-        this.data.insight = (this.data.insight || 0) + 0.1;
+        this.data.insight = (this.data.insight || 0) + MEDITATION_INSIGHT_PER_SECOND;
       }
       // 打坐秒数 (用于任务)
       this.data.meditateSeconds = (this.data.meditateSeconds || 0) + 1;
@@ -3399,7 +3400,9 @@
 
     startAutoSave() {
       this.autoSaveInterval = setInterval(() => this.save(), 30000);
-      window.addEventListener('beforeunload', () => this.save());
+      window.addEventListener('beforeunload', () => {
+        if (!window.GameSaveTransfer?.isReloading) this.save();
+      });
     }
 
     startTick(callback) {
@@ -3460,7 +3463,7 @@
       for (let i = 1; i <= 3; i++) {
         const info = CultivationGame.getSlotInfo(i);
         if (info) {
-          html += `<div class="save-slot"><div class="slot-info"><div class="slot-name">${info.name}</div><div class="slot-realm">${info.realm}</div><div class="slot-details">${info.sect} | 击杀: ${info.totalKills}</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-enter="${i}">进入</button><button class="btn btn-outline btn-sm" data-delete="${i}" style="color:var(--red);">删除</button></div></div>`;
+          html += `<div class="save-slot"><div class="slot-info"><div class="slot-name">${escapeHtml(info.name)}</div><div class="slot-realm">${escapeHtml(info.realm)}</div><div class="slot-details">${escapeHtml(info.sect)} | 击杀: ${info.totalKills}</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-enter="${i}">进入</button><button class="btn btn-outline btn-sm" data-delete="${i}" style="color:var(--red);">删除</button></div></div>`;
         } else {
           html += `<div class="save-slot"><div class="slot-info"><div class="slot-empty">空存档</div></div><div class="slot-actions"><button class="btn btn-cyan btn-sm" data-create="${i}">创建角色</button></div></div>`;
         }
@@ -3491,9 +3494,9 @@
 
     showCharCreate(slot) {
       this.charCreateEl.innerHTML = `
-        <div class="back-to-slots" id="back-slots">← 返回存档列表</div>
+        <button type="button" class="back-to-slots" id="back-slots">← 返回存档列表</button>
         <h2>踏入仙途</h2>
-        <div class="form-group"><label class="form-label">道号</label><input type="text" class="form-input" id="char-name" placeholder="请输入你的道号" maxlength="12"></div>
+        <div class="form-group"><label class="form-label" for="char-name">道号</label><input type="text" class="form-input" id="char-name" placeholder="请输入你的道号" maxlength="12" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">灵根</label><div class="spirit-root-options" id="spirit-roots"></div></div>
         <div class="form-group"><label class="form-label">门派</label><div class="sect-options" id="sects"></div></div>
         <button class="btn btn-gold btn-lg" style="width:100%;margin-top:16px;" id="btn-create">踏入仙途</button>
@@ -3503,12 +3506,12 @@
       const rootsEl = document.getElementById('spirit-roots');
       const sectsEl = document.getElementById('sects');
 
-      rootsEl.innerHTML = SPIRIT_ROOTS.map(sr => `<div class="spirit-root-option" data-id="${sr.id}"><div class="option-name">${sr.icon} ${sr.name}</div><div class="option-desc">${sr.desc}</div></div>`).join('');
-      sectsEl.innerHTML = SECTS.map(s => `<div class="sect-option" data-id="${s.id}"><div class="option-name">${s.icon} ${s.name}</div><div class="option-desc">${s.desc}</div></div>`).join('');
+      rootsEl.innerHTML = SPIRIT_ROOTS.map(sr => `<button type="button" class="spirit-root-option" data-id="${sr.id}" aria-pressed="false"><span class="option-name">${sr.icon} ${sr.name}</span><span class="option-desc">${sr.desc}</span></button>`).join('');
+      sectsEl.innerHTML = SECTS.map(s => `<button type="button" class="sect-option" data-id="${s.id}" aria-pressed="false"><span class="option-name">${s.icon} ${s.name}</span><span class="option-desc">${s.desc}</span></button>`).join('');
 
       let selectedRoot = null, selectedSect = null;
-      rootsEl.addEventListener('click', e => { const opt = e.target.closest('.spirit-root-option'); if (!opt) return; rootsEl.querySelectorAll('.spirit-root-option').forEach(o => o.classList.remove('selected')); opt.classList.add('selected'); selectedRoot = opt.dataset.id; });
-      sectsEl.addEventListener('click', e => { const opt = e.target.closest('.sect-option'); if (!opt) return; sectsEl.querySelectorAll('.sect-option').forEach(o => o.classList.remove('selected')); opt.classList.add('selected'); selectedSect = opt.dataset.id; });
+      rootsEl.addEventListener('click', e => { const opt = e.target.closest('.spirit-root-option'); if (!opt) return; CultivationWorkbench.selectChoice({ container: rootsEl, option: opt }); selectedRoot = opt.dataset.id; });
+      sectsEl.addEventListener('click', e => { const opt = e.target.closest('.sect-option'); if (!opt) return; CultivationWorkbench.selectChoice({ container: sectsEl, option: opt }); selectedSect = opt.dataset.id; });
 
       document.getElementById('btn-create').addEventListener('click', () => {
         const name = document.getElementById('char-name').value.trim();
@@ -3824,7 +3827,7 @@
         <div class="meditation-visual ${this.game.meditating ? 'meditating' : ''}">🧘</div>
         <div class="cultivation-info" id="cult-info">修炼速度：<strong>${rate} 修为/秒</strong> ${this.game.meditating ? '（修炼中...）' : '（已停止）'}${isDeviation ? `<span class="deviation-warning"> ⚠️ 走火入魔中 (${deviationRemain}s)</span>` : ''}</div>
         <div class="cultivation-actions"><button class="btn ${this.game.meditating ? 'btn-outline' : 'btn-cyan'} btn-sm" id="btn-meditate">${this.game.meditating ? '停止修炼' : '开始修炼'}</button><button class="btn btn-outline btn-sm" id="btn-meditation-game" style="margin-left:8px;">灵气吐纳 (小游戏)</button></div>
-        ${nextRealm ? `<div class="breakthrough-area"><div class="breakthrough-info" id="cult-break-info">下一境界：<strong>${nextRealm.name}</strong> | 需要修为：${formatNumber(nextRealm.expReq)} | 基础成功率：${Math.floor(displayRate * 100)}%${pillCount > 0 ? ` (有${pillCount}颗丹药可用)` : ''}</div>
+        ${nextRealm ? `<div class="breakthrough-area"><div class="breakthrough-info" id="cult-break-info">基础成功率 ${Math.floor(displayRate * 100)}%${pillCount > 0 ? ` · ${pillCount}颗丹药可用` : ''}</div>
         <div class="insight-area">
           <div class="insight-label" id="cult-insight-label">悟道值：${insightInfo.current} / ${insightInfo.required}</div>
           <div class="progress-bar insight-bar"><div class="progress-fill insight-fill ${insightInfo.sufficient ? 'sufficient' : ''}" id="cult-insight-fill" style="width:${insightPct}%"></div></div>
@@ -3833,6 +3836,12 @@
         ${this.game.canRebirth() ? '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border-color);"><div style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:8px;">轮回次数：<strong style="color:var(--gold);">' + d.rebirthCount + '</strong> | 轮回加成：攻/防/血+' + (d.rebirthCount * 5) + '% 修炼+' + (d.rebirthCount * 15) + '%</div><button class="btn btn-gold btn-sm" id="btn-rebirth">轮回转世</button><button class="btn btn-outline btn-sm" id="btn-rebirth-preview" style="margin-left:8px;">轮回预览</button><span style="font-size:0.75rem;color:var(--text-muted);margin-left:8px;">保留功法、成就，携带部分灵石重新开始</span></div>' : (d.rebirthCount > 0 ? '<div style="margin-top:12px;font-size:0.8rem;color:var(--gold);">轮回×' + d.rebirthCount + ' | 加成：攻/防/血+' + (d.rebirthCount * 5) + '% 修炼+' + (d.rebirthCount * 15) + '%</div>' : '')}
         <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border-color);"><button class="btn btn-outline btn-sm" id="btn-back-slots">返回存档列表</button></div>
       </div>${this.renderQuestBoard()}${this.renderBountyBoard()}`;
+      CultivationWorkbench.mount({
+        panel,
+        onNavigate: tab => document.querySelector(`.cult-tab[data-tab="${tab}"]`).click(),
+        onClaim: index => this._claimCultivationQuest(index),
+      });
+      this._updateCultivationWorkbench(panel);
 
       panel.querySelector('#btn-meditate').addEventListener('click', () => { this.game.meditating = !this.game.meditating; this.renderCultivatePanel(); });
       panel.querySelector('#btn-meditation-game').addEventListener('click', () => { this._showMeditationMinigame(); });
@@ -3936,17 +3945,6 @@
           alert(`【轮回预览 - 第${nextCount}世】\n\n起始境界: ${startRealm}\n携带灵石: ${formatNumber(goldCarry)}\n攻击加成: +${atkBonus}%\n防御加成: +${defBonus}%\n血量加成: +${hpBonus}%\n修炼加速: +${expBonus}%\n\n保留: 功法、成就、称号、宗门(50%贡献)\n重置: 装备、灵宠、背包、境界`);
         });
       }
-      // Quest claim buttons
-      panel.querySelectorAll('.quest-claim-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.dataset.quest);
-          if (this.game.claimQuest(idx)) {
-            showToast('任务奖励已领取！', 'success');
-            this.renderCultivatePanel();
-            this.renderStatusBar();
-          }
-        });
-      });
       // Bounty buttons
       panel.querySelectorAll('.bounty-choice').forEach(el => {
         el.addEventListener('click', () => {
@@ -3970,6 +3968,31 @@
           this.game.abandonBounty();
           this.renderCultivatePanel();
         }
+      });
+    }
+
+    _claimCultivationQuest(index) {
+      if (!this.game.claimQuest(index)) return;
+      showToast('任务奖励已领取！', 'success');
+      this.renderCultivatePanel();
+      this.renderStatusBar();
+    }
+
+    _updateCultivationWorkbench(panel) {
+      const d = this.game.data;
+      const nextRealm = d.realm < REALMS.length - 1 ? REALMS[d.realm + 1] : null;
+      const model = CultivationFocus.getGoal({
+        exp: d.exp, insight: d.insight || 0,
+        expRate: this.game.getExpRate(), insightRate: MEDITATION_INSIGHT_PER_SECOND,
+        nextRealm, insightRequired: this.game.getInsightProgress().required,
+        meditating: this.game.meditating,
+      });
+      CultivationWorkbench.updateGoal({
+        panel, model, name: d.name, realmName: REALMS[d.realm].name,
+        formatNumber, formatDuration: CultivationFocus.formatDuration,
+      });
+      CultivationWorkbench.updateQuests({
+        panel, quests: d.dailyQuests || [], questStatus: CultivationFocus.questStatus,
       });
     }
 
@@ -4008,6 +4031,8 @@
         breakBtn.className = `btn ${canBreak ? 'btn-gold' : 'btn-outline'} btn-sm`;
         breakBtn.textContent = canBreak ? '尝试突破' : (expInsufficient ? '修为不足' : '悟道不足');
         breakBtn.setAttribute('aria-disabled', canBreak ? 'false' : 'true');
+        if (canBreak) delete breakBtn.dataset.disabledReason;
+        else breakBtn.dataset.disabledReason = expInsufficient ? '修为不足' : '悟道不足';
       }
 
       // Update quest progress bars and text
@@ -4021,6 +4046,7 @@
         if (fill) fill.style.width = pct + '%';
         if (text) text.textContent = `${q.progress}/${q.target}`;
       });
+      this._updateCultivationWorkbench(panel);
     }
 
     // --- 战斗面板 ---

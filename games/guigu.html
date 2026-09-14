@@ -3,15 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="鬼谷八荒 - 寿命有尽，大道无穷。探索鬼谷世界，悟道修行，历心魔试炼，踏上成仙之路。">
+  <meta name="theme-color" content="#0a0e1a">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <title>鬼谷八荒 - 仙界游坊</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
   <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="../css/shared.css">
-  <link rel="stylesheet" href="../css/guigu.css">
+  <link rel="stylesheet" href="../css/shared.css?v=33">
+  <link rel="stylesheet" href="../css/pwa.css?v=33">
+  <link rel="stylesheet" href="../css/guigu.css?v=33">
+  <link rel="stylesheet" href="../css/game-shell.css?v=33">
+  <link rel="stylesheet" href="../css/guigu-journey.css?v=33">
 </head>
-<body>
+<body class="game-page guigu-page">
   <div class="app-loading"><div class="app-loading-spinner"></div></div>
   <div class="particles-container" id="particles"></div>
   <nav class="game-nav">
@@ -34,9 +41,9 @@
 
         <!-- Tab导航 -->
         <div class="guigu-tabs" id="guigu-tabs">
-          <button class="guigu-tab active" data-tab="overview">总览</button>
+          <button class="guigu-tab active" data-tab="map">大地图</button>
+          <button class="guigu-tab" data-tab="overview">总览</button>
           <button class="guigu-tab" data-tab="cultivate">修炼</button>
-          <button class="guigu-tab" data-tab="map">大地图</button>
           <button class="guigu-tab" data-tab="adventure">历练</button>
           <button class="guigu-tab" data-tab="npc">人物</button>
           <button class="guigu-tab" data-tab="craft">炼制</button>
@@ -51,9 +58,9 @@
         </div>
 
         <!-- Tab面板 -->
-        <div class="guigu-panel active" id="panel-overview" data-panel="overview"></div>
+        <div class="guigu-panel" id="panel-overview" data-panel="overview"></div>
         <div class="guigu-panel" id="panel-cultivate" data-panel="cultivate"></div>
-        <div class="guigu-panel" id="panel-map" data-panel="map"></div>
+        <div class="guigu-panel active" id="panel-map" data-panel="map"></div>
         <div class="guigu-panel" id="panel-adventure" data-panel="adventure"></div>
         <div class="guigu-panel" id="panel-npc" data-panel="npc"></div>
         <div class="guigu-panel" id="panel-craft" data-panel="craft"></div>
@@ -68,7 +75,23 @@
       </div>
     </div>
   </div>
-  <script src="../js/shared.js" defer></script>
-  <script src="../js/guigu.js" defer></script>
+  <script src="../js/shared-storage.js?v=33" defer></script>
+  <script src="../js/shared.js?v=33" defer></script>
+  <script src="../js/shared-data.js?v=33" defer></script>
+  <script src="../js/shared-ui.js?v=33" defer></script>
+  <script src="../js/shared-dialog.js?v=33" defer></script>
+  <script src="../js/shared-transfer.js?v=33" defer></script>
+  <script src="../js/shared-stats.js?v=33" defer></script>
+  <script src="../js/shared-missions.js?v=33" defer></script>
+  <script src="../js/shared-daily-ui.js?v=33" defer></script>
+  <script src="../js/shared-nav.js?v=33" defer></script>
+  <script src="../js/shared-settings.js?v=33" defer></script>
+  <script src="../js/shared-sound.js?v=33" defer></script>
+  <script src="../js/shared-lifecycle.js?v=33" defer></script>
+  <script src="../js/shared-guide.js?v=33" defer></script>
+  <script src="../js/pwa-updates.js?v=33" defer></script>
+  <script src="../js/guigu-route.js?v=33" defer></script>
+  <script src="../js/guigu-atlas.js?v=33" defer></script>
+  <script src="../js/guigu.js?v=33" defer></script>
 </body>
 </html>

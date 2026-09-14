@@ -865,7 +865,7 @@
       // 仙缘兑换: 永久加成
       var lsBonuses = Storage.get('xianyuan_lifesim_bonuses', { luck: 0 });
       if (lsBonuses.luck > 0) {
-        this.data.attrs.luck = (this.data.attrs.luck || 0) + lsBonuses.luck;
+        this.data.attrs.luk += lsBonuses.luck;
       }
 
       this.log = [];
@@ -1605,14 +1605,14 @@
       this.hideAll();
       this.startEl.classList.remove('hidden');
 
-      let html = '<h2>仙途模拟器</h2><p class="subtitle">投胎修仙界，一世一轮回</p>';
+      let html = '<p class="ls-kicker">一世一卷 · 命由己书</p><h2>仙途模拟器</h2><p class="subtitle">从初生到暮年，每个选择都是你的故事。</p>';
       html += '<div class="slot-grid">';
       for (let i = 1; i <= 3; i++) {
         const info = LifeSimGame.getSlotInfo(i);
         if (info) {
-          html += `<div class="save-slot"><div class="slot-info"><div class="slot-name">${info.name}</div><div class="slot-realm">${info.realm}</div><div class="slot-details">年龄: ${info.age}岁</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-enter="${i}">继续</button><button class="btn btn-outline btn-sm" data-delete="${i}" style="color:var(--red);">删除</button></div></div>`;
+          html += `<div class="save-slot"><span class="ls-volume">卷 ${String(i).padStart(2, '0')}</span><div class="slot-info"><div class="slot-name">${escapeHtml(info.name)}</div><div class="slot-realm">${escapeHtml(info.realm)}</div><div class="slot-details">${info.age}岁 · 未完待续</div></div><div class="slot-actions"><button class="btn btn-gold btn-sm" data-enter="${i}">续写此生</button><button class="btn btn-outline btn-sm" data-delete="${i}" style="color:var(--red);">删除</button></div></div>`;
         } else {
-          html += `<div class="save-slot"><div class="slot-info"><div class="slot-empty">空存档</div></div><div class="slot-actions"><button class="btn btn-cyan btn-sm" data-create="${i}">新建角色</button></div></div>`;
+          html += `<div class="save-slot empty"><span class="ls-volume">卷 ${String(i).padStart(2, '0')}</span><div class="slot-info"><div class="slot-empty">此生尚未落笔</div><p class="slot-details">投胎修仙界，开启一段人生</p></div><div class="slot-actions"><button class="btn btn-cyan btn-sm" data-create="${i}">新建角色</button></div></div>`;
         }
       }
       html += '</div>';
@@ -1624,7 +1624,7 @@
       this.startEl.innerHTML = html;
 
       // Event delegation for slot selection buttons
-      this.startEl.addEventListener('click', (e) => {
+      this.startEl.onclick = (e) => {
         const target = e.target.closest('[data-enter],[data-delete],[data-create]');
         if (!target) return;
         if (target.dataset.enter) {
@@ -1646,7 +1646,7 @@
         } else if (target.dataset.create) {
           this.showStartScreen(parseInt(target.dataset.create));
         }
-      });
+      };
 
       const achBtn = this.startEl.querySelector('#btn-ls-achievements');
       if (achBtn) {
@@ -1663,6 +1663,9 @@
     }
 
     hideAll() {
+      if (this._autoAdvanceTimer) clearTimeout(this._autoAdvanceTimer);
+      this.startEl.onclick = null;
+      this.gameEl.onclick = null;
       this.startEl.classList.add('hidden');
       this.gameEl.classList.remove('active');
       this.endingEl.classList.remove('active');
@@ -1806,7 +1809,7 @@
                 ${Object.entries(ATTR_NAMES).map(([key, name]) => `
                   <div class="attr-row">
                     <span class="attr-label">${name}</span>
-                    <input type="range" class="attr-slider" data-attr="${key}" min="1" max="10" value="${attrs[key]}">
+                    <input type="range" class="attr-slider" data-attr="${key}" aria-label="${name}" min="1" max="10" value="${attrs[key]}">
                     <span class="attr-val" id="val-${key}">${attrs[key]}</span>
                   </div>
                   <div class="attr-desc">${ATTR_DESCS[key]}</div>
@@ -2263,20 +2266,12 @@
           <div class="ls-info-item"><div class="ls-info-label">道号</div><div class="ls-info-value">${escapeHtml(d.name)}</div></div>
           <div class="ls-info-item"><div class="ls-info-label">年龄</div><div class="ls-info-value cyan">${d.age}岁</div></div>
           <div class="ls-info-item"><div class="ls-info-label">阶段</div><div class="ls-info-value">${stage.name}</div></div>
-          <div class="ls-info-item"><div class="ls-info-label">境界</div><div class="ls-info-value purple">${(CULTIVATION_REALMS[d.realm] || CULTIVATION_REALMS[0]).name}</div></div>
-          <div class="ls-info-item"><div class="ls-info-label">金币</div><div class="ls-info-value">${d.gold}</div></div>
+          <div class="ls-info-item"><div class="ls-info-label">境界</div><div class="ls-info-value purple" data-stat="realm">${(CULTIVATION_REALMS[d.realm] || CULTIVATION_REALMS[0]).name}</div></div>
+          <div class="ls-info-item"><div class="ls-info-label">金币</div><div class="ls-info-value" data-stat="gold">${d.gold}</div></div>
         </div>
         ${sectHTML}${challengeHTML}${extraBadgesHTML}
         ${talentHTML}
-        <div class="ls-attr-bars">
-          ${Object.entries(ATTR_NAMES).map(([key, name]) => `
-            <div class="ls-attr-bar">
-              <span class="ls-attr-name">${name}</span>
-              <div class="ls-attr-fill-bg"><div class="ls-attr-fill ${key}" style="width:${d.attrs[key] * 10}%"></div></div>
-              <span class="ls-attr-num">${d.attrs[key]}</span>
-            </div>
-          `).join('')}
-        </div>
+        <div class="ls-attr-bars"></div>
         ${relDetailHTML}
         ${relHTML}
         ${itemHTML}
@@ -2306,18 +2301,17 @@
         </div>
         <div class="ls-log-area">
           <div class="ls-log-title" style="display:flex;justify-content:space-between;align-items:center;">人生历程<button class="btn btn-outline btn-sm" id="btn-history" style="font-size:0.75rem;padding:2px 8px;">📜 历程</button></div>
-          ${this.game.log.slice(-15).reverse().map(l => `<div class="ls-log-entry">${l}</div>`).join('')}
         </div>
       `;
 
-      document.getElementById('btn-history')?.addEventListener('click', () => {
-        this._showHistoryLog();
-      });
-
+      LifeJournalView.mount({ container: this.gameEl, data: d, stages: STAGES, model: LifeJournal, labels: ATTR_NAMES });
+      this._refreshLifeSheet();
       const choicesEl = document.getElementById('event-choices');
+      let choiceSettled = false;
       choicesEl.addEventListener('click', (e) => {
         const btn = e.target.closest('.ls-choice-btn');
-        if (!btn) return;
+        if (!btn || choiceSettled) return;
+          choiceSettled = true;
           const idx = parseInt(btn.dataset.choice);
           const choice = event.choices[idx];
 
@@ -2346,6 +2340,8 @@
           this.game.clampAttrs();
 
           this.game.log.push(`<span class="log-age">[${d.age}岁]</span> ${event.title}: ${resultText}`);
+          this.game.saveState();
+          this._refreshLifeSheet();
 
           // 显示属性变化飘字
           for (const key of Object.keys(ATTR_NAMES)) {
@@ -2361,9 +2357,10 @@
           const isPositive = resultText.includes('+') && !resultText.includes('-');
           const resultClass = isNegative ? 'result-negative' : isPositive ? 'result-positive' : '';
           eventArea.querySelector('.ls-event-choices').innerHTML = `
-            <div class="ls-event-result ${resultClass}">${resultText}</div>
+            <div class="ls-event-result ${resultClass}">${escapeHtml(resultText)}</div>
             <button class="btn btn-gold btn-sm ls-continue-btn" id="btn-continue">继续</button>
           `;
+          this._showChoiceChanges({ beforeAttrs, beforeGold, container: eventArea });
 
           document.getElementById('btn-continue').addEventListener('click', () => {
             if (this._autoAdvanceTimer) clearTimeout(this._autoAdvanceTimer);
@@ -2389,17 +2386,41 @@
       }
 
       // Item buttons - event delegation on gameEl
-      this.gameEl.addEventListener('click', (e) => {
-        const btn = e.target.closest('.ls-item-btn');
-        if (!btn) return;
-        const itemId = btn.dataset.item;
-        const result = this.game.useItem(itemId);
-        if (result) {
-          showToast(result, 'success');
-          this.game.saveState();
-          this.renderGameUI(event);
-        }
+      this.gameEl.onclick = e => this._useItemFromButton(e);
+    }
+
+    _refreshLifeSheet() {
+      const data = this.game.data;
+      LifeJournalView.refreshStats({
+        container: this.gameEl, data, maxLife: this.game.getMaxLifespan(),
+        realmName: (CULTIVATION_REALMS[data.realm] || CULTIVATION_REALMS[0]).name,
       });
+      LifeJournalView.renderRecent({
+        container: this.gameEl, logs: this.game.log, model: LifeJournal,
+        onOpen: () => this._showHistoryLog(),
+      });
+    }
+
+    _showChoiceChanges({ beforeAttrs, beforeGold, container }) {
+      LifeJournalView.showChanges({
+        container, model: LifeJournal, labels: { ...ATTR_NAMES, gold: '金币' },
+        before: { ...beforeAttrs, gold: beforeGold },
+        after: { ...this.game.data.attrs, gold: this.game.data.gold },
+      });
+    }
+
+    _useItemFromButton(event) {
+      const button = event.target.closest('.ls-item-btn');
+      if (!button) return;
+      const itemId = button.dataset.item;
+      const result = this.game.useItem(itemId);
+      if (!result) return;
+      showToast(result, 'success');
+      this.game.saveState();
+      const item = this.game.data.items.find(entry => entry.id === itemId);
+      if (item) button.textContent = `${GAME_ITEMS_MAP[itemId].icon}×${item.count}`;
+      else button.remove();
+      this._refreshLifeSheet();
     }
 
     showEnding() {
@@ -2484,6 +2505,7 @@
           ${ngHTML}
           <div class="ending-actions">
             <button class="btn btn-gold" id="btn-reincarnate">再来一世</button>
+            <button class="btn btn-outline" id="btn-ending-history">查阅此生手札</button>
             <button class="btn btn-outline" id="btn-back-portal" onclick="location.href='../index.html'">返回游坊</button>
           </div>
         </div>
@@ -2492,6 +2514,7 @@
       document.getElementById('btn-reincarnate').addEventListener('click', () => {
         this.renderSlotSelection();
       });
+      document.getElementById('btn-ending-history').addEventListener('click', () => this._showHistoryLog());
 
       // Show new achievement toasts
       newAchs.forEach((a, i) => {
@@ -2527,11 +2550,16 @@
           <div class="ls-info-item"><div class="ls-info-label">道号</div><div class="ls-info-value">${escapeHtml(d.name)}</div></div>
           <div class="ls-info-item"><div class="ls-info-label">年龄</div><div class="ls-info-value cyan">${d.age}岁</div></div>
           <div class="ls-info-item"><div class="ls-info-label">阶段</div><div class="ls-info-value">${stage.name}</div></div>
-          <div class="ls-info-item"><div class="ls-info-label">境界</div><div class="ls-info-value purple">${(CULTIVATION_REALMS[d.realm] || CULTIVATION_REALMS[0]).name}</div></div>
-          <div class="ls-info-item"><div class="ls-info-label">金币</div><div class="ls-info-value">${d.gold}</div></div>
+          <div class="ls-info-item"><div class="ls-info-label">境界</div><div class="ls-info-value purple" data-stat="realm">${(CULTIVATION_REALMS[d.realm] || CULTIVATION_REALMS[0]).name}</div></div>
+          <div class="ls-info-item"><div class="ls-info-label">金币</div><div class="ls-info-value" data-stat="gold">${d.gold}</div></div>
         </div>
         ${sectHTML}${talentHTML}
         ${relDetailHTML}
+        <div class="ls-attr-bars"></div>
+        <div class="ls-life-bar-wrap">
+          <div class="ls-life-bar-label"><span>寿命 ${d.age} / ${maxLife}岁</span><span>${lifePct.toFixed(0)}%</span></div>
+          <div class="ls-life-bar-bg"><div class="ls-life-bar-fill ${lifePct > 80 ? 'low' : ''}" style="width:${lifePct}%"></div></div>
+        </div>
         <div class="ls-event-area" id="event-area">
           <div class="ls-event-icon">🎯</div>
           <div class="ls-event-title">自由行动</div>
@@ -2542,16 +2570,14 @@
         </div>
         <div class="ls-log-area">
           <div class="ls-log-title" style="display:flex;justify-content:space-between;align-items:center;">人生历程<button class="btn btn-outline btn-sm" id="btn-history" style="font-size:0.75rem;padding:2px 8px;">📜 历程</button></div>
-          ${this.game.log.slice(-15).reverse().map(l => `<div class="ls-log-entry">${l}</div>`).join('')}
         </div>
       `;
 
-      document.getElementById('btn-history')?.addEventListener('click', () => {
-        this._showHistoryLog();
-      });
+      LifeJournalView.mount({ container: this.gameEl, data: d, stages: STAGES, model: LifeJournal, labels: ATTR_NAMES });
+      this._refreshLifeSheet();
 
       // Event delegation for action cards
-      this.gameEl.addEventListener('click', (e) => {
+      this.gameEl.onclick = (e) => {
         const btn = e.target.closest('.ls-action-card');
         if (!btn) return;
           const actionId = btn.dataset.action;
@@ -2690,7 +2716,9 @@
           const eventArea = document.getElementById('event-area');
           const isNeg = resultText.includes('-') && !resultText.includes('+');
           const isPos = resultText.includes('+') && !resultText.includes('-');
-          const resultDisplay = resultText.replace(/\n/g, '<br>');
+          const resultDisplay = escapeHtml(resultText).replace(/\n/g, '<br>');
+          this.game.saveState();
+          this._refreshLifeSheet();
 
           // Deep action follow-up choices (Phase 5H, 20% chance)
           const followup = this._getFollowupChoices(actionId, d);
@@ -2704,6 +2732,7 @@
                 ${followup.choices.map((c, i) => `<button class="btn btn-outline btn-sm followup-choice" data-fi="${i}">${c.text}</button>`).join('')}
               </div>
             `;
+            this._showChoiceChanges({ beforeAttrs, beforeGold, container: eventArea });
             eventArea.querySelectorAll('.followup-choice').forEach(btn => {
               btn.addEventListener('click', () => {
                 const fi = parseInt(btn.dataset.fi);
@@ -2714,9 +2743,12 @@
                 eventArea.innerHTML = `
                   <div class="ls-event-icon">${action.icon}</div>
                   <div class="ls-event-title">${action.name}</div>
-                  <div class="ls-event-result result-positive">${fResult}</div>
+                  <div class="ls-event-result result-positive">${escapeHtml(fResult)}</div>
                   <button class="btn btn-gold btn-sm ls-continue-btn" id="btn-continue">继续</button>
                 `;
+                this.game.saveState();
+                this._refreshLifeSheet();
+                this._showChoiceChanges({ beforeAttrs, beforeGold, container: eventArea });
                 document.getElementById('btn-continue').addEventListener('click', () => {
                   if (this._autoAdvanceTimer) clearTimeout(this._autoAdvanceTimer);
                   this.game.saveState();
@@ -2734,6 +2766,7 @@
             <div class="ls-event-result ${isNeg ? 'result-negative' : isPos ? 'result-positive' : ''}">${resultDisplay}</div>
             <button class="btn btn-gold btn-sm ls-continue-btn" id="btn-continue">继续</button>
           `;
+          this._showChoiceChanges({ beforeAttrs, beforeGold, container: eventArea });
 
           document.getElementById('btn-continue').addEventListener('click', () => {
             if (this._autoAdvanceTimer) clearTimeout(this._autoAdvanceTimer);
@@ -2741,7 +2774,7 @@
             this.showNextEvent();
           });
           this._scheduleAutoAdvance('btn-continue');
-      });
+      };
     }
 
     // --- 突破小游戏 ---
@@ -3549,29 +3582,11 @@
     }
 
     _showHistoryLog() {
-      const existing = document.getElementById('history-modal');
-      if (existing) existing.remove();
-      const modal = document.createElement('div');
-      modal.id = 'history-modal';
-      // `.modal-overlay` (shared.css) needs `.active` or it will be invisible/non-interactive.
-      modal.className = 'modal-overlay active';
-      modal.style.zIndex = '3000';
-      modal.style.padding = '20px';
-      const logs = this.game.log || [];
-      let logHtml = logs.length === 0 ? '<p style="color:var(--text-muted)">暂无历程记录</p>' :
-        logs.map((entry, i) => `<div style="padding:6px 0;border-bottom:1px solid rgba(212,164,74,0.1);font-size:0.85rem;color:var(--text-secondary)"><span style="color:var(--gold);margin-right:8px">${i + 1}.</span>${typeof entry === 'string' ? entry : entry.text || JSON.stringify(entry)}</div>`).join('');
-      modal.innerHTML = `<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);max-width:500px;width:100%;max-height:70vh;display:flex;flex-direction:column;">
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center">
-          <h3 style="margin:0;font-family:var(--font-display);color:var(--gold)">📜 修仙历程</h3>
-          <button class="btn btn-sm btn-outline" id="close-history">关闭</button>
-        </div>
-        <div style="padding:12px 20px;overflow-y:auto;flex:1">${logHtml}</div>
-      </div>`;
-      document.body.appendChild(modal);
-      const content = modal.querySelector('div > div:last-child');
-      if (content) content.scrollTop = content.scrollHeight;
-      document.getElementById('close-history').addEventListener('click', () => modal.remove());
-      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+      if (this._autoAdvanceTimer) clearTimeout(this._autoAdvanceTimer);
+      LifeJournalView.openHistory({
+        logs: this.game.log, stages: STAGES, model: LifeJournal, Focus: ModalFocus,
+        onClose: () => this._scheduleAutoAdvance('btn-continue'),
+      });
     }
 
     showNgPlusPanel() {
@@ -3603,7 +3618,7 @@
 
       document.getElementById('back-slots').addEventListener('click', () => this.renderSlotSelection());
 
-      this.startEl.addEventListener('click', (e) => {
+      this.startEl.onclick = (e) => {
         const btn = e.target.closest('[data-ng-perk]');
         if (!btn) return;
         const perkId = btn.dataset.ngPerk;
@@ -3611,7 +3626,7 @@
           showToast('升级成功！', 'success');
           this.showNgPlusPanel();
         }
-      });
+      };
     }
 
     showEndingGallery() {
@@ -3678,11 +3693,13 @@
   if (!window._lifesimHotkeysBound) {
     window._lifesimHotkeysBound = true;
     document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(activeTag)) return;
+      if (document.querySelector('.modal-overlay.active')) return;
       const btn = document.getElementById('btn-qte-proceed') || document.getElementById('btn-continue');
-      if (btn) {
+      if (btn && btn.getClientRects().length > 0) {
         e.preventDefault();
         btn.click();
       }

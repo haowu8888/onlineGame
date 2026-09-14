@@ -1,0 +1,149 @@
+body.cultivation-page {
+  --game-max-width: 1160px;
+  --bg-primary: #111c19;
+  --bg-secondary: #15231f;
+  --bg-card: #1b2c26;
+  --bg-card-hover: #263c32;
+  --border-color: #35483e;
+  --text-primary: #f1eee1;
+  --text-secondary: #becabd;
+  --text-muted: #94a79a;
+  --gold: #cead72;
+  --gold-dark: #8d7448;
+  --gold-light: #e7c998;
+  --cyan: #9bcbb0;
+  --cyan-dark: #547e65;
+  --purple-light: #b0cbbd;
+  --blue: #9bc1c4;
+  --font-display: "LXGW WenKai", "STKaiti", "KaiTi", serif;
+  background-image: radial-gradient(ellipse at 85% 0, #29423655, transparent 65%);
+}
+.cultivation-page .cult-game { max-width: none; padding: 0; }
+.cultivation-page .status-bar { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; margin-bottom: 15px; }
+.cultivation-page .status-item { border: 0; border-left: 1px solid var(--border-color); border-radius: 0; background: none; padding: 0 12px; text-align: left; }
+.cultivation-page .status-item:first-child { border-left: 0; padding-left: 0; }
+.cultivation-page .status-value { color: var(--text-primary); font-size: 14px; overflow-wrap: anywhere; }
+.cultivation-page .status-label { font-size: 11px; letter-spacing: .05em; }
+.cultivation-page .exp-bar-wrap, .cultivation-page .spirit-bar-wrap { border: 0; background: none; padding: 8px 0 0; margin: 0; }
+.cultivation-page .exp-bar-wrap { grid-column: 1 / 5; padding-right: 24px; }
+.cultivation-page .spirit-bar-wrap { grid-column: 5 / 8; }
+.cultivation-page .progress-bar { height: 4px; background: #0d1915; border-radius: 2px; }
+.cultivation-page .progress-fill { background: var(--cyan); box-shadow: none; }
+.cultivation-page #sb-companion-slot:empty { display: none; }
+.cultivation-page .cult-tabs { gap: 0; margin-bottom: 20px; padding: 0; border-bottom: 1px solid var(--border-color); border-radius: 0; background: none; }
+.cultivation-page .cult-tab { color: var(--text-secondary); flex: 1 0 auto; min-height: 44px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 10px 13px; font-size: 13px; }
+.cultivation-page .cult-tab.active { color: var(--gold-light); border-bottom-color: var(--gold); background: #d2ae7510; box-shadow: none; }
+.cultivation-page .cult-panel { padding: 22px; border-radius: 10px; border-color: var(--border-color); background: #1a2b24; }
+.cultivation-page #panel-cultivate { padding: 0; border: 0; background: none; }
+.cultivation-workbench { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); gap: 0; text-align: left; }
+.retreat-stage { min-height: 395px; position: relative; isolation: isolate; overflow: hidden; background: #203b2e; border: 1px solid var(--border-color); border-radius: 12px 0 0 12px; }
+.retreat-heading { position: absolute; top: 25px; left: 27px; z-index: 2; }
+.retreat-kicker { color: var(--text-secondary); font-size: 11px; letter-spacing: .22em; }
+.retreat-heading h2 { font-family: var(--font-display); font-size: 30px; letter-spacing: .12em; line-height: 1.5; margin: 6px 0; }
+.retreat-realm { display: inline-block; font-size: 12px; color: #c8d4b3; border-left: 2px solid var(--gold); padding-left: 10px; }
+.retreat-seal { position: absolute; top: 29px; right: 25px; z-index: 1; border: 1px solid #cead7290; padding: 5px 6px; color: var(--gold); font-family: var(--font-display); line-height: 1.3; font-size: 15px; }
+.cultivation-page .retreat-stage .meditation-visual { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; border: 0; border-radius: 0; display: block; background: none; animation: none; box-shadow: none; }
+.retreat-stage .meditation-visual img { width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: .91; }
+.retreat-stage .meditation-visual::after { content: ''; position: absolute; width: 98px; height: 98px; left: calc(51.5% - 49px); top: 53%; border: 1px solid #bfdaaa40; border-radius: 50%; opacity: 0; }
+.retreat-stage .meditation-visual.meditating::after { animation: retreat-breathe 5s ease-out infinite; }
+.retreat-controls { position: absolute; inset: auto 0 0; padding: 23px 27px; background: linear-gradient(transparent, #102017 38%); }
+.cultivation-page .retreat-controls .cultivation-info { margin: 0 0 13px; font-size: 12px; }
+.cultivation-page .retreat-controls .cultivation-actions { margin: 0; justify-content: flex-start; gap: 10px; }
+.cultivation-page .retreat-controls .btn { min-height: 40px; padding: 9px 17px; }
+.cultivation-page #btn-meditation-game { margin-left: 0 !important; }
+.cultivation-page .retreat-goal { margin: 0; padding: 27px; border: 1px solid var(--border-color); border-left: 0; border-radius: 0 12px 12px 0; background: #1c2e25; }
+.retreat-goal h3 { margin: 5px 0 1px; font-family: var(--font-display); font-size: 28px; letter-spacing: .09em; color: var(--text-primary); }
+.retreat-readiness { font-size: 12px; margin: 0 0 20px; color: var(--text-muted); }
+.retreat-goal.is-ready .retreat-readiness { color: var(--cyan); }
+.retreat-progress-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; margin-bottom: 7px; }
+.retreat-progress-label strong { color: var(--cyan); font-weight: 500; font-variant-numeric: tabular-nums; }
+.retreat-exp { margin-bottom: 12px; }
+.cultivation-page .retreat-goal .breakthrough-info { font-size: 11px; margin: 0 0 12px; color: var(--text-muted); }
+.cultivation-page .retreat-goal .insight-area { margin: 0; padding: 0; background: none; border: 0; }
+.cultivation-page .retreat-goal .insight-label { text-align: left; color: var(--text-secondary); font-size: 12px; margin-bottom: 7px; }
+.cultivation-page .retreat-goal .insight-fill { background: var(--gold); }
+.retreat-estimate { margin: 15px 0 13px; font-size: 11px; color: var(--text-secondary); min-height: 19px; }
+.cultivation-page #btn-breakthrough { width: 100%; min-height: 43px; }
+.retreat-paths { display: flex; flex-direction: column; gap: 2px; margin-top: 13px; }
+.retreat-text-button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 0; font-size: 12px; font-family: inherit; color: var(--text-secondary); background: none; border: 0; cursor: pointer; }
+.retreat-text-button:hover { color: var(--gold-light); }
+.retreat-footer { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 10px; }
+.retreat-footer > div { margin-top: 0 !important; padding-top: 0 !important; border: 0 !important; }
+.retreat-footer > div:last-child { margin-left: auto; }
+.cultivation-page .retreat-footer .btn { padding: 6px 0; color: var(--text-muted); border: 0; background: none; box-shadow: none; }
+.cultivation-page .quest-board { margin-top: 17px; padding-top: 16px; }
+.cultivation-page .quest-board h4 { font-size: 14px; letter-spacing: .06em; }
+.cultivation-page .quest-grid { display: block; }
+.cultivation-page .quest-card { display: grid; grid-template-columns: 150px 1fr 108px; gap: 2px 20px; text-align: left; padding: 15px 0; border: 0; border-bottom: 1px solid var(--border-color); border-radius: 0; background: none; }
+.cultivation-page .quest-card.completable { background: #b7b97a06; }
+.cultivation-page .quest-name { grid-column: 1; grid-row: 1; font-size: 13px; color: var(--text-primary); margin: 0; }
+.cultivation-page .quest-desc { grid-column: 1; grid-row: 2; margin: 0; font-size: 11px; }
+.cultivation-page .quest-progress-bar { grid-column: 2; grid-row: 1; align-self: center; height: 3px; margin: 0; }
+.cultivation-page .quest-progress-text { grid-column: 3; grid-row: 1; font-size: 11px; margin: 0; text-align: right; }
+.cultivation-page .quest-reward { grid-column: 2; grid-row: 2; font-size: 11px; margin: 0; }
+.cultivation-page .quest-card .quest-claim-btn, .cultivation-page .quest-status { grid-column: 3; grid-row: 2 / 4; justify-self: end; align-self: center; }
+.cultivation-page .quest-card.claimed { opacity: .65; }
+.cultivation-page .char-create { max-width: 740px; margin: 30px auto; padding: 36px; border-radius: 12px; box-shadow: 0 20px 70px #08120b40; }
+.cultivation-page .char-create h2 { font-size: 28px; letter-spacing: .16em; }
+.cultivation-page .spirit-root-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cultivation-page .sect-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cultivation-page :is(.spirit-root-option, .sect-option) { font-family: inherit; color: var(--text-primary); padding: 17px 8px; }
+.cultivation-page :is(.spirit-root-option, .sect-option) span { display: block; }
+.cultivation-page .back-to-slots { border: 0; background: none; color: var(--text-secondary); padding: 7px 0; font: inherit; font-size: 12px; cursor: pointer; }
+@keyframes retreat-breathe { 0% { opacity: 0; transform: scale(.8); } 30% { opacity: .8; } 100% { opacity: 0; transform: scale(1.7); } }
+@media (max-width: 850px) {
+  .cultivation-workbench { grid-template-columns: minmax(0, 1.3fr) minmax(270px, 1fr); }
+  .retreat-stage { min-height: 405px; }
+  .retreat-heading { left: 22px; }
+  .retreat-controls { padding: 24px 22px; }
+  .cultivation-page .retreat-goal { padding: 25px 20px; }
+  .cultivation-page .cult-tabs { overflow-x: auto; flex-wrap: nowrap; }
+}
+@media (max-width: 620px) {
+  .cultivation-page .status-bar { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 10px; }
+  .cultivation-page .status-item { padding: 0 9px; }
+  .cultivation-page .status-item:first-child { padding-left: 0; }
+  .cultivation-page .status-item:nth-child(5) { padding-left: 0; border-left: 0; }
+  .cultivation-page .status-item:nth-child(7) { grid-column: 3 / 5; }
+  .cultivation-page .status-value { font-size: 12px; }
+  .cultivation-page .status-label { font-size: 10px; }
+  .cultivation-page .exp-bar-wrap { grid-column: 1 / 3; padding-right: 12px; }
+  .cultivation-page .spirit-bar-wrap { grid-column: 3 / 5; }
+  .cultivation-page :is(.exp-bar-label, .spirit-bar-label) { font-size: 10px; }
+  .cultivation-page .cult-tabs { margin-bottom: 14px; }
+  .cultivation-page .cult-tab { padding: 10px 15px; }
+  .cultivation-page .cult-panel { padding: 15px; }
+  .cultivation-workbench { grid-template-columns: 1fr; }
+  .retreat-stage { min-height: 310px; border-radius: 10px 10px 0 0; }
+  .retreat-heading { top: 20px; left: 20px; }
+  .retreat-heading h2 { font-size: 25px; }
+  .retreat-stage .meditation-visual img { object-position: 51% center; }
+  .retreat-seal { top: 22px; right: 22px; }
+  .retreat-controls { padding: 20px; }
+  .cultivation-page .retreat-goal { display: flex; flex-direction: column; padding: 21px 20px; border-left: 1px solid var(--border-color); border-top: 0; border-radius: 0 0 10px 10px; }
+  .retreat-goal-heading { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+  .retreat-goal-heading .retreat-kicker { grid-column: 1; font-size: 10px; }
+  .retreat-goal h3 { grid-column: 1; margin-top: 2px; font-size: 25px; }
+  .retreat-readiness { grid-column: 2; grid-row: 1 / 3; margin: 0; text-align: right; font-size: 11px; }
+  .cultivation-page #btn-breakthrough { order: 1; margin: 12px 0 3px; }
+  .retreat-exp { order: 2; margin-top: 14px; }
+  .cultivation-page .retreat-goal .insight-area { order: 3; }
+  .cultivation-page .retreat-goal .breakthrough-info { order: 4; margin: 12px 0 0; }
+  .retreat-estimate { order: 5; }
+  .retreat-paths { order: 6; flex-direction: row; gap: 24px; }
+  .retreat-text-button { min-height: 36px; font-size: 11px; }
+  .cultivation-page .quest-card { grid-template-columns: 1fr 98px; gap: 3px 14px; }
+  .cultivation-page .quest-name { grid-column: 1; grid-row: 1; }
+  .cultivation-page .quest-desc { grid-column: 1; grid-row: 2; }
+  .cultivation-page .quest-progress-bar { grid-column: 1; grid-row: 3; margin: 5px 0; }
+  .cultivation-page .quest-progress-text { grid-column: 2; grid-row: 1; }
+  .cultivation-page .quest-reward { grid-column: 1; grid-row: 4; font-size: 10px; }
+  .cultivation-page .quest-card .quest-claim-btn, .cultivation-page .quest-status { grid-column: 2; grid-row: 2 / 5; }
+  .cultivation-page .char-create { margin: 12px auto; padding: 22px 18px; }
+  .cultivation-page .spirit-root-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cultivation-page .sect-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .retreat-stage .meditation-visual.meditating::after { animation: none; }
+  .cultivation-page .progress-fill, .cultivation-page .quest-progress-fill { transition: none; }
+}

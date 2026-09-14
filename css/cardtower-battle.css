@@ -1,0 +1,145 @@
+.cardtower-page .ct-battle-panel {
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px 24px;
+  background: linear-gradient(180deg, #2c49474f, #14282a0a); border: 1px solid var(--border-color); border-radius: 10px;
+}
+.ct-battle-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--text-muted); font-size: 12px; }
+.ct-battle-topline h1 { color: var(--text-secondary); font: 20px/1.4 var(--font-display); margin: 0; }
+#ct-turn-count { font-family: Consolas, "Microsoft YaHei", monospace; white-space: nowrap; }
+.cardtower-page .ct-enemy-area {
+  display: flex; justify-content: center; align-items: flex-start; flex-wrap: wrap; gap: 22px;
+  min-height: 214px; padding: 2px 0 10px; margin: 0; position: relative;
+  background: radial-gradient(ellipse at center 70%, #91b5a019, transparent 65%);
+}
+.cardtower-page .ct-enemy { position: relative; width: 240px; padding: 0 14px; border: 0; border-radius: 0; background: none; box-shadow: none; text-align: center; }
+.cardtower-page .ct-enemy.boss-enemy { width: 280px; border: 0; box-shadow: none; }
+.cardtower-page .ct-enemy-intent { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 30px; padding: 5px 12px; margin: 0 auto 8px; border: 1px solid #d78f7f50; background: #d78f7f0b; border-radius: 5px; line-height: 1.5; }
+.ct-enemy-intent > span { color: var(--text-muted); font-size: 10px; }
+.ct-enemy-intent > strong { font-size: 12px; font-weight: 500; color: var(--red); }
+.cardtower-page .ct-enemy-intent.intent-defend { border-color: #99c4b04d; background: #99c4b009; }
+.ct-enemy-intent.intent-defend > strong { color: var(--cyan); }
+.cardtower-page .ct-enemy-intent.intent-special { border-color: #cfb47750; background: #cfb47709; }
+.ct-enemy-intent.intent-special > strong { color: var(--gold); }
+.ct-enemy-portrait { height: 94px; display: grid; place-items: center; color: var(--gold); position: relative; }
+.ct-enemy-portrait::before { content: ""; position: absolute; width: 88px; height: 88px; border: 1px solid #cfb4771f; border-radius: 50%; }
+.ct-enemy-portrait .ct-sigil { width: 80px; height: 90px; filter: drop-shadow(0 8px 15px #101f2550); }
+.ct-enemy-heading { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 5px 0 8px; }
+.cardtower-page .ct-enemy-name { color: var(--text-primary); font: 21px var(--font-display); margin: 0; }
+.ct-primary-target { color: var(--text-muted); font-size: 9px; letter-spacing: .01em; border-left: 1px solid var(--border-color); padding-left: 8px; }
+.cardtower-page .ct-enemy-hp-bar { height: 5px; border: 0; border-radius: 2px; background: #102629; width: 86%; margin: 0 auto; }
+.cardtower-page .ct-enemy-hp-fill { background: var(--red); border-radius: 2px; transition: width .2s; }
+.cardtower-page .ct-enemy-hp-text { font: 11px/1.4 Consolas, monospace; color: var(--text-secondary); margin: 5px 0 0; }
+.cardtower-page .ct-enemy-statuses { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 5px; }
+.cardtower-page .ct-intent-next { font-size: 10px; color: var(--text-muted); margin-top: 5px; }
+.cardtower-page .ct-battle-info { margin: 0; padding: 12px 0; background: none; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+.cardtower-page .ct-player-status { display: grid; grid-template-columns: minmax(180px, 1fr) auto; gap: 6px 18px; align-items: center; width: 100%; }
+.ct-character { display: flex; align-items: center; gap: 12px; }
+.ct-character .ct-sigil { width: 30px; height: 42px; color: var(--gold); }
+.ct-character > div { display: grid; gap: 3px; }
+.ct-character strong { color: var(--text-primary); font: 20px/1.2 var(--font-display); }
+.ct-character span { color: var(--text-muted); font-size: 10px; }
+.ct-vitals { display: flex; align-items: center; gap: 24px; }
+.ct-vital { display: grid; gap: 0; }
+.ct-vital > span { color: var(--text-muted); font-size: 10px; }
+.ct-vital > strong { color: var(--text-primary); font: 24px/1.2 Consolas, monospace; }
+.ct-vital strong > small { color: var(--text-muted); font-size: 11px; }
+.ct-vital.energy > strong { color: var(--gold); }
+.ct-vital.block > strong { color: var(--cyan); }
+.ct-conditions { display: flex; gap: 5px; flex-wrap: wrap; }
+.ct-condition { display: inline-flex; align-items: center; border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 9px; border-radius: 4px; padding: 1px 5px; }
+.ct-build-details { text-align: right; font-size: 10px; color: var(--text-muted); }
+.ct-build-details summary { cursor: pointer; list-style-position: inside; }
+.ct-build-details > div { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; padding-top: 7px; }
+.cardtower-page .ct-battle-log { margin: 0; padding: 0 4px; min-height: 18px; line-height: 1.5; font-size: 11px; color: var(--text-muted); background: none; text-align: left; }
+.ct-hand-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 3px; }
+.ct-hand-heading h2 { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin: 0; }
+.ct-hand-heading p { font-size: 12px; color: var(--gold); margin: 0; }
+.cardtower-page .ct-hand-area { display: flex; flex-wrap: nowrap; align-items: stretch; justify-content: safe center; gap: 10px; min-height: 0; padding: 8px 4px 12px; margin: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; }
+.cardtower-page .ct-hand-area:has(.ct-card:nth-child(7)) { justify-content: flex-start; }
+.cardtower-page .ct-card {
+  --card-accent: #cfad8b;
+  appearance: none; flex: 0 0 142px; width: 142px; min-height: 208px; height: auto; padding: 12px 10px 0; margin: 0;
+  display: flex; flex-direction: column; align-items: stretch; position: relative; box-sizing: border-box;
+  font-family: inherit; text-align: center; color: var(--text-primary); background: #263d3d;
+  border: 1px solid #789185; border-top: 3px solid var(--card-accent); border-radius: 9px; box-shadow: 0 5px 0 #101f2555;
+  transform: none; transition: transform .15s, border-color .15s; overflow: hidden; cursor: pointer; scroll-snap-align: center;
+}
+.cardtower-page .ct-card.card-defense { --card-accent: #a3c8b7; background: #243f40; }
+.cardtower-page .ct-card.card-spell { --card-accent: #c6c4a8; background: #343f3d; }
+.cardtower-page .ct-card:hover:not(.cant-play) { transform: translateY(-4px); border-color: var(--card-accent); box-shadow: 0 6px 0 #101f2555; }
+.cardtower-page .ct-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.cardtower-page .ct-card.cant-play { opacity: .68; cursor: default; filter: none; }
+.cardtower-page .ct-card.playing { transform: translateY(-18px); opacity: .15; pointer-events: none; }
+.cardtower-page .ct-card.upgraded { border-color: var(--gold); box-shadow: inset 0 0 0 2px #cfb47719; }
+.cardtower-page .ct-card-cost { position: absolute; top: 9px; left: 9px; min-width: 25px; height: 25px; display: grid; place-items: center; padding: 0 3px; border-radius: 50%; font: 19px/1 Consolas, monospace; background: var(--card-accent); color: #19302f; border: 0; box-shadow: none; }
+.cardtower-page .ct-card-cost.discounted { background: var(--cyan); color: var(--bg-primary); }
+.ct-card-key { position: absolute; top: 12px; right: 10px; color: var(--text-muted); opacity: .6; font: 10px Consolas, monospace; }
+.cardtower-page .ct-card-art { display: grid; place-items: center; height: 67px; font-size: initial; margin: 2px 0 4px; color: var(--card-accent); }
+.ct-card-art .ct-sigil { width: 62px; height: 67px; }
+.cardtower-page .ct-card-name { color: var(--text-primary); font: 18px/1.4 var(--font-display); margin: 0; }
+.cardtower-page .ct-card-type { color: var(--card-accent); font-size: 9px; line-height: 1.5; margin: 3px 0 6px; min-height: 14px; }
+.cardtower-page .ct-card-desc { flex: 1; color: var(--text-secondary); font-size: 11px; line-height: 1.65; white-space: pre-line; margin: 0 0 9px; padding: 0; }
+.ct-card-state { display: block; margin: auto -10px 0; padding: 4px 5px; background: #11272b50; color: var(--card-accent); font-size: 9px; border-top: 1px solid #7891852e; }
+.ct-card.cant-play .ct-card-state { color: var(--text-muted); }
+.cardtower-page .ct-battle-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0; margin: 0; }
+.ct-key-help { font-size: 10px; color: var(--text-muted); }
+.ct-mobile-help { display: none; }
+.ct-key-help kbd { display: inline-block; padding: 0 4px; border: 1px solid var(--border-color); border-radius: 3px; font: 10px/1.6 Consolas, monospace; color: var(--text-secondary); }
+.cardtower-page #ct-btn-end-turn { min-width: 122px; color: #15292d; background: var(--gold); border-color: var(--gold); }
+.cardtower-page #ct-btn-end-turn[aria-disabled="true"] { opacity: .6; background: var(--bg-card); color: var(--text-muted); border-color: var(--border-color); }
+@media (min-width: 761px) and (max-height: 760px) {
+  .cardtower-page .ct-game-screen.active { padding: 12px; gap: 12px; grid-template-columns: 192px minmax(0, 1fr); }
+  .cardtower-page .ct-battle-panel { padding: 12px 18px; gap: 7px; }
+  .cardtower-page .ct-enemy-area { min-height: 168px; padding-bottom: 3px; }
+  .ct-enemy-portrait { height: 62px; }
+  .ct-enemy-portrait::before { width: 62px; height: 62px; }
+  .ct-enemy-portrait .ct-sigil { width: 55px; height: 64px; }
+  .cardtower-page .ct-enemy-intent { margin-bottom: 4px; min-height: 26px; padding: 3px 10px; }
+  .cardtower-page .ct-battle-info { padding: 7px 0; }
+  .cardtower-page .ct-card { min-height: 174px; flex-basis: 132px; width: 132px; }
+  .cardtower-page .ct-card-art { height: 45px; }
+  .ct-card-art .ct-sigil { width: 42px; height: 45px; }
+  .cardtower-page .ct-hand-area { padding-top: 5px; padding-bottom: 7px; }
+  .ct-vital > strong { font-size: 21px; }
+}
+@media (max-width: 760px) {
+  .cardtower-page .ct-battle-panel { padding: 12px; gap: 8px; }
+  .ct-battle-topline h1 { font-size: 17px; }
+  #ct-turn-count { font-size: 10px; }
+  .cardtower-page .ct-enemy-area { min-height: 159px; gap: 10px; padding: 0; }
+  .cardtower-page .ct-enemy { width: 220px; padding: 0 5px; }
+  .cardtower-page .ct-enemy-area:has(.ct-enemy:nth-child(2)) .ct-enemy { width: calc(50% - 5px); }
+  .ct-enemy-portrait { height: 64px; }
+  .ct-enemy-portrait::before { width: 64px; height: 64px; }
+  .ct-enemy-portrait .ct-sigil { width: 54px; height: 64px; }
+  .cardtower-page .ct-enemy-intent { gap: 6px; min-height: 26px; padding: 3px 7px; margin-bottom: 4px; }
+  .ct-enemy-intent > strong { font-size: 11px; }
+  .ct-enemy-intent > span { font-size: 9px; }
+  .cardtower-page .ct-enemy-name { font-size: 19px; }
+  .ct-primary-target { font-size: 8px; padding-left: 6px; }
+  .cardtower-page .ct-battle-info { padding: 8px 0; }
+  .cardtower-page .ct-player-status { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .ct-character { display: none; }
+  .ct-vitals { justify-content: space-between; padding: 0 2px; gap: 8px; }
+  .ct-vital { display: flex; align-items: baseline; gap: 6px; }
+  .ct-vital > strong { font-size: 21px; }
+  .ct-vital > span { font-size: 10px; }
+  .ct-conditions { grid-row: 2; grid-column: 1; max-width: 62%; }
+  .ct-build-details { grid-row: 2; grid-column: 1; justify-self: end; align-self: start; }
+  .ct-build-details[open] { grid-row: 3; justify-self: stretch; }
+  .cardtower-page .ct-battle-log { font-size: 10px; min-height: 15px; }
+  .ct-hand-heading h2, .ct-hand-heading p { font-size: 11px; }
+  .cardtower-page .ct-hand-area { justify-content: flex-start; gap: 9px; padding: 6px 3px 10px; }
+  .cardtower-page .ct-card { flex-basis: 133px; width: 133px; min-height: 204px; }
+  .ct-card-key { display: none; }
+  .cardtower-page .ct-card-desc { font-size: 11px; }
+  .cardtower-page .ct-battle-actions { position: sticky; bottom: 0; padding: 5px 0; background: var(--bg-primary); z-index: 2; }
+  .ct-key-help { font-size: 10px; }
+  .ct-key-help kbd { display: none; }
+  .ct-key-help .ct-desktop-help { display: none; }
+  .ct-mobile-help { display: inline; }
+  .cardtower-page #ct-btn-end-turn { min-width: 114px; min-height: 42px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cardtower-page .ct-card, .cardtower-page .ct-enemy-hp-fill { transition: none; }
+  .cardtower-page .ct-card:hover:not(.cant-play) { transform: none; }
+}

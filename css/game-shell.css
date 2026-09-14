@@ -1,0 +1,76 @@
+/* 六款平面游戏共用的操作基础；主题和主体布局由各游戏负责。 */
+.game-page {
+  --nav-height: 56px;
+  --game-nav-inset: clamp(16px, 3vw, 40px);
+  --game-max-width: 1240px;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  line-height: 1.65;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+.game-page .nav {
+  height: var(--nav-height);
+  padding: 0 calc(var(--game-nav-inset) + 44px) 0 var(--game-nav-inset);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: none;
+}
+.game-page .nav-brand { font-size: 17px; letter-spacing: .05em; }
+.game-page .nav-brand::before { content: '←'; margin-right: 9px; font-family: system-ui, sans-serif; }
+.game-page .nav-links { gap: 2px; }
+.game-page .nav-links a { padding: 7px 10px; font-size: 12px; }
+.game-page .nav-daily-btn, .game-page .nav-settings-btn { font-size: 16px; }
+.game-page .page-wrapper { padding-top: var(--nav-height); min-height: 100svh; }
+.game-page .game-container {
+  width: calc(100% - 40px);
+  max-width: var(--game-max-width);
+  margin: 24px auto 60px;
+}
+.game-page .btn {
+  min-height: 40px;
+  border-radius: 7px;
+  padding: 9px 17px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: .025em;
+  touch-action: manipulation;
+}
+.game-page .btn-sm { min-height: 34px; padding: 7px 12px; font-size: 12px; }
+.game-page .btn-lg { min-height: 48px; padding: 12px 25px; font-size: 16px; }
+.game-page .btn-gold { background: var(--gold); box-shadow: 0 3px 0 var(--gold-dark); }
+.game-page .btn-cyan { background: var(--cyan); box-shadow: 0 3px 0 var(--cyan-dark); }
+.game-page .btn-gold:hover:not(:disabled), .game-page .btn-cyan:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+.game-page .btn:active:not(:disabled):not([aria-disabled="true"]) { transform: translateY(1px); }
+.game-page :where(button, a, input, select, summary):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+.game-page .modal { max-height: calc(100dvh - 32px); overflow-y: auto; }
+.game-page .toast { background: var(--bg-card); color: var(--text-primary); }
+.game-page .particles-container { opacity: .32; pointer-events: none; }
+.game-page .sound-toggle {
+  top: calc((var(--nav-height) - 34px) / 2);
+  right: var(--game-nav-inset);
+  bottom: auto;
+  z-index: 1001;
+  width: 34px;
+  height: 34px;
+  font-size: 16px;
+}
+@media (max-width: 768px) {
+  .game-page { --nav-height: 52px; --game-nav-inset: 14px; }
+  .game-page .nav-links { background: var(--bg-secondary); padding: 14px; }
+  .game-page .nav-links a { padding: 12px 16px; font-size: 14px; }
+  .game-page .game-container { width: calc(100% - 24px); margin: 16px auto 40px; }
+  .game-page .btn { min-height: 42px; }
+  .game-page .btn-sm { min-height: 36px; }
+  .game-page .modal { max-height: calc(100dvh - 24px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-page .btn { transition: none; }
+  .game-page .btn:hover, .game-page .btn:active { transform: none; }
+}

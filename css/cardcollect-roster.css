@@ -1,0 +1,237 @@
+/* 青玉名册与五人战阵。 */
+.cardcollect-page {
+  --game-max-width: 1160px;
+  --bg-primary: #e9eee7;
+  --bg-secondary: #f2f4ed;
+  --bg-card: #fbf8ee;
+  --border-color: #c1cec2;
+  --text-primary: #233f46;
+  --text-secondary: #526968;
+  --text-muted: #687d77;
+  --gold: #a77735;
+  --gold-light: #b48341;
+  --gold-dark: #725227;
+  --cyan: #287969;
+  --cyan-dark: #175043;
+  --green: #2b7856;
+  --red: #b14d40;
+  --purple: #7760a0;
+  --purple-light: #765b93;
+  --font-display: 'KaiTi', 'STKaiti', 'LXGW WenKai', serif;
+  --font-main: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  background-image: radial-gradient(ellipse at 80% 0, #d3e2d9 0, transparent 55%);
+}
+.cardcollect-page .particles-container { opacity: .07; }
+.cardcollect-page .btn-cyan { color: #fff9ea; }
+.cardcollect-page .btn-gold { background: #286e60; box-shadow: 0 3px 0 #1d5148; color: #fff8e7; }
+.cardcollect-page .btn-outline { background: #ffffff40; border-color: #a9bbae; }
+.cardcollect-page .cc-container { padding: 0; }
+.cc-masthead { display: flex; justify-content: space-between; align-items: center; gap: 30px; background: #224750; color: #f7f0da; padding: 25px 35px; border-radius: 7px 7px 0 0; border-bottom: 3px solid #ad9564; }
+.cc-masthead h1 { font: 400 47px/1.2 var(--font-display); letter-spacing: .12em; margin: 6px 0 10px; }
+.cc-eyebrow { font-size: 10px; letter-spacing: .25em; color: #bdd0bd; margin: 0; }
+.cc-masthead p:last-child { font-size: 13px; margin: 0; color: #c4d4c9; }
+.cc-masthead-seal { font: 25px/1.25 var(--font-display); border: 1px solid #c0a974; outline: 1px solid #c0a974; outline-offset: 5px; padding: 8px 10px; color: #d9be86; margin-right: 10px; transform: rotate(3deg); }
+.cardcollect-page .cc-header { border: 1px solid #b3c5b8; border-top: 0; background: #d9e4d9; border-radius: 0 0 7px 7px; margin-bottom: 24px; padding: 12px 24px; }
+.cardcollect-page .cc-currency { gap: 8px; font-size: 14px; }
+.cardcollect-page .cc-stone-count { min-width: 0; font: 700 24px/1.2 Georgia, serif; color: #225e55; }
+.cardcollect-page .cc-stone-label { font-size: 12px; }
+.cardcollect-page .cc-stone-icon { font-size: 18px; }
+.cardcollect-page .cc-info { gap: 24px; font-size: 12px; }
+.cardcollect-page .cc-tabs { padding: 0; border: 0; background: transparent; border-bottom: 1px solid #b5c7ba; border-radius: 0; gap: 20px; margin-bottom: 24px; }
+.cardcollect-page .cc-tab { flex: 0 1 150px; padding: 12px 17px 14px; border-radius: 0; font-size: 15px; border-bottom: 3px solid transparent; }
+.cardcollect-page .cc-tab.active { background: transparent; color: #215e53; border-color: #2d7664; }
+.cardcollect-page .cc-tab:hover { background: #dce7db; }
+.cc-section-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 16px; }
+.cardcollect-page .cc-panel-title { color: #2e5056; font: 700 25px var(--font-display); padding: 0; border: 0; margin: 0; }
+.cardcollect-page .cc-panel > .cc-panel-title { margin-bottom: 20px; }
+.cc-team-summary { display: grid; grid-template-columns: repeat(3, 1fr) 1.65fr; gap: 14px; background: #f5f5eb; border: 1px solid #c3cebe; padding: 19px 24px; border-radius: 5px; margin-bottom: 17px; }
+.cc-team-summary > div { border-right: 1px solid #ced5c8; display: flex; flex-direction: column; gap: 5px; }
+.cc-team-summary > div > span { font-size: 11px; color: #697c70; }
+.cc-team-summary strong { font: 400 30px/1.2 Georgia, serif; color: #305f58; font-variant-numeric: tabular-nums; }
+.cc-team-summary strong small { color: #849487; font-size: 16px; }
+.cc-team-summary p { font-size: 12px; margin: 0; align-self: center; line-height: 1.8; }
+.cc-team-summary p small { font-size: 10px; color: #728276; }
+.cc-team-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 9px; margin-bottom: 15px; }
+.cc-team-toolbar label { display: flex; align-items: center; gap: 10px; margin-right: auto; font-size: 12px; color: #5d7268; }
+.cc-team-toolbar select { min-height: 35px; border: 1px solid #b5c5b7; border-radius: 4px; padding: 6px 24px 6px 10px; font: inherit; color: #284e49; background: #f9f9ef; }
+.cardcollect-page .cc-team-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.cardcollect-page :is(.cc-team-slots,.cc-bench-heading) { scroll-margin-top: calc(var(--nav-height) + 12px); }
+.cardcollect-page .cc-team-slot { width: auto; min-height: 270px; padding: 0; border-radius: 6px; background: #f4f2e7; border: 1px solid #bccaba; display: block; overflow: hidden; cursor: default; box-shadow: 0 5px 10px #264a3a08; }
+.cardcollect-page .cc-team-slot.selected { outline: 3px solid #347b65; outline-offset: 3px; background: #e9f0de; }
+.cc-seat-label { display: block; font-size: 10px; letter-spacing: .08em; padding: 8px 12px; color: #788275; border-bottom: 1px solid #c5d0bd; background: #e9ecdd; }
+.cc-team-inspect { padding: 8px 13px 11px; width: 100%; display: flex; flex-direction: column; align-items: center; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; }
+.cc-team-inspect:hover .card-name { color: #248569; }
+.cc-character-art { display: flex; justify-content: center; align-items: center; position: relative; min-height: 142px; width: 100%; padding: 5px 0 7px; }
+.cc-portrait { display: block; width: 110px; height: 132px; max-width: 100%; }
+.cc-gacha-portrait { display: block; width: 100%; height: 96px; margin-bottom: 8px; }
+.cc-collection-portrait { display: block; width: 100%; height: 118px; margin-bottom: 10px; }
+.cc-detail-portrait { display: block; width: 108px; height: 130px; }
+.cc-role-stamp { position: absolute; right: 0; top: 10px; writing-mode: vertical-rl; color: #678366; font: 12px var(--font-display); letter-spacing: .14em; z-index: 1; }
+.cc-team-inspect .card-name { font: 700 20px/1.6 var(--font-display); text-align: center; }
+.cc-team-inspect .card-quality { font-size: 11px; }
+.cc-team-inspect .card-quality > span { color: #708174; }
+.cc-card-attributes { display: flex; justify-content: space-between; gap: 12px; width: 100%; font-size: 10px; color: #758072; border-top: 1px solid #d5d9c9; padding-top: 10px; margin-top: 12px; }
+.cc-card-attributes b { font: 700 16px Georgia, serif; color: #355c50; margin-left: 5px; }
+.cc-seat-actions { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #c8d1bd; }
+.cc-seat-actions button { background: transparent; border: 0; padding: 9px 5px; min-height: 38px; color: #396e57; font-size: 11px; cursor: pointer; }
+.cc-seat-actions button + button { border-left: 1px solid #c8d1bd; color: #8b7060; }
+.cc-seat-actions button[aria-pressed='true'] { background: #32755e; color: #fff8e9; }
+.cc-seat-actions button:hover { background: #dce7cf; }
+.cc-empty-select { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 228px; gap: 11px; border: 0; background: transparent; color: #849a85; cursor: pointer; }
+.cc-empty-select > span { font-size: 35px; line-height: 1; border: 1px dashed #b3c4aa; border-radius: 50%; width: 70px; height: 70px; display: grid; place-items: center; margin-bottom: 7px; }
+.cc-empty-select b { font: 18px var(--font-display); color: #68836d; }
+.cc-empty-select small { font-size: 11px; }
+.cc-empty-select:hover { background: #e8eedc; }
+.cardcollect-page .quality-fan { color: #7e7768; }
+.cardcollect-page .quality-ling { color: #3b7a55; }
+.cardcollect-page .quality-xian { color: #376b85; }
+.cardcollect-page .quality-sheng { color: #a37430; }
+.cardcollect-page .quality-border-fan { border-color: #c2baaa; box-shadow: 0 5px 10px #40563a08; }
+.cardcollect-page .quality-border-ling { border-color: #93b28e; box-shadow: 0 5px 10px #40563a08; }
+.cardcollect-page .quality-border-xian { border-color: #8daebb; box-shadow: 0 5px 10px #40563a08; }
+.cardcollect-page .quality-border-sheng { border-color: #bca56d; box-shadow: 0 5px 10px #40563a08; }
+.cardcollect-page .cc-team-formations { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 11px 15px; border: 1px solid #bed0ba; border-radius: 4px; background: #dfe8d9; margin-bottom: 30px; }
+.cardcollect-page .cc-formation-label { font-size: 11px; color: #627969; margin: 0; }
+.cardcollect-page .cc-formation-tag { background: #f2f6e8; color: #417152; border: 1px solid #bed0b8; border-radius: 3px; font-size: 12px; padding: 4px 8px; }
+.cc-formation-tag small { margin-left: 4px; color: #78907c; font-size: 10px; }
+.cc-formation-hint { font-size: 12px; color: #708170; }
+.cc-bench-heading { margin-bottom: 9px; }
+#cc-roster-count { color: #7c8d7e; font-size: 11px; }
+.cc-selection-help { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+#cc-cancel-slot[hidden] { display: none; }
+#cc-replace-hint { color: #608070; margin: 0; font-size: 12px; }
+.cardcollect-page .cc-bench-filter { gap: 7px; margin-bottom: 15px; }
+.cardcollect-page .cc-filter-btn { background: #f0f3e8; min-height: 34px; font-size: 12px; padding: 6px 17px; border-color: #bbccb7; }
+.cardcollect-page .cc-filter-btn.active { background: #2e745e; border-color: #2e745e; color: #fff8e8; }
+.cardcollect-page .cc-bench-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.cardcollect-page .cc-bench-card { width: auto; background: #f7f5ea; border-width: 1px; border-radius: 5px; padding: 12px 14px 0; cursor: default; opacity: 1; }
+.cardcollect-page .cc-bench-card:hover { transform: none; }
+.cardcollect-page .cc-bench-card.in-team { background: #edf0e2; border-style: solid; }
+.cardcollect-page .cc-bench-card.in-team::after { display: none; }
+.cc-card-topline { display: flex; justify-content: space-between; font-size: 10px; color: #87927e; }
+.cardcollect-page .cc-bench-card .card-name { font: 700 19px/1.5 var(--font-display); color: #35534a; margin: 8px 0 0; text-align: center; }
+.cc-card-skill { margin: 4px 0 2px; text-align: center; font-size: 11px; color: #87917b; }
+.cc-card-comparison { display: flex; justify-content: space-between; font-size: 10px; margin-top: 9px; }
+.cc-card-comparison .positive { color: #28764a; }
+.cc-card-comparison .negative { color: #b55e4b; }
+.cc-card-actions { display: flex; justify-content: space-between; align-items: center; margin: 13px -14px 0; border-top: 1px solid #cbd7bf; font-size: 11px; min-height: 39px; }
+.cc-card-actions button { flex: 1; min-height: 38px; background: transparent; border: 0; color: #2d7456; font-size: 11px; cursor: pointer; }
+.cc-card-actions button:last-child { color: #7c8776; flex: 0 0 48px; border-left: 1px solid #d1d9c5; }
+.cc-card-actions button:hover { background: #e3eace; }
+.cc-card-actions > span { color: #83937a; padding-left: 14px; }
+.cc-roster-empty { grid-column: 1 / -1; padding: 25px 20px 30px; text-align: center; background: #f2f4e9; border: 1px dashed #b5c7af; border-radius: 6px; }
+.cc-roster-empty > span { color: #87a582; font-size: 35px; }
+.cc-roster-empty h4 { font: 22px var(--font-display); color: #41654f; margin: 7px 0 10px; }
+.cc-roster-empty p { color: #74866f; font-size: 12px; margin: 0 0 18px; }
+.cc-roster-empty > div { display: flex; justify-content: center; gap: 10px; }
+.cardcollect-page .cc-gacha-banner { background: #e0e8db; border: 1px solid #c0ceba; border-radius: 6px; padding: 24px; }
+.cc-gacha-intro { font: 25px var(--font-display); color: #35574c; margin: 0 0 24px; }
+.cc-gacha-showcase { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 17px; max-width: 780px; margin: auto; }
+.cc-pool-card { background: #f5f2e6; border: 1px solid; border-radius: 5px; padding: 14px 17px; display: flex; flex-direction: column; align-items: center; }
+.cc-pool-quality { width: 100%; display: flex; justify-content: space-between; font-size: 12px; }
+.cc-pool-quality b { font: 17px Georgia, serif; }
+.cc-pool-card .cc-character-art { min-height: 142px; }
+.cc-pool-card > strong { font: 700 20px var(--font-display); margin: 5px 0 7px; }
+.cc-pool-card > small { font-size: 10px; color: #8a9380; }
+.cardcollect-page .cc-gacha-rates { color: #63795e; font-size: 12px; margin-top: 24px; }
+.cc-pity-info { color: #987746; font-size: 12px; margin-top: 10px; }
+.cardcollect-page .cc-gacha-buttons { gap: 15px; margin: 22px 0; }
+.cardcollect-page .cc-gacha-buttons .btn { min-width: 190px; min-height: 48px; font-size: 14px; }
+.cardcollect-page .cc-gacha-card { background: #fbf7ea; }
+.cardcollect-page .cc-chapter-grid { gap: 15px; }
+.cardcollect-page .cc-chapter-card { background: #f6f4e8; border-color: #bfceb8; box-shadow: none; padding: 21px; }
+.cardcollect-page .cc-chapter-card.locked { opacity: .62; }
+.cardcollect-page .cc-chapter-card.unlocked { border-color: #a8bc9d; }
+.cardcollect-page .cc-chapter-name { color: #2a5e51; }
+.cardcollect-page .cc-collection-grid { grid-template-columns: repeat(6, minmax(0,1fr)); gap: 14px; }
+.cardcollect-page .cc-collection-card { padding: 18px 10px; background: #f8f4e8; box-shadow: none; }
+.cardcollect-page .cc-collection-card .card-icon { font-size: 35px; }
+.cardcollect-page .cc-collection-card.not-owned { opacity: .6; }
+.cardcollect-page .cc-battle-overlay { background: #19363bea; }
+.cardcollect-page .cc-battle-scene { background: #eff1e2; padding: 25px; border: 1px solid #afc3a9; border-radius: 7px; max-height: calc(100dvh - 24px); overflow-y: auto; }
+.cardcollect-page .cc-battle-header { border-bottom: 1px solid #b5c9ad; padding-bottom: 15px; }
+.cardcollect-page .cc-battle-log { background: #e0e7d8; color: #587256; border: 1px solid #c2cfb8; }
+.cardcollect-page .cc-battle-unit { box-shadow: none; background: #f9f6e9; }
+.cardcollect-page .cc-char-modal, .cardcollect-page .cc-result-modal { border: 1px solid #a9bdac; background: #f8f4e9; box-shadow: 0 20px 70px #173a3c3d; }
+.cardcollect-page .modal-overlay { background: #183437b3; }
+.cardcollect-page .cc-detail-icon { background: transparent; padding: 0; border-radius: 0; flex-shrink: 0; }
+.cardcollect-page .cc-detail-skill { background: #e7ecdb; border-color: #cad3bb; padding: 14px; }
+.cardcollect-page .cc-equip-slot { background: #edf0e1; border-color: #c2cbb6; }
+.cardcollect-page .cc-detail-breakthrough { background: #eee7d3; color: #867341; border-color: #d2c7a2; }
+.cardcollect-page .guide-step { background: #f9f5e7; }
+@media (max-width: 768px) {
+  .cc-masthead { padding: 21px; gap: 15px; }
+  .cc-masthead h1 { font-size: 38px; }
+  .cc-masthead p:last-child { font-size: 11px; }
+  .cc-masthead-seal { font-size: 20px; margin-right: 5px; padding: 6px 8px; }
+  .cardcollect-page .cc-header { padding: 10px 15px; margin-bottom: 12px; gap: 7px; }
+  .cardcollect-page .cc-info { gap: 10px; font-size: 10px; }
+  .cardcollect-page .cc-stone-count { font-size: 22px; }
+  .cardcollect-page .cc-tabs { gap: 0; margin-bottom: 19px; }
+  .cardcollect-page .cc-tab { font-size: 13px; padding: 11px 6px; }
+  .cardcollect-page .cc-panel-title { font-size: 22px; }
+  .cc-section-heading { gap: 8px; }
+  .cc-section-heading .btn { font-size: 11px; padding: 8px 12px; }
+  .cc-team-summary { grid-template-columns: repeat(3,minmax(0,1fr)); padding: 14px 16px; gap: 13px; }
+  .cc-team-summary > div:nth-child(3) { border: 0; }
+  .cc-team-summary strong { font-size: 28px; }
+  .cc-team-summary p { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px 12px; font-size: 11px; }
+  .cc-team-summary p br { display: none; }
+  .cc-team-toolbar { flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .cc-team-toolbar label { width: 100%; justify-content: space-between; }
+  .cc-team-toolbar select { flex: 1; max-width: 160px; }
+  .cc-team-toolbar > button { flex: 1; }
+  .cardcollect-page .cc-team-slots { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .cardcollect-page .cc-team-slot { min-height: 243px; }
+  .cardcollect-page .cc-team-slot:last-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
+  .cardcollect-page .cc-team-slots.is-empty { grid-template-columns: repeat(5,minmax(0,1fr)); gap: 6px; }
+  .cardcollect-page .is-empty .cc-team-slot { min-height: 110px; }
+  .cardcollect-page .is-empty .cc-team-slot:last-child { width: auto; grid-column: auto; justify-self: stretch; }
+  .is-empty .cc-seat-label { padding: 6px 3px; font-size: 9px; text-align: center; }
+  .is-empty .cc-empty-select { min-height: 80px; gap: 0; }
+  .is-empty .cc-empty-select > span { width: 30px; height: 30px; font-size: 25px; margin: 0; border: 0; }
+  .is-empty .cc-empty-select :is(b,small) { display: none; }
+  .cc-team-inspect { padding: 6px 10px 8px; }
+  .cc-team-inspect .card-name { font-size: 19px; line-height: 1.3; }
+  .cc-team-inspect .card-quality { font-size: 10px; line-height: 1.3; }
+  .cc-seat-label { padding: 6px 10px; }
+  .cc-character-art { min-height: 112px; }
+  .cc-portrait { width: 90px; height: 108px; }
+  .cc-collection-portrait { height: 93px; }
+  .cc-detail-portrait { width: 90px; height: 108px; }
+  .cc-empty-select { min-height: 210px; }
+  .cc-card-attributes { font-size: 10px; gap: 6px; padding-top: 8px; margin-top: 9px; line-height: 1.3; }
+  .cc-card-attributes b { font-size: 14px; margin-left: 3px; }
+  .cc-seat-actions button { min-height: 36px; padding: 7px 5px; }
+  .cardcollect-page .cc-team-formations { margin-bottom: 24px; padding: 10px 12px; gap: 7px; }
+  .cc-formation-tag small { font-size: 9px; }
+  #cc-roster-count { font-size: 10px; }
+  .cc-selection-help { align-items: flex-start; }
+  #cc-replace-hint { font-size: 11px; }
+  #cc-cancel-slot { flex-shrink: 0; font-size: 10px; padding: 7px; }
+  .cardcollect-page .cc-bench-list { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .cardcollect-page .cc-bench-card { padding: 10px 12px 0; }
+  .cc-card-actions { margin-left: -12px; margin-right: -12px; }
+  .cc-roster-empty { padding: 22px 18px 28px; }
+  .cc-roster-empty h4 { font-size: 20px; }
+  .cardcollect-page .cc-gacha-banner { padding: 22px 15px; }
+  .cc-gacha-intro { font-size: 21px; }
+  .cc-gacha-showcase { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .cc-pool-card { padding: 12px 14px; }
+  .cc-pool-card .cc-character-art { min-height: 118px; }
+  .cc-pool-card > strong { font-size: 18px; }
+  .cardcollect-page .cc-gacha-buttons { gap: 10px; }
+  .cardcollect-page .cc-gacha-buttons .btn { min-width: 0; flex: 1; padding: 13px 8px; font-size: 12px; }
+  .cardcollect-page .cc-gacha-rates { font-size: 10px; line-height: 1.8; }
+  .cc-pity-info { font-size: 11px; }
+  .cardcollect-page .cc-collection-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+  .cardcollect-page .cc-collection-card .card-name { font-size: 11px; }
+  .cardcollect-page .cc-battle-scene { padding: 16px 10px; }
+  .cardcollect-page .cc-battle-field { display: grid; grid-template-columns: minmax(0,1fr) 18px minmax(0,1fr); gap: 5px; }
+  .cardcollect-page .cc-battle-side { min-width: 0; width: auto; }
+  .cardcollect-page .cc-battle-unit { padding: 8px 5px; gap: 5px; }
+  .cardcollect-page .cc-battle-unit .unit-icon { font-size: 18px; }
+  .cardcollect-page .cc-battle-unit .unit-name { font-size: 11px; }
+  .cardcollect-page .cc-battle-vs { font-size: 12px; padding: 0; }
+  .cardcollect-page .cc-battle-header { font-size: 12px; }
+}

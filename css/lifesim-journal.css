@@ -1,0 +1,204 @@
+/* 墨蓝书架与暖纸手札。 */
+.lifesim-page {
+  --game-max-width: 1100px;
+  --bg-primary: #10202f;
+  --bg-secondary: #152737;
+  --bg-card: #1a3041;
+  --border-color: #344b5b;
+  --text-primary: #eee9df;
+  --text-secondary: #bdcbd1;
+  --text-muted: #9cacb8;
+  --gold: #d5b785;
+  --gold-light: #edcfa3;
+  --gold-dark: #8e7046;
+  --cyan: #85c6b8;
+  --cyan-dark: #406b65;
+  --purple-light: #c6b5dc;
+  --font-display: 'KaiTi', 'STKaiti', 'LXGW WenKai', serif;
+  --font-main: 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  background-image: radial-gradient(ellipse at 50% 0, #29404b 0, transparent 65%);
+}
+.lifesim-page .lifesim-wrapper { padding: 0; }
+.lifesim-page .particles-container { opacity: .1; }
+.lifesim-page :is(.lifesim-start, .ls-event-area, .ending-card, .ls-history-panel) {
+  --bg-primary: #e7e0d2;
+  --bg-card: #f4eee2;
+  --bg-secondary: #ebe3d5;
+  --border-color: #d6c8b1;
+  --text-primary: #263f49;
+  --text-secondary: #536268;
+  --text-muted: #72766e;
+  --gold: #805831;
+  --gold-light: #96643a;
+  --gold-dark: #614325;
+  --cyan: #2f756a;
+  --purple-light: #705587;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid #d2c5af;
+  border-radius: 5px;
+  box-shadow: 0 18px 45px #030f1924;
+}
+.lifesim-page :is(.lifesim-start, .ls-event-area, .ending-card, .ls-history-panel) .btn-gold {
+  color: #fcf6eb;
+  background: #315c60;
+  box-shadow: 0 3px 0 #1d4046;
+}
+.lifesim-page .lifesim-start .btn-cyan { background: #31766b; color: #fff9e8; box-shadow: 0 3px 0 #23574d; }
+.lifesim-page .lifesim-start { max-width: 870px; padding: 36px 40px; margin: 32px auto; }
+.lifesim-page .lifesim-start h2 { font-size: 38px; color: #2c4a54; margin: 5px 0 12px; }
+.lifesim-page .lifesim-start > .ls-kicker { text-align: center; color: #956b3f; }
+.lifesim-page .lifesim-start .subtitle { font-size: 14px; margin-bottom: 32px; }
+.ls-kicker { font-size: 11px; letter-spacing: .19em; color: var(--gold); margin: 0 0 8px; }
+.lifesim-page .slot-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.lifesim-page .save-slot {
+  min-height: 234px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #c9b99f;
+  border-left: 4px solid #9a7750;
+  background: #e9e1d2;
+}
+.ls-volume { font-size: 11px; letter-spacing: .16em; color: #83663f; }
+.lifesim-page .slot-name { font: 700 23px var(--font-display); overflow-wrap: anywhere; }
+.lifesim-page .slot-empty { font: 700 20px var(--font-display); }
+.lifesim-page .slot-details { font-size: 12px; color: #69736d; margin-top: 8px; }
+.lifesim-page .slot-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.lifesim-page .ls-legacy-summary { margin: 26px 0 6px; }
+.lifesim-page :is(.ls-legacy-summary, .ls-ngplus-summary) { color: #6d6680; font-size: 13px; }
+.lifesim-page .ls-achievement-entry { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.lifesim-page .ls-wizard-steps { margin: 20px 0 30px; }
+.lifesim-page .ls-wizard-nav { border-top: 1px solid #d9cdb8; padding-top: 20px; margin-top: 24px; }
+.lifesim-page .ls-wizard-nav .btn { max-width: 220px; }
+.lifesim-page .attr-slider { min-height: 30px; }
+.lifesim-page .back-to-slots { margin-bottom: 18px; font-size: 13px; }
+.ls-journal-head { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 5px 0 20px; }
+.ls-journal-head h1 { font: 400 38px/1.4 var(--font-display); margin: 0; overflow-wrap: anywhere; }
+.ls-age-seal { display: flex; align-items: baseline; gap: 9px; flex-shrink: 0; color: var(--gold-light); }
+.ls-age-seal strong { font: 400 68px/1 Georgia, serif; font-variant-numeric: tabular-nums; }
+.ls-age-seal span { font: 19px var(--font-display); }
+.ls-yearline { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 0; margin: 0 0 26px; list-style: none; }
+.ls-yearline li { padding: 10px 0; border-top: 2px solid #3d5361; color: #7e96a3; display: flex; gap: 9px; align-items: baseline; }
+.ls-yearline b { font-size: 13px; font-weight: 400; }
+.ls-yearline span { font-size: 10px; }
+.ls-yearline .passed { border-color: #889788; color: #bdc7be; }
+.ls-yearline .current { border-color: #dbbd8b; color: #ebcca0; }
+.ls-yearline .current b { font-weight: 700; }
+.ls-life-layout { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 20px 28px; align-items: start; }
+.ls-state-column { grid-column: 1; grid-row: 1 / span 2; min-width: 0; }
+.ls-life-layout > .ls-event-area { grid-column: 2; margin: 0; }
+.ls-life-layout > .ls-log-area { grid-column: 2; margin: 0; }
+.lifesim-page .ls-info-bar { display: flex; flex-direction: column; gap: 0; margin: 0 0 14px; }
+.lifesim-page .ls-info-item { border: 0; background: transparent; padding: 9px 0; display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #36505e; }
+.lifesim-page .ls-info-item:is(:first-child, :nth-child(2)) { display: none; }
+.lifesim-page .ls-info-label { font-size: 12px; }
+.lifesim-page .ls-info-value { font-size: 14px; }
+.lifesim-page .ls-attr-bars { display: grid; grid-template-columns: 1fr; border: 0; background: transparent; padding: 10px 0; gap: 13px; }
+.lifesim-page .ls-attr-name { font-size: 12px; }
+.lifesim-page .ls-attr-num { width: 32px; font: 15px Georgia, serif; color: #e6e4db; }
+.lifesim-page .ls-attr-fill-bg { height: 4px; }
+.lifesim-page :is(.ls-life-bar-wrap, .ls-cult-bar-wrap) { padding: 12px 0; background: transparent; border: 0; }
+.lifesim-page :is(.ls-life-bar-label, .ls-cult-bar-label) { font-size: 11px; }
+.lifesim-page :is(.ls-rel-badge, .ls-chain-badge) { font-size: 11px; }
+.lifesim-page .ls-talent-bar { padding: 8px 0; }
+.lifesim-page .ls-item-btn { min-width: 44px; min-height: 40px; border-color: #47626c; }
+.lifesim-page .ls-event-area { padding: 30px 34px; text-align: left; min-height: 315px; position: relative; }
+.lifesim-page .ls-event-area::before { content: ''; position: absolute; top: 0; right: 24px; height: 31px; width: 10px; background: #a06540; clip-path: polygon(0 0,100% 0,100% 100%,50% 78%,0 100%); }
+.lifesim-page .ls-event-icon { display: inline-block; font-size: 31px; margin-bottom: 15px; }
+.lifesim-page .ls-event-title { font: 700 28px/1.4 var(--font-display); color: #284951; margin-bottom: 16px; }
+.lifesim-page .ls-event-desc { font-size: 15px; line-height: 1.9; color: #4a5b60; margin-bottom: 24px; }
+.lifesim-page .ls-event-choices { gap: 10px; }
+.lifesim-page .ls-choice-btn { border: 1px solid #c5baaa; background: #eee7d9; padding: 13px 17px; font-size: 14px; border-radius: 3px; line-height: 1.7; }
+.lifesim-page .ls-choice-btn:hover { background: #e2ddcc; border-color: #657d71; transform: translateX(3px); }
+.lifesim-page .ls-choice-btn::before { content: '↳'; color: #84784f; margin-right: 10px; }
+.lifesim-page .ls-event-result { margin-top: 0; padding: 16px 18px; border-left: 3px solid #5c8c78; background: #e4e8d9; color: #37584c; font-size: 14px; line-height: 1.85; white-space: pre-line; }
+.lifesim-page .ls-event-result.result-negative { border-color: #a86859; background: #ede1d5; color: #864d42; }
+.lifesim-page .ls-continue-btn { align-self: flex-start; min-width: 144px; margin-top: 10px; }
+.ls-result-deltas { display: flex; flex-wrap: wrap; gap: 8px; margin: 13px 0; }
+.ls-delta { display: inline-flex; align-items: baseline; gap: 12px; padding: 5px 10px; border: 1px solid #bbcdb6; background: #e4ecde; color: #386b50; border-radius: 3px; font-size: 12px; }
+.ls-delta.negative { border-color: #d7beb1; background: #f0e2d8; color: #9b5143; }
+.ls-delta b { font: 700 16px Georgia, serif; }
+.ls-delta-neutral { color: #78776b; font-size: 12px; }
+.lifesim-page .ls-log-area { max-height: none; border: 0; background: transparent; padding: 6px 0 0; overflow: visible; }
+.ls-log-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.ls-log-heading h2 { font: 18px var(--font-display); margin: 0; color: #e3dbc9; }
+.ls-log-heading .btn { font-size: 11px; }
+.ls-recent-list, .ls-history-list { padding: 0; margin: 0; list-style: none; }
+.ls-journal-entry { display: grid; grid-template-columns: 55px minmax(0,1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid #38505d; font-size: 12px; }
+.ls-journal-age { color: #d3b485; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ls-journal-entry p { margin: 0; color: #b5c5cc; line-height: 1.8; overflow-wrap: anywhere; }
+.lifesim-page .ls-free-action-grid { gap: 10px; }
+.lifesim-page .ls-action-card { background: #e9e3d6; border-color: #c9beaa; padding: 14px; }
+.lifesim-page .ls-action-name { color: #35545c; font-size: 14px; }
+.lifesim-page .ls-action-desc { font-size: 12px; }
+.lifesim-page .ending-card { max-width: 750px; margin: 30px auto; padding: 40px; }
+.lifesim-page .ending-title { color: #304f56; font: 36px var(--font-display); }
+.lifesim-page .ending-score { color: #99683c; font: 64px Georgia, serif; }
+.lifesim-page .ending-actions { flex-wrap: wrap; justify-content: center; gap: 10px; }
+.lifesim-page :is(.ending-legacy, .ending-ngplus) { background: #e4e7d7; border-color: #c1c9ae; }
+.lifesim-page .ending-legacy-title { color: #5c7554; }
+.ls-history-overlay { z-index: 3000; padding: 20px; }
+.lifesim-page .ls-history-panel { display: flex; flex-direction: column; width: 100%; max-width: 740px; max-height: 82dvh; padding: 26px; }
+.ls-history-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.ls-history-heading h2 { font: 26px var(--font-display); color: #315560; margin: 0; }
+.ls-history-controls { display: grid; grid-template-columns: 1fr 150px; gap: 14px; margin-top: 20px; }
+.ls-history-controls label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #596963; }
+.ls-history-controls :is(input,select) { min-width: 0; width: 100%; border: 1px solid #c7bfad; background: #fcf8ee; color: #2b464d; padding: 11px; border-radius: 4px; font: inherit; }
+.ls-history-count { margin: 14px 0 4px; font-size: 12px; color: #71786c; }
+.ls-history-list { overflow-y: auto; flex: 1; min-height: 80px; padding-right: 9px; }
+.ls-history-list .ls-journal-entry { font-size: 13px; border-color: #dacebb; }
+.ls-history-list .ls-journal-age { color: #865d37; }
+.ls-history-list p { color: #41585d; }
+.ls-history-empty { padding: 32px 0; color: #70756c; text-align: center; font-size: 14px; }
+.ls-history-note { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid #dacebb; color: #78766c; font-size: 11px; }
+@media (max-width: 768px) {
+  .lifesim-page .lifesim-start { margin: 12px 0; padding: 26px 20px; }
+  .lifesim-page .lifesim-start h2 { font-size: 31px; }
+  .lifesim-page .slot-grid { grid-template-columns: 1fr; gap: 12px; }
+  .lifesim-page .save-slot { min-height: 0; padding: 17px; display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; }
+  .ls-volume { grid-column: 1 / -1; }
+  .lifesim-page .slot-actions { align-self: center; margin: 0; max-width: 100px; }
+  .lifesim-page .slot-empty { font-size: 18px; }
+  .lifesim-page .slot-details { font-size: 11px; }
+  .ls-journal-head { padding: 4px 2px 16px; gap: 12px; }
+  .ls-journal-head h1 { font-size: 25px; }
+  .ls-kicker { font-size: 9px; }
+  .ls-age-seal strong { font-size: 50px; }
+  .ls-age-seal span { font-size: 14px; }
+  .ls-yearline { margin-bottom: 12px; }
+  .ls-yearline li { flex-direction: column; gap: 2px; padding: 7px 0; }
+  .ls-yearline b { font-size: 11px; }
+  .ls-yearline span { font-size: 9px; }
+  .ls-life-layout { display: flex; flex-direction: column; gap: 18px; }
+  .ls-life-layout > * { width: 100%; }
+  .ls-state-column { border: 1px solid #334d5c; border-radius: 4px; padding: 10px 12px; }
+  .lifesim-page .ls-info-bar { flex-direction: row; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .lifesim-page .ls-info-item { padding: 0; border: 0; gap: 7px; }
+  .lifesim-page .ls-info-label { font-size: 10px; }
+  .lifesim-page .ls-info-value { font-size: 12px; }
+  .lifesim-page .ls-attr-bars { grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; margin: 0; padding: 8px 0 3px; }
+  .lifesim-page .ls-attr-bar { display: flex; flex-direction: column; gap: 3px; }
+  .lifesim-page .ls-attr-name { width: auto; font-size: 10px; }
+  .lifesim-page .ls-attr-num { width: auto; font-size: 17px; }
+  .lifesim-page .ls-attr-fill-bg { display: none; }
+  .lifesim-page .ls-talent-bar { padding: 0; margin-bottom: 4px; }
+  .lifesim-page :is(.ls-life-bar-wrap,.ls-cult-bar-wrap) { padding: 6px 0 0; margin: 0; }
+  .lifesim-page .ls-event-area { padding: 23px 21px; min-height: 0; }
+  .lifesim-page .ls-event-title { font-size: 25px; margin-bottom: 13px; }
+  .lifesim-page .ls-event-desc { font-size: 14px; line-height: 1.85; margin-bottom: 18px; }
+  .lifesim-page .ls-choice-btn { font-size: 13px; padding: 11px 13px; }
+  .lifesim-page .ls-event-result { font-size: 13px; padding: 13px; }
+  .lifesim-page .ls-free-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ls-log-heading h2 { font-size: 17px; }
+  .ls-journal-entry { gap: 7px; grid-template-columns: 43px minmax(0, 1fr); }
+  .lifesim-page .ending-card { padding: 28px 22px; }
+  .ls-history-overlay { padding: 12px; }
+  .lifesim-page .ls-history-panel { padding: 20px; max-height: 87dvh; }
+  .ls-history-controls { grid-template-columns: 1fr 104px; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lifesim-page .ls-choice-btn { transition: none; }
+  .lifesim-page .ls-choice-btn:hover { transform: none; }
+}

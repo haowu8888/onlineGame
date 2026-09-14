@@ -1,0 +1,153 @@
+.cardbattle-page {
+  --bg-primary: #182a43; --bg-secondary: #1e314c; --bg-card: #233954; --bg-card-hover: #2b4461;
+  --text-primary: #e8ecdf; --text-secondary: #c4cfd3; --text-muted: #99acba;
+  --gold: #b8d6bc; --gold-dark: #6d9c88; --cyan: #87c9b8; --cyan-dark: #4f978b;
+  --border-color: #91aeb536; --green: #96cfb3; --red: #dcaaa2; --purple: #b0bfd8;
+  --font-display: "LXGW WenKai", "KaiTi", serif; --game-max-width: 1120px;
+  background-image: radial-gradient(ellipse at 76% 15%, #385b7045, transparent 54%);
+}
+.cardbattle-page .particles-container { display: none; }
+.cardbattle-page .game-container { padding: 0; }
+.cardbattle-page .btn-gold { color: #1a3740; }
+.cardbattle-page .btn-outline { border-color: #9cb9bd66; color: var(--text-primary); }
+.cardbattle-page .nav-links a.active { color: var(--gold); background: #b8d6bc13; }
+.cb-sigil { display: inline-block; vertical-align: middle; width: 24px; height: 30px; }
+.cardbattle-page .cb-start { display: block; min-height: 0; padding: 16px 0 0; }
+.cb-lobby-intro { display: grid; grid-template-columns: 1fr 1.07fr; align-items: center; gap: 36px; padding: 10px 0 30px; }
+.cb-lobby-copy { padding: 0 0 0 10px; }
+.cb-eyebrow { font-size: 12px; letter-spacing: .24em; color: var(--cyan); margin: 0 0 20px; }
+.cardbattle-page .cb-logo { font: 62px/1.25 var(--font-display); letter-spacing: .08em; color: var(--text-primary); background: none; -webkit-text-fill-color: currentColor; text-shadow: none; margin: 0 0 20px; }
+.cardbattle-page .cb-subtitle { color: var(--text-secondary); font-size: 14px; line-height: 2; margin: 0 0 26px; }
+.cb-lobby-facts { display: flex; flex-wrap: wrap; gap: 18px; color: var(--text-muted); font-size: 11px; margin-bottom: 28px; }
+.cb-lobby-facts strong { font: 23px Consolas, monospace; color: var(--gold); padding-right: 3px; }
+.cb-lobby-art { display: block; width: 100%; height: auto; border-radius: 16px; }
+.cb-lobby-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.cb-trials-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border-color); padding-top: 26px; margin: 0 0 17px; }
+.cb-trials-heading h2 { font: 22px var(--font-display); margin: 0; }
+.cb-trials-heading span { font-size: 11px; color: var(--text-muted); }
+.cardbattle-page .cb-difficulty-select { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 28px; }
+.cardbattle-page .cb-diff-btn { display: grid; grid-template-columns: 42px 1fr; gap: 2px 14px; text-align: left; align-items: start; min-width: 0; padding: 23px 20px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-card); box-shadow: none; font-family: inherit; }
+.cardbattle-page .cb-diff-btn:hover:not(.locked) { border-color: var(--cyan); box-shadow: 0 5px 0 #0f223442; transform: translateY(-2px); }
+.cardbattle-page .cb-diff-btn.locked { opacity: .65; background: #20344d; }
+.cb-diff-number { grid-row: 1 / 4; width: 39px; height: 52px; display: grid; place-items: center; border: 1px solid #91bcb366; border-radius: 4px; font: 23px var(--font-display); color: var(--cyan); }
+.cardbattle-page .cb-diff-name { font: 24px/1.3 var(--font-display); color: var(--text-primary); }
+.cardbattle-page .cb-diff-desc { color: var(--text-muted); font-size: 11px; margin-top: 5px; }
+.cardbattle-page .cb-lock-hint { grid-column: 2; color: var(--text-muted); font-size: 10px; margin-top: 12px; }
+.cb-diff-enter { grid-column: 2; font-size: 11px; color: var(--cyan); margin-top: 12px; }
+.cb-diff-btn.locked .cb-diff-enter { display: none; }
+.cardbattle-page .cb-leaderboard { max-width: none; border: 0; border-top: 1px solid var(--border-color); background: none; padding: 22px 0 0; border-radius: 0; display: grid; grid-template-columns: 130px 1fr; gap: 22px; }
+.cardbattle-page .cb-leaderboard h3 { text-align: left; font: 20px var(--font-display); margin: 0; color: var(--text-secondary); }
+.cardbattle-page .cb-lb-empty { text-align: left; padding: 2px 0; font-size: 12px; }
+.cardbattle-page .cb-lb-list li { font-size: 12px; border-color: var(--border-color); }
+.cardbattle-page .cb-collection { max-width: none; width: 100%; padding: 22px 0; }
+.cb-deck-heading { display: flex; align-items: center; gap: 20px; padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px solid var(--border-color); }
+.cb-deck-heading p { color: var(--cyan); font-size: 11px; margin: 0 0 6px; letter-spacing: .15em; }
+.cb-deck-heading h2 { font: 29px/1.4 var(--font-display); color: var(--text-primary); margin: 0; overflow-wrap: anywhere; }
+.cb-deck-heading-actions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.cb-deck-intro { color: var(--text-muted); font-size: 13px; margin: 0 0 24px; }
+.cb-deck-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cb-deck-option { border: 1px solid var(--border-color); background: var(--bg-card); border-radius: 9px; overflow: hidden; }
+.cb-deck-option.active { border-color: var(--cyan); background: #29444f; }
+.cardbattle-page .deck-select { width: 100%; display: flex; justify-content: space-between; gap: 15px; align-items: center; border: 0; background: none; color: var(--text-primary); padding: 20px; text-align: left; cursor: pointer; font-family: inherit; }
+.deck-select > span:first-child { display: grid; gap: 9px; }
+.deck-select strong { font: 21px var(--font-display); overflow-wrap: anywhere; }
+.deck-select small { color: var(--text-muted); font-size: 12px; }
+.cb-deck-use { color: var(--cyan); font-size: 11px; white-space: nowrap; }
+.cb-deck-tools { display: flex; justify-content: flex-end; gap: 8px; padding: 0 15px 15px; }
+.cb-deck-tools .deck-del { color: var(--red); }
+.cb-deck-size { font: 27px Consolas, monospace; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+.cb-deck-size small { font: 12px "Microsoft YaHei", sans-serif; color: var(--text-muted); }
+.cb-deck-size.complete { color: var(--cyan); }
+.cb-deck-workbench { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 26px; align-items: start; }
+.cb-deck-sidebar { display: grid; gap: 20px; }
+.cb-deck-analysis, .cb-current-deck { background: #203650; border: 1px solid var(--border-color); border-radius: 8px; padding: 18px; }
+.cb-deck-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+.cb-deck-metrics > span { display: grid; gap: 4px; }
+.cb-deck-metrics small { font-size: 10px; color: var(--text-muted); }
+.cb-deck-metrics strong { font: 25px Consolas, monospace; color: var(--gold); }
+.cb-deck-analysis h3, .cb-current-deck h3, .cb-deck-library h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; margin: 0 0 13px; color: var(--text-secondary); }
+.cb-deck-analysis h3 { margin: 16px 0 12px; }
+.cb-current-deck h3 span, .cb-deck-library h3 span { font-size: 10px; color: var(--text-muted); }
+.cb-cost-curve { display: grid; grid-template-columns: repeat(8, 1fr); gap: 7px; }
+.cb-cost-column { height: 108px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; font: 10px Consolas, monospace; color: var(--text-muted); }
+.cb-cost-column i { display: block; width: 100%; min-height: 1px; background: #8bbfb3; border-radius: 3px 3px 0 0; }
+.cb-cost-column small { font-size: 11px; color: var(--text-secondary); }
+.cb-deck-empty { text-align: center; font-size: 11px; color: var(--text-muted); padding: 16px 0; line-height: 2; }
+.cb-deck-error { color: var(--red); font-size: 12px; overflow-wrap: anywhere; }
+.cardbattle-page .de-remove { display: flex; width: 100%; align-items: center; gap: 10px; padding: 9px 0; border: 0; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); background: none; cursor: pointer; font-family: inherit; text-align: left; }
+.de-remove .cb-deck-card-name { flex: 1; font-size: 12px; }
+.de-remove small { color: var(--text-muted); font: 11px Consolas, monospace; }
+.de-remove > span:last-child { color: var(--red); }
+.cb-deck-cost { flex: 0 0 24px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #8bbfb31c; color: var(--cyan); font: 17px Consolas, monospace; }
+.cb-deck-library-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cardbattle-page .de-add-item { display: flex; align-items: center; gap: 7px; width: 100%; min-height: 75px; padding: 10px; color: var(--text-primary); background: #dfe6df; border: 1px solid #a8bdb6; border-radius: 6px; text-align: left; cursor: pointer; font-family: inherit; }
+.de-add-item:hover:not([aria-disabled="true"]) { background: #eef1e9; border-color: var(--cyan); }
+.de-add-item[aria-disabled="true"] { opacity: .6; cursor: default; }
+.de-add-item .cb-deck-cost { background: #33665f; color: #f1f0df; }
+.cb-deck-card-art { color: #507568; flex: 0 0 23px; }
+.cb-deck-card-copy { display: grid; gap: 5px; flex: 1; min-width: 0; }
+.cb-deck-card-copy strong { color: #2f4b4b; font: 16px var(--font-display); }
+.cb-deck-card-copy small { color: #557068; font-size: 9px; line-height: 1.5; }
+.cb-deck-owned { display: grid; gap: 5px; text-align: right; font: 12px Consolas, monospace; color: #3d6155; white-space: nowrap; }
+.cb-deck-owned small { font: 8px "Microsoft YaHei", sans-serif; color: #58776d; }
+.cb-deck-add-symbol { color: #3e7567; font-size: 18px; }
+.cardbattle-page .cb-result { min-height: calc(100svh - 130px); }
+.cardbattle-page .cb-result-card { background: #213b52; box-shadow: none; border: 1px solid #91b6b566; border-radius: 12px; }
+.cardbattle-page .cb-result-title.win { color: var(--gold); background: none; -webkit-text-fill-color: currentColor; }
+.cb-reward-art .cb-sigil { width: 42px; height: 54px; color: var(--cyan); }
+.cardbattle-page .cb-reward-choice { background: var(--bg-card); }
+@media (max-width: 1000px) {
+  .cb-deck-workbench { grid-template-columns: 250px minmax(0, 1fr); gap: 18px; }
+  .cb-deck-library-grid { grid-template-columns: 1fr; }
+  .cb-lobby-intro { gap: 24px; }
+  .cardbattle-page .cb-logo { font-size: 52px; }
+}
+@media (max-width: 680px) {
+  .cardbattle-page .game-container { width: calc(100% - 24px); margin-top: 13px; }
+  .cardbattle-page .cb-start { padding-top: 5px; }
+  .cb-lobby-intro { grid-template-columns: 1fr; gap: 22px; padding-bottom: 23px; }
+  .cb-lobby-copy { padding: 8px 5px 0; }
+  .cb-eyebrow { font-size: 10px; margin-bottom: 13px; }
+  .cardbattle-page .cb-logo { font-size: 48px; margin-bottom: 13px; }
+  .cardbattle-page .cb-subtitle { font-size: 12px; margin-bottom: 17px; }
+  .cb-lobby-facts { gap: 16px; font-size: 10px; margin-bottom: 18px; }
+  .cb-lobby-facts strong { font-size: 21px; }
+  .cb-lobby-actions { gap: 7px; }
+  .cb-lobby-actions .btn { padding: 8px 12px; font-size: 12px; }
+  .cb-lobby-art { width: 100%; height: 187px; object-fit: cover; object-position: center; border-radius: 9px; }
+  .cb-trials-heading { padding-top: 19px; margin-bottom: 12px; gap: 8px; }
+  .cb-trials-heading h2 { font-size: 19px; }
+  .cb-trials-heading span { font-size: 9px; }
+  .cardbattle-page .cb-difficulty-select { grid-template-columns: 1fr; gap: 8px; margin-bottom: 22px; }
+  .cardbattle-page .cb-diff-btn { padding: 12px 14px; grid-template-columns: 32px 1fr auto; gap: 3px 12px; }
+  .cb-diff-number { width: 30px; height: 44px; grid-row: 1 / 3; font-size: 21px; }
+  .cardbattle-page .cb-diff-name { font-size: 22px; }
+  .cardbattle-page .cb-diff-desc { grid-column: 2; font-size: 10px; margin-top: 1px; }
+  .cb-diff-enter, .cardbattle-page .cb-lock-hint { grid-column: 3; grid-row: 1 / 3; align-self: center; font-size: 9px; margin: 0; max-width: 90px; }
+  .cardbattle-page .cb-leaderboard { grid-template-columns: 1fr; gap: 9px; padding-top: 18px; }
+  .cardbattle-page .cb-leaderboard h3 { font-size: 18px; }
+  .cardbattle-page .cb-lb-empty { font-size: 11px; }
+  .cardbattle-page .cb-collection { padding: 12px 0; }
+  .cb-deck-heading { gap: 12px; flex-wrap: wrap; margin-bottom: 17px; padding-bottom: 16px; }
+  .cb-deck-heading h2 { font-size: 25px; }
+  .cb-deck-heading-actions { gap: 6px; }
+  .cb-deck-heading p { font-size: 10px; }
+  .cb-deck-size { font-size: 23px; }
+  .cb-deck-intro { font-size: 12px; }
+  .cb-deck-list { grid-template-columns: 1fr; gap: 10px; }
+  .cb-deck-workbench { grid-template-columns: 1fr; gap: 22px; }
+  .cb-deck-sidebar { gap: 14px; }
+  .cb-deck-analysis { padding: 15px; }
+  .cb-deck-metrics { gap: 12px; }
+  .cb-current-deck { max-height: 290px; overflow: auto; padding: 15px; }
+  .cb-deck-library-grid { grid-template-columns: 1fr; }
+  .cardbattle-page .de-add-item { min-height: 70px; gap: 11px; padding: 10px 13px; }
+  .cb-deck-card-copy strong { font-size: 18px; }
+  .cb-deck-card-copy small { font-size: 10px; }
+  .cb-deck-owned { font-size: 13px; }
+  .cb-deck-owned small { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cardbattle-page .cb-diff-btn { transition: none; }
+  .cardbattle-page .cb-diff-btn:hover:not(.locked) { transform: none; }
+}

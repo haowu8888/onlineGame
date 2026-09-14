@@ -3,36 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="斩仙塔 - 肉鸽卡牌攀塔！从初始牌组出发，逐层击败妖魔，收集强力仙卡，挑战魔尊。">
+  <meta name="theme-color" content="#15292d">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <title>斩仙塔 - 仙界游坊</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
   <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="../css/shared.css">
-  <link rel="stylesheet" href="../css/cardtower.css">
+  <link rel="stylesheet" href="../css/shared.css?v=33">
+  <link rel="stylesheet" href="../css/pwa.css?v=33">
+  <link rel="stylesheet" href="../css/cardtower.css?v=33">
+  <link rel="stylesheet" href="../css/game-shell.css?v=33">
+  <link rel="stylesheet" href="../css/cardtower-theme.css?v=33">
+  <link rel="stylesheet" href="../css/cardtower-battle.css?v=33">
 </head>
-<body>
+<body class="game-page cardtower-page">
   <div class="app-loading"><div class="app-loading-spinner"></div></div>
   <div class="particles-container" id="particles"></div>
   <nav class="game-nav">
     <a href="../index.html" class="game-nav-back">&larr; 仙界游坊</a>
     <span class="game-nav-title">斩仙塔</span>
   </nav>
-  <div class="page-wrapper">
+  <main class="page-wrapper" id="main-content" tabindex="-1">
     <div class="ct-app" id="ct-app">
 
       <!-- 开始界面 -->
       <div class="ct-screen ct-start-screen active" id="ct-start">
         <div class="ct-start-inner">
-          <div class="ct-start-tower"></div>
-          <h1 class="ct-start-title">斩仙塔</h1>
-          <p class="ct-start-subtitle">肉鸽卡牌攀塔 · 逐层斩妖除魔</p>
-          <div class="ct-start-info">
-            <div class="ct-info-item">五层仙塔，二十场战斗</div>
-            <div class="ct-info-item">40张仙卡+15件法宝</div>
-            <div class="ct-info-item">击败混沌，登顶成仙</div>
+          <div class="ct-start-layout">
+            <div class="ct-start-copy">
+              <p class="ct-start-eyebrow">一层一战，一牌破境</p>
+              <h1 class="ct-start-title">斩仙塔</h1>
+              <p class="ct-start-subtitle">择一道修行，携一副仙牌。看破妖魔的下一步，用每次战利品，铺出自己的登仙路。</p>
+              <div class="ct-start-info">
+                <span class="ct-info-item" id="ct-floor-total"></span>
+                <span class="ct-info-item" id="ct-battle-total"></span>
+                <span class="ct-info-item">三种修炼之道</span>
+              </div>
+              <div class="ct-start-actions"><button class="btn btn-gold btn-lg ct-start-btn" id="ct-btn-start">开始攀塔</button></div>
+            </div>
+            <figure class="ct-start-art"><img src="../assets/cardtower/tower.svg?v=33" width="600" height="760" alt="云山之间，仙塔层层向上"><figcaption>从练气启程，层层试炼，问道塔巅</figcaption></figure>
           </div>
-          <button class="btn btn-gold btn-lg ct-start-btn" id="ct-btn-start">开始攀塔</button>
           <div class="ct-leaderboard" id="ct-leaderboard"></div>
         </div>
       </div>
@@ -41,13 +54,14 @@
       <div class="ct-screen ct-game-screen" id="ct-game">
         <!-- 左侧塔图 -->
         <div class="ct-tower-panel" id="ct-tower-panel">
-          <div class="ct-tower-title">仙塔进度</div>
+          <div class="ct-tower-title">攀塔路线</div>
           <div class="ct-tower-map" id="ct-tower-map"></div>
           <div class="ct-tower-deck-info" id="ct-deck-info"></div>
         </div>
 
         <!-- 中央战斗区 -->
         <div class="ct-battle-panel" id="ct-battle-panel">
+          <header class="ct-battle-topline"><h1 id="ct-location">第一层 · 练气</h1><span id="ct-turn-count">回合 1</span></header>
           <!-- 敌人区域 -->
           <div class="ct-enemy-area" id="ct-enemy-area"></div>
 
@@ -57,13 +71,15 @@
           </div>
 
           <!-- 战斗日志 -->
-          <div class="ct-battle-log" id="ct-battle-log"></div>
+          <div class="ct-battle-log" id="ct-battle-log" role="status" aria-live="polite"></div>
 
           <!-- 手牌区域 -->
-          <div class="ct-hand-area" id="ct-hand-area"></div>
+          <div class="ct-hand-heading"><h2>本回合手牌</h2><p id="ct-turn-plan" role="status" aria-live="polite"></p></div>
+          <div class="ct-hand-area" id="ct-hand-area" role="group" aria-label="手牌，按数字一至九出牌"></div>
 
           <!-- 操作按钮 -->
           <div class="ct-battle-actions" id="ct-battle-actions">
+            <span class="ct-key-help"><span class="ct-desktop-help"><kbd>1–9</kbd> 出牌 · <kbd>E</kbd> 结束回合</span><span class="ct-mobile-help">横向滑动查看手牌</span></span>
             <button class="btn btn-outline btn-sm" id="ct-btn-end-turn">结束回合</button>
           </div>
         </div>
@@ -135,8 +151,26 @@
       </div>
 
     </div>
-  </div>
-  <script src="../js/shared.js" defer></script>
-  <script src="../js/cardtower.js" defer></script>
+  </main>
+  <script src="../js/shared-storage.js?v=33" defer></script>
+  <script src="../js/shared.js?v=33" defer></script>
+  <script src="../js/shared-data.js?v=33" defer></script>
+  <script src="../js/shared-ui.js?v=33" defer></script>
+  <script src="../js/shared-dialog.js?v=33" defer></script>
+  <script src="../js/shared-transfer.js?v=33" defer></script>
+  <script src="../js/shared-stats.js?v=33" defer></script>
+  <script src="../js/shared-missions.js?v=33" defer></script>
+  <script src="../js/shared-daily-ui.js?v=33" defer></script>
+  <script src="../js/shared-nav.js?v=33" defer></script>
+  <script src="../js/shared-settings.js?v=33" defer></script>
+  <script src="../js/shared-sound.js?v=33" defer></script>
+  <script src="../js/shared-lifecycle.js?v=33" defer></script>
+  <script src="../js/shared-guide.js?v=33" defer></script>
+  <script src="../js/pwa-updates.js?v=33" defer></script>
+  <script src="../js/cardtower-tactics.js?v=33" defer></script>
+  <script src="../js/cardtower-presentation.js?v=33" defer></script>
+  <script src="../js/cardtower-lobby.js?v=33" defer></script>
+  <script src="../js/cardtower-input.js?v=33" defer></script>
+  <script src="../js/cardtower.js?v=33" defer></script>
 </body>
 </html>

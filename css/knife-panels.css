@@ -1,0 +1,117 @@
+.knife-overlay { position: absolute; inset: 0; z-index: 12; display: flex; align-items: center; background: linear-gradient(90deg, #152d35f5, #193c40de 25%, #224b4752 49%, transparent 70%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s; }
+.knife-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+.arena-menu { width: 46%; max-height: 100%; overflow-y: auto; padding: 45px 20px 42px max(38px, 6.5vw); scrollbar-width: thin; scrollbar-color: #e2d4aa55 transparent; }
+.menu-kicker { color: #a6cbbb; font-size: 12px; letter-spacing: .2em; margin: 0 0 23px; display: flex; align-items: center; gap: 10px; }
+.menu-kicker > span { width: 20px; height: 1px; background: #b8caaa; }
+.knife-overlay-title { color: #f6efdb; font: 84px "STKaiti", "KaiTi", var(--font-display), serif; letter-spacing: .1em; line-height: 1.2; margin: 0 0 12px; text-shadow: 0 3px 22px #08272c33; }
+.menu-subtitle { color: #e4b88a; font: 20px var(--font-display); letter-spacing: .18em; margin: 0 0 22px; }
+.knife-overlay-desc { color: #c7d8cf; font-size: 13px; line-height: 1.95; white-space: pre-line; margin: 0 0 28px; }
+.menu-buttons { display: flex; gap: 12px; align-items: center; margin-bottom: 21px; }
+.knife-page .menu-buttons .btn-gold { color: #fff5e6; background: #d8795b; border: 1px solid #edab79; padding: 14px 32px; border-radius: 7px; font: 18px var(--font-display); box-shadow: 0 5px 0 #9b513f, 0 10px 25px #0b252946; letter-spacing: .08em; }
+.knife-page .menu-buttons .btn-gold:hover:not(:disabled) { background: #e48b69; box-shadow: 0 4px 0 #9b513f, 0 12px 26px #0b252949; transform: translateY(-1px); }
+.knife-page .menu-buttons .btn-gold:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #9b513f; }
+.knife-page .menu-buttons .btn-outline, .arena-shop > .btn-outline { border: 1px solid #bbcec04d; color: #e3e8d7; padding: 13px 18px; border-radius: 7px; background: #28484388; font-size: 12px; box-shadow: none; }
+.knife-page .menu-buttons .btn-outline:hover { color: #fff5d7; border-color: #c2d1b6; background: #38594c; }
+.menu-howto { display: flex; flex-wrap: wrap; gap: 9px 15px; color: #adc8b9; font-size: 10px; margin: 0 0 27px; }
+.menu-howto kbd { font: 10px ui-monospace, monospace; border: 1px solid #9db8a84d; border-radius: 3px; padding: 3px 4px; margin-right: 2px; color: #d5decb; }
+.menu-howto span + span::before { content: '·'; margin-right: 12px; color: #749d8e; }
+.knife-records { display: flex; gap: 29px; margin: 6px 0 22px; }
+.knife-records div { display: flex; flex-direction: column; gap: 5px; }
+.knife-records strong { color: #f1d19b; font: 21px ui-monospace, monospace; }
+.knife-records span { color: #9cb9ac; font-size: 10px; }
+.menu-details { max-width: 342px; }
+.knife-details { border-top: 1px solid #a8c3b333; font-size: 11px; }
+.knife-details summary { cursor: pointer; padding: 12px 0; color: #c0d1c0; list-style-position: inside; }
+.knife-details summary:hover { color: #f3ddb2; }
+#knife-modifiers { display: flex; flex-wrap: wrap; gap: 5px; margin: 3px 0 9px; }
+.knife-mod-btn { padding: 7px 9px; border: 1px solid #7b9b864d; border-radius: 4px; background: #213e39; color: #d4e2cb; font: inherit; cursor: pointer; }
+.knife-mod-btn[aria-pressed="true"] { color: #ffdfb1; border-color: #d79368; background: #6f5040; }
+#knife-modifier-hint { color: #b3c4b8; font-size: 11px; margin: 0 0 10px; line-height: 1.7; }
+#knife-milestones { list-style: none; padding: 0 0 10px; margin: 0; color: #a5b9a9; }
+#knife-milestones li { padding: 5px 0; line-height: 1.5; }
+#knife-milestones .unlocked { color: #eac794; }
+.knife-overlay:not([data-view="menu"]) { justify-content: center; background: #172e36d1; backdrop-filter: blur(7px); }
+.knife-overlay:not([data-view="menu"]) .menu-subtitle, .knife-overlay:not([data-view="menu"]) .menu-howto, .knife-overlay:not([data-view="menu"]) .menu-details { display: none; }
+.knife-overlay:not([data-view="menu"]) .arena-menu { width: min(540px, 92%); padding: 42px; text-align: center; border: 1px solid #b5c8b04a; border-radius: 14px; background: #203e3df2; box-shadow: 0 20px 90px #0b24284d; }
+.knife-overlay:not([data-view="menu"]) .knife-overlay-title { font-size: 38px; margin-bottom: 23px; }
+.knife-overlay:not([data-view="menu"]) .menu-buttons, .knife-overlay:not([data-view="menu"]) .knife-records, .knife-overlay:not([data-view="menu"]) .menu-kicker { justify-content: center; }
+.arena-shop { width: min(680px, 92%); max-height: 92%; overflow-y: auto; padding: 30px; text-align: center; border: 1px solid #b5c8b04a; border-radius: 14px; background: #203e3df2; scrollbar-width: thin; }
+.arena-shop .menu-kicker { justify-content: center; margin-bottom: 12px; }
+.arena-shop h2 { color: #f0e5cf; font: 32px var(--font-display); margin: 0 0 12px; }
+.shop-balance { font-size: 12px; color: #bdcdbb; margin-bottom: 22px; }
+.shop-balance strong { color: #f1c482; }
+.knife-shop-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; margin-bottom: 24px; }
+.perm-shop-item { display: grid; justify-items: center; gap: 7px; padding: 18px 10px; text-align: center; color: #d0dcc9; background: #2d4f46; border: 1px solid #a2b6954f; border-radius: 8px; cursor: pointer; font: inherit; font-size: 11px; }
+.perm-shop-item span:first-child { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 9px; background: #152f30; color: #dfc591; margin-bottom: 3px; }
+.perm-shop-item svg { width: 28px; height: 28px; }
+.perm-shop-item span:nth-child(2) { color: #f0d6aa; font-size: 14px; }
+.perm-shop-item span:last-child { color: #f2c887; margin-top: 5px; }
+.perm-shop-item:hover:not(:disabled) { border-color: #edb180; background: #3e5c49; }
+.perm-shop-item:disabled { opacity: .6; cursor: default; }
+.upgrade-panel { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; padding: 26px; background: #172e36e0; backdrop-filter: blur(7px); overflow-y: auto; }
+.upgrade-panel .menu-kicker { margin: 0; color: #afd3be; }
+.upgrade-title { color: #f7e9cc; font: 35px var(--font-display); margin: 0 0 16px; text-align: center; }
+.upgrade-cards { display: flex; justify-content: center; gap: 18px; width: 100%; }
+.upgrade-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; width: 240px; padding: 27px 24px 24px; min-height: 280px; border: 2px solid #c7c7a4; border-radius: 11px; background: #ece9d8; color: #334c44; text-align: left; cursor: pointer; font: inherit; box-shadow: 0 9px 0 #7a857146, 0 18px 40px #071f2529; transition: transform .18s, border-color .18s; }
+.upgrade-card:hover { border-color: #eeab74; transform: translateY(-7px); background: #f8f0dc; }
+.upgrade-card:focus-visible { outline: 3px solid #edac77; outline-offset: 4px; }
+.upgrade-shortcut { position: absolute; top: 17px; right: 18px; display: grid; place-items: center; width: 25px; height: 25px; color: #647b68; background: #d5dac5; border-radius: 5px; font: 12px ui-monospace, monospace; }
+.upgrade-icon { display: grid; place-items: center; width: 60px; height: 60px; border: 1px solid #829d8644; border-radius: 12px; background: #d1dcc5; color: #537461; margin-bottom: 24px; }
+.upgrade-icon svg { width: 37px; height: 37px; }
+.upgrade-card[data-kind="skill"] .upgrade-icon { background: #e5c9ac; color: #a96349; border-color: #d69d7644; }
+.upgrade-name { color: #263e36; font: 22px var(--font-display); margin-bottom: 12px; }
+.upgrade-desc { color: #677766; font-size: 13px; line-height: 1.8; flex: 1; }
+.upgrade-count { color: #72826e; font-size: 10px; margin-top: 23px; border-top: 1px solid #829d8633; padding-top: 13px; width: 100%; }
+.upgrade-hint { color: #b5c9b7; font-size: 12px; margin: 18px 0 0; }
+.upgrade-hint span { margin: 0 9px; color: #829e8e; }
+@media (min-width: 1600px) { .arena-menu { padding-left: 10vw; } .knife-overlay-title { font-size: 100px; } }
+@media (max-width: 1050px) { .arena-menu { width: 51%; padding-left: 36px; } .knife-overlay-title { font-size: 70px; } .menu-subtitle { font-size: 18px; } }
+@media (max-width: 760px) {
+  .knife-overlay { align-items: flex-end; background: linear-gradient(0deg, #163337fc 4%, #183b39eb 28%, #244e4670 48%, transparent 72%); }
+  .arena-menu { width: 100%; max-height: 67%; padding: 24px 26px 27px; }
+  .menu-kicker { margin-bottom: 11px; font-size: 10px; letter-spacing: .15em; }
+  .knife-overlay-title { font-size: 58px; margin-bottom: 5px; }
+  .menu-subtitle { font-size: 16px; margin-bottom: 13px; }
+  .knife-overlay-desc { font-size: 11px; margin-bottom: 20px; line-height: 1.8; }
+  .menu-buttons { gap: 12px; margin-bottom: 18px; }
+  .knife-page .menu-buttons .btn-gold { padding: 12px 32px; font-size: 17px; }
+  .knife-page .menu-buttons .btn-outline { padding: 12px 20px; font-size: 12px; }
+  .menu-howto { margin-bottom: 16px; font-size: 10px; gap: 10px; }
+  .menu-howto kbd { display: none; }
+  .menu-howto span:first-child::before { content: '拖动摇杆'; }
+  .menu-howto span + span::before { margin-right: 9px; }
+  .knife-records { gap: 30px; margin: 2px 0 16px; }
+  .knife-records strong { font-size: 18px; }
+  .knife-records span { font-size: 9px; }
+  .menu-details { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .knife-details summary { padding: 10px 0; font-size: 10px; }
+  .knife-details[open] { grid-column: 1 / -1; }
+  .knife-overlay:not([data-view="menu"]) { align-items: center; }
+  .knife-overlay:not([data-view="menu"]) .arena-menu { max-height: 92%; padding: 30px 24px; }
+  .knife-overlay:not([data-view="menu"]) .knife-overlay-title { font-size: 32px; }
+  .arena-shop { padding: 24px 16px; }
+  .knife-shop-items { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .perm-shop-item { padding: 13px 6px; gap: 5px; font-size: 10px; }
+  .perm-shop-item span:first-child { width: 34px; height: 34px; }
+  .perm-shop-item svg { width: 24px; height: 24px; }
+  .upgrade-panel { gap: 12px; padding: 22px 20px; }
+  .upgrade-title { font-size: 26px; margin-bottom: 10px; }
+  .upgrade-cards { flex-direction: column; align-items: center; gap: 12px; }
+  .upgrade-card { width: min(390px, 100%); min-height: 128px; padding: 19px 20px 15px 93px; border-radius: 9px; }
+  .upgrade-icon { position: absolute; left: 18px; top: 23px; width: 54px; height: 54px; margin: 0; }
+  .upgrade-icon svg { width: 31px; height: 31px; }
+  .upgrade-name { font-size: 19px; margin-bottom: 7px; }
+  .upgrade-desc { font-size: 12px; }
+  .upgrade-count { margin-top: 10px; padding-top: 8px; font-size: 9px; }
+  .upgrade-shortcut { top: 9px; right: 10px; width: 18px; height: 18px; font-size: 9px; }
+  .upgrade-hint { margin-top: 10px; font-size: 10px; }
+}
+@media (max-height: 660px) and (min-width: 761px) {
+  .arena-menu { padding-top: 24px; padding-bottom: 24px; }
+  .menu-kicker { margin-bottom: 10px; }
+  .knife-overlay-title { font-size: 62px; }
+  .menu-subtitle { margin-bottom: 12px; }
+  .knife-overlay-desc { margin-bottom: 18px; }
+  .menu-howto { margin-bottom: 15px; }
+  .knife-records { margin-bottom: 12px; }
+}

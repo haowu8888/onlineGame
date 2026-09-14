@@ -1,0 +1,187 @@
+.cardbattle-page .cb-battle { min-height: 0; padding: 18px 22px 12px; border: 1px solid var(--border-color); background: #243b5752; border-radius: 12px; gap: 8px; }
+.cb-battle-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 2px; }
+.cb-battle-heading h1 { font: 20px var(--font-display); color: var(--text-secondary); margin: 0; }
+.cb-battle-heading > span { color: var(--text-muted); font: 11px Consolas, "Microsoft YaHei", monospace; }
+.cardbattle-page .cb-enemy-area { padding: 3px 0 6px; gap: 20px; }
+.cardbattle-page .cb-master { appearance: none; min-width: 182px; display: flex; align-items: center; gap: 10px; padding: 7px 12px 7px 5px; border: 1px solid transparent; background: none; border-radius: 7px; font-family: inherit; color: var(--text-primary); text-align: left; box-shadow: none; }
+.cardbattle-page .cb-master.targetable { border-color: var(--cyan); box-shadow: 0 0 0 2px #87c9b822; background: #87c9b81a; cursor: pointer; }
+.cardbattle-page .cb-master-info { display: grid; flex: 1; gap: 4px; }
+.cardbattle-page .cb-master-name { display: block; color: var(--text-primary); font: 17px/1.4 var(--font-display); margin: 0; }
+.cardbattle-page .cb-master-portrait { display: grid; place-items: center; width: 39px; font-size: initial; color: var(--cyan); }
+.cb-master-portrait .cb-sigil { width: 34px; height: 43px; }
+.cardbattle-page .cb-enemy-master .cb-master-portrait { color: var(--red); }
+.cardbattle-page .cb-hp-bar { display: block; height: 16px; border-radius: 3px; border: 0; background: #12253b; min-width: 100px; overflow: hidden; }
+.cardbattle-page .cb-hp-fill { display: block; border-radius: 2px; transition: width .2s; }
+.cardbattle-page .cb-hp-fill.enemy-hp { background: #a6736e; }
+.cardbattle-page .cb-hp-fill.player-hp { background: #568e7f; }
+.cardbattle-page .cb-hp-text { color: #f4eee1; font: 11px Consolas, monospace; text-shadow: none; }
+.cardbattle-page .cb-deck-info { font-size: 10px; color: var(--text-muted); gap: 14px; margin-left: auto; }
+.cardbattle-page .cb-board { padding: 10px 12px 7px; min-height: 0; flex: initial; border: 1px solid #91aeb52a; border-radius: 8px; gap: 0; background: linear-gradient(180deg, #94676b08, #71a8aa08); }
+.cb-field-label { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; color: var(--text-muted); font-size: 10px; }
+.cb-field-label > span:last-child { font-family: Consolas, monospace; opacity: .8; }
+.cardbattle-page .cb-field { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 9px; min-height: 124px; padding: 8px 4px; background: none; border: 0; overflow-x: auto; overflow-y: hidden; border-radius: 0; }
+.cb-field-empty { font: 13px var(--font-display); color: var(--text-muted); opacity: .8; }
+.cardbattle-page .cb-divider { position: relative; padding: 1px 0; margin: 0 0 2px; }
+.cardbattle-page .cb-divider::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--border-color); }
+.cardbattle-page .cb-turn-indicator { position: relative; padding: 3px 20px; font-size: 10px; border: 1px solid var(--border-color); border-radius: 20px; background: #203751; color: var(--cyan); font-weight: 500; }
+.cardbattle-page .cb-turn-indicator.enemy-turn { color: var(--red); border-color: #dcaaa255; }
+.cardbattle-page .cb-minion { appearance: none; width: 91px; height: 108px; flex: 0 0 91px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 6px 4px 0; border: 1px solid #6c9b9577; background: #274853; border-radius: 20px 20px 7px 7px; box-shadow: 0 3px 0 #10203860; color: #c9e1d4; font-family: inherit; transition: transform .15s, border-color .15s; }
+.cardbattle-page .cb-minion.enemy-minion { color: #d9c7b4; background: #3a3b50; border-color: #bf9b9777; }
+.cardbattle-page .cb-minion .cb-minion-art { display: grid; place-items: center; height: 39px; width: 100%; margin: 0; font-size: initial; }
+.cb-minion-art .cb-sigil { width: 33px; height: 38px; }
+.cardbattle-page .cb-minion .cb-minion-name { font: 14px/1.5 var(--font-display); margin: 0; color: inherit; max-width: 100%; padding: 0; }
+.cardbattle-page .cb-minion .cb-minion-atk, .cardbattle-page .cb-minion .cb-minion-hp { width: 22px; height: 22px; bottom: 20px; font: 16px Consolas, monospace; background: #11283d; border-radius: 50%; }
+.cardbattle-page .cb-minion .cb-minion-atk { left: 5px; color: #e4c792; }
+.cardbattle-page .cb-minion .cb-minion-hp { right: 5px; color: #cde1c7; }
+.cardbattle-page .cb-minion .cb-minion-hp.damaged { color: #eca69b; }
+.cb-minion-state { width: 100%; margin-top: auto; font-size: 9px; line-height: 18px; color: var(--text-muted); border-top: 1px solid #91aeb529; text-align: center; }
+.cardbattle-page .cb-minion.can-attack { border-color: var(--cyan); box-shadow: 0 0 0 2px #87c9b819; cursor: pointer; }
+.cb-minion.can-attack .cb-minion-state { color: var(--cyan); }
+.cardbattle-page .cb-minion.can-attack:hover, .cardbattle-page .cb-minion.selected { transform: translateY(-3px); box-shadow: 0 4px 0 #101f3155; }
+.cardbattle-page .cb-minion.selected { border-color: var(--gold); background: #375858; }
+.cardbattle-page .cb-minion.targetable { border-color: #a6dac8; box-shadow: 0 0 0 2px #a6dac840; background: #38515a; cursor: pointer; }
+.cb-minion.targetable .cb-minion-state { color: #c0f0d5; }
+.cardbattle-page .cb-minion.sleeping { opacity: .85; }
+.cardbattle-page .cb-minion.sleeping::after { content: none; }
+.cardbattle-page .cb-minion.has-taunt::before { content: "嘲"; top: 5px; right: 5px; font-size: 8px; color: #e4c792; }
+.cardbattle-page .cb-minion.has-divine-shield { box-shadow: inset 0 0 0 3px #bdcfa944; }
+.cardbattle-page .cb-minion.has-divine-shield::after { content: "盾"; top: 5px; left: 5px; right: auto; color: #d8e2aa; font-size: 8px; }
+.cardbattle-page .cb-player-area { padding: 0; }
+.cardbattle-page .cb-player-controls { display: flex; gap: 16px; padding: 2px 0; }
+.cardbattle-page .cb-energy-display { padding: 0 0 0 18px; background: none; border: 0; border-left: 1px solid var(--border-color); border-radius: 0; gap: 10px; }
+.cardbattle-page .cb-energy-icon { font-size: 10px; color: var(--text-muted); }
+.cardbattle-page .cb-energy-text { font: 24px Consolas, monospace; color: var(--cyan); }
+.cb-turn-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.cardbattle-page .cb-hero-power { color: var(--cyan); border-color: #87c9b870; box-shadow: none; font-size: 12px; }
+.cardbattle-page .cb-hero-power:hover:not([aria-disabled="true"]) { box-shadow: none; background: #87c9b818; border-color: var(--cyan); }
+.cardbattle-page .cb-end-turn { margin: 0; padding: 10px 21px; font-size: 13px; background: var(--gold); color: #1a3640; min-width: 116px; }
+.cb-power-plan { text-align: right; font-size: 10px; color: var(--text-muted); margin: -1px 1px 8px; }
+.cb-hand-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 3px; margin-bottom: 3px; }
+.cb-hand-heading > div { display: flex; align-items: center; gap: 12px; }
+.cb-hand-heading h2 { font-size: 12px; color: var(--text-secondary); margin: 0; font-weight: 500; }
+.cb-hand-heading .cb-deck-count { font-size: 10px; color: var(--text-muted); }
+.cb-hand-heading p { font-size: 11px; color: var(--cyan); margin: 0; }
+.cardbattle-page .cb-hand { display: flex; flex-wrap: nowrap; align-items: stretch; justify-content: safe center; gap: 9px; min-height: 0; padding: 9px 4px 12px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; }
+.cardbattle-page .cb-hand:has(.cb-card:nth-child(8)) { justify-content: flex-start; }
+.cardbattle-page .cb-card { appearance: none; width: 133px; min-width: 133px; flex: 0 0 133px; min-height: 201px; height: auto; display: flex; flex-direction: column; align-items: stretch; padding: 10px 9px 0; margin: 0; border: 1px solid #bfc8b9; border-top: 3px solid #99c4b5; border-radius: 8px; background: #e4e8dc; color: #244b48; font-family: inherit; text-align: center; box-shadow: 0 4px 0 #10233866; overflow: hidden; scroll-snap-align: center; transition: transform .15s, border-color .15s; }
+.cardbattle-page .cb-card.spell-card { border-color: #aebcd0; border-top-color: #a9bace; background: #dfe4e6; }
+.cardbattle-page .cb-card.playable { border-color: #bfe2ca; box-shadow: 0 0 0 2px #89cdb834, 0 4px 0 #10233866; }
+.cardbattle-page .cb-card.unplayable { opacity: .73; filter: none; cursor: default; }
+.cardbattle-page .cb-card:hover:not(.unplayable) { transform: translateY(-4px); box-shadow: 0 6px 0 #10233866; }
+.cardbattle-page .cb-card.selected-card { transform: translateY(-4px); border-color: #e4efc1; box-shadow: 0 0 0 2px #e4efc188; }
+.cardbattle-page .cb-card .cb-card-cost { width: 24px; height: 24px; top: 7px; left: 7px; border: 0; background: #426f65; box-shadow: none; color: #f2f0da; font: 18px Consolas, monospace; }
+.cardbattle-page .cb-card.spell-card .cb-card-cost { background: #567397; }
+.cb-card-key { position: absolute; right: 8px; top: 11px; font: 9px Consolas, monospace; color: #758d80; }
+.cardbattle-page .cb-card .cb-card-art { display: grid; place-items: center; height: 60px; margin: 3px 0 1px; color: #4b786a; font-size: initial; }
+.cb-card-art .cb-sigil { width: 51px; height: 58px; }
+.cardbattle-page .spell-card .cb-card-art { color: #627b9c; }
+.cardbattle-page .cb-card .cb-card-name { color: #2e504a; font: 17px/1.5 var(--font-display); margin: 0 0 4px; padding: 0; }
+.cardbattle-page .cb-card .cb-card-desc { color: #4b6661; font-size: 10px; line-height: 1.6; min-height: 35px; margin: 0 0 5px; padding: 0; }
+.cardbattle-page .cb-card .cb-card-stats { padding: 3px 0 8px; font: 11px Consolas, "Microsoft YaHei", monospace; }
+.cardbattle-page .cb-card .cb-card-atk { color: #695b37; }
+.cardbattle-page .cb-card .cb-card-hp { color: #496e61; }
+.cb-card-kind { font-size: 10px; color: #657a97; padding-bottom: 8px; }
+.cb-card-state { display: block; margin: auto -9px 0; padding: 4px 3px; color: #325c4f; background: #b6cdbe; border-top: 1px solid #9eafab55; font-size: 9px; line-height: 1.5; }
+.spell-card .cb-card-state { color: #36536f; background: #c6d3de; }
+.unplayable .cb-card-state { color: #526860; background: #cdd6ce; }
+.cb-card.selected-card .cb-card-state { color: #214c42; background: #bde0b9; }
+.cb-hand-empty { min-height: 148px; display: grid; place-items: center; font-size: 12px; color: var(--text-muted); }
+.cb-key-help { color: var(--text-muted); font-size: 9px; text-align: right; padding: 2px 3px 0; }
+.cb-key-help kbd, .cb-cancel-btn kbd { border: 1px solid var(--border-color); padding: 0 3px; font: 9px Consolas, monospace; border-radius: 2px; }
+.cb-mobile-help { display: none; }
+.cardbattle-page .cb-target-hint { position: sticky; top: calc(var(--nav-height) + 8px); inset-inline: auto; bottom: auto; transform: none; z-index: 20; border: 1px solid #91c7b7; border-left: 3px solid var(--cyan); background: #294853; color: var(--text-primary); border-radius: 6px; box-shadow: 0 5px 20px #10233855; padding: 9px 13px; font-size: 12px; font-weight: 400; margin: 1px 0; gap: 12px; }
+.cb-target-copy { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; flex: 1; }
+.cb-target-copy strong { font-weight: 500; color: var(--gold); }
+.cb-target-copy > span { color: #d6e9db; }
+.cb-target-copy > small { grid-column: 1 / -1; color: #b2c7c8; font-size: 10px; }
+.cardbattle-page .cb-cancel-btn { color: var(--text-primary); border-color: #8facb766; }
+@media (max-width: 900px) {
+  .cardbattle-page .cb-hand { justify-content: flex-start; }
+  .cardbattle-page .cb-battle { padding: 14px; }
+  .cardbattle-page .cb-card { min-width: 126px; width: 126px; flex-basis: 126px; }
+  .cardbattle-page .cb-minion { width: 83px; flex-basis: 83px; }
+}
+@media (min-width: 681px) and (max-height: 820px) {
+  .cardbattle-page .game-container { margin-top: 10px; }
+  .cardbattle-page .cb-battle { padding: 10px 16px 8px; gap: 3px; }
+  .cb-battle-heading h1 { font-size: 17px; }
+  .cardbattle-page .cb-enemy-area { padding: 0; }
+  .cardbattle-page .cb-master { padding-block: 3px; }
+  .cardbattle-page .cb-board { padding: 5px 10px; }
+  .cb-field-label { line-height: 1.1; }
+  .cardbattle-page .cb-turn-indicator { padding-block: 1px; }
+  .cardbattle-page .cb-field { min-height: 98px; padding-block: 4px; }
+  .cardbattle-page .cb-minion { height: 92px; padding-top: 3px; }
+  .cardbattle-page .cb-minion .cb-minion-art { height: 28px; }
+  .cb-minion-art .cb-sigil { width: 25px; height: 28px; }
+  .cardbattle-page .cb-minion .cb-minion-name { font-size: 13px; }
+  .cardbattle-page .cb-card { min-height: 161px; padding-top: 6px; }
+  .cardbattle-page .cb-card .cb-card-art { height: 35px; }
+  .cb-card-art .cb-sigil { width: 31px; height: 35px; }
+  .cardbattle-page .cb-card .cb-card-name { font-size: 16px; }
+  .cardbattle-page .cb-card .cb-card-desc { min-height: 30px; margin-bottom: 1px; }
+  .cardbattle-page .cb-hand { padding-top: 5px; padding-bottom: 7px; }
+  .cb-power-plan { margin-bottom: 4px; }
+}
+@media (max-width: 680px) {
+  .cardbattle-page .cb-battle { padding: 10px; gap: 5px; border-radius: 8px; }
+  .cb-battle-heading h1 { font-size: 17px; }
+  .cb-battle-heading > span { font-size: 10px; }
+  .cardbattle-page .cb-enemy-area { gap: 8px; padding: 0; }
+  .cardbattle-page .cb-master { min-width: 156px; padding: 4px 5px 4px 0; gap: 6px; }
+  .cardbattle-page .cb-master-name { font-size: 15px; }
+  .cardbattle-page .cb-master-portrait { width: 30px; }
+  .cb-master-portrait .cb-sigil { width: 27px; height: 34px; }
+  .cardbattle-page .cb-master-info { gap: 3px; }
+  .cardbattle-page .cb-hp-bar { height: 14px; min-width: 95px; }
+  .cardbattle-page .cb-hp-text { font-size: 10px; }
+  .cardbattle-page .cb-deck-info { display: grid; gap: 2px; font-size: 9px; text-align: right; }
+  .cardbattle-page .cb-board { padding: 6px 6px 3px; }
+  .cb-field-label { font-size: 9px; padding: 0 1px; }
+  .cardbattle-page .cb-field { min-height: 107px; gap: 6px; padding: 6px 2px; justify-content: flex-start; }
+  .cardbattle-page .cb-field:not(:has(.cb-minion:nth-child(4))) { justify-content: center; }
+  .cb-field-empty { font-size: 11px; margin: auto; }
+  .cardbattle-page .cb-minion { width: 75px; flex-basis: 75px; height: 96px; padding: 3px 3px 0; border-radius: 16px 16px 5px 5px; }
+  .cardbattle-page .cb-minion .cb-minion-art { height: 33px; }
+  .cb-minion-art .cb-sigil { width: 27px; height: 32px; }
+  .cardbattle-page .cb-minion .cb-minion-name { font-size: 12px; }
+  .cardbattle-page .cb-minion .cb-minion-atk, .cardbattle-page .cb-minion .cb-minion-hp { width: 19px; height: 19px; font-size: 14px; bottom: 18px; }
+  .cb-minion-state { font-size: 8px; line-height: 16px; }
+  .cardbattle-page .cb-turn-indicator { font-size: 9px; padding: 2px 16px; }
+  .cardbattle-page .cb-player-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; padding-top: 2px; }
+  .cardbattle-page .cb-player-master { min-width: 0; width: 166px; }
+  .cardbattle-page .cb-energy-display { padding: 0; border: 0; gap: 7px; justify-content: flex-end; }
+  .cardbattle-page .cb-energy-text { font-size: 23px; }
+  .cardbattle-page .cb-energy-icon { font-size: 10px; }
+  .cb-turn-actions { grid-column: 1 / -1; width: 100%; justify-content: flex-end; gap: 8px; margin-top: 3px; }
+  .cardbattle-page .cb-end-turn { flex: 1; min-width: 0; font-size: 13px; min-height: 38px; padding: 9px 12px; }
+  .cardbattle-page .cb-hero-power { min-height: 38px; font-size: 11px; padding: 9px 12px; }
+  .cb-power-plan { font-size: 9px; text-align: left; margin: 7px 2px 9px; }
+  .cb-hand-heading { margin-bottom: 1px; padding: 0 2px; }
+  .cb-hand-heading > div { gap: 8px; }
+  .cb-hand-heading h2 { font-size: 11px; }
+  .cb-hand-heading .cb-deck-count { font-size: 9px; }
+  .cb-hand-heading p { font-size: 10px; }
+  .cardbattle-page .cb-hand { gap: 8px; padding: 6px 3px 9px; }
+  .cardbattle-page .cb-card { width: 123px; min-width: 123px; flex-basis: 123px; min-height: 174px; padding: 8px 8px 0; }
+  .cardbattle-page .cb-card .cb-card-art { height: 43px; margin-top: 2px; }
+  .cb-card-art .cb-sigil { width: 35px; height: 42px; }
+  .cardbattle-page .cb-card .cb-card-name { font-size: 16px; }
+  .cardbattle-page .cb-card .cb-card-desc { font-size: 10px; min-height: 32px; line-height: 1.5; }
+  .cardbattle-page .cb-card .cb-card-cost { width: 21px; height: 21px; font-size: 16px; }
+  .cardbattle-page .cb-card .cb-card-stats { font-size: 10px; padding-bottom: 7px; }
+  .cb-card-state { margin-inline: -8px; font-size: 9px; }
+  .cb-card-key { display: none; }
+  .cb-key-help { font-size: 9px; text-align: left; padding-top: 2px; }
+  .cb-desktop-help { display: none; }
+  .cb-mobile-help { display: inline; }
+  .cardbattle-page .cb-target-hint { top: calc(var(--nav-height) + 4px); padding: 7px 9px; gap: 7px; }
+  .cb-target-copy { grid-template-columns: 1fr; gap: 2px; font-size: 10px; }
+  .cb-target-copy > small { display: none; }
+  .cardbattle-page .cb-cancel-btn { min-height: 34px; padding: 6px 10px; font-size: 11px; }
+  .cb-cancel-btn kbd { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cardbattle-page .cb-card, .cardbattle-page .cb-minion, .cardbattle-page .cb-hp-fill { transition: none; animation: none; }
+  .cardbattle-page .cb-card:hover, .cardbattle-page .cb-minion:hover { transform: none; }
+}

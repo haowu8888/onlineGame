@@ -3,15 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="仙途模拟器 - 投胎修仙界，逐年推进，遭遇随机事件做出抉择，追求飞升成仙的终极目标。">
+  <meta name="theme-color" content="#0a0e1a">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <title>仙途模拟器 - 仙界游坊</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127956;</text></svg>">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
   <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="../css/shared.css">
-  <link rel="stylesheet" href="../css/lifesim.css">
+  <link rel="stylesheet" href="../css/shared.css?v=33">
+  <link rel="stylesheet" href="../css/pwa.css?v=33">
+  <link rel="stylesheet" href="../css/lifesim.css?v=33">
+  <link rel="stylesheet" href="../css/game-shell.css?v=33">
+  <link rel="stylesheet" href="../css/lifesim-journal.css?v=33">
 </head>
-<body>
+<body class="game-page lifesim-page">
   <div class="app-loading"><div class="app-loading-spinner"></div></div>
   <div class="particles-container" id="particles"></div>
   <nav class="game-nav">
@@ -28,7 +35,23 @@
       <div class="lifesim-ending" id="lifesim-ending"></div>
     </div>
   </div>
-  <script src="../js/shared.js" defer></script>
-  <script src="../js/lifesim.js" defer></script>
+  <script src="../js/shared-storage.js?v=33" defer></script>
+  <script src="../js/shared.js?v=33" defer></script>
+  <script src="../js/shared-data.js?v=33" defer></script>
+  <script src="../js/shared-ui.js?v=33" defer></script>
+  <script src="../js/shared-dialog.js?v=33" defer></script>
+  <script src="../js/shared-transfer.js?v=33" defer></script>
+  <script src="../js/shared-stats.js?v=33" defer></script>
+  <script src="../js/shared-missions.js?v=33" defer></script>
+  <script src="../js/shared-daily-ui.js?v=33" defer></script>
+  <script src="../js/shared-nav.js?v=33" defer></script>
+  <script src="../js/shared-settings.js?v=33" defer></script>
+  <script src="../js/shared-sound.js?v=33" defer></script>
+  <script src="../js/shared-lifecycle.js?v=33" defer></script>
+  <script src="../js/shared-guide.js?v=33" defer></script>
+  <script src="../js/pwa-updates.js?v=33" defer></script>
+  <script src="../js/lifesim-journal.js?v=33" defer></script>
+  <script src="../js/lifesim-journal-view.js?v=33" defer></script>
+  <script src="../js/lifesim.js?v=33" defer></script>
 </body>
 </html>

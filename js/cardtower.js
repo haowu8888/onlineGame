@@ -1008,7 +1008,7 @@
 
     canPlayCard(card) {
       const s = this.game.state;
-      if (!this.playerTurn) return false;
+      if (!this.playerTurn || !this.inBattle || s.gameOver || this.enemies.length === 0) return false;
       const cost = this.getEffectiveCost(card);
       if (s.energy < cost) return false;
       // requiresExhaust needs at least 1 other card in hand
@@ -1659,6 +1659,11 @@
     constructor(game) {
       this.game = game;
       this.els = {};
+      this.presentation = CardTowerPresentation.create({
+        document, escape: escapeHtml, tactics: CardTowerTactics, classes: CLASSES,
+        floors: FLOORS, enemyTemplates: ENEMY_TEMPLATES, bossTemplates: BOSS_TEMPLATES,
+        cardTags: getCardTags, buildSummary: getBuildSummary,
+      });
       this._cacheElements();
       this._bindEvents();
     }
@@ -1703,6 +1708,8 @@
     }
 
     _bindEvents() {
+      document.getElementById('ct-floor-total').textContent = FLOORS.length + ' 层仙塔';
+      document.getElementById('ct-battle-total').textContent = FLOORS.reduce((total, floor) => total + floor.enemies.length + 1, 0) + ' 场战斗';
       this.els.btnStart.addEventListener('click', () => this._showClassSelection(false));
       // Daily challenge button
       var dailyBtn = document.createElement('button');
@@ -1728,52 +1735,7 @@
       this.els.btnRestart.addEventListener('click', () => this.game.restartGame());
       this.els.btnEndTurn.addEventListener('click', () => this.game.battle.endPlayerTurn());
       this.els.btnSkipReward.addEventListener('click', () => this.game.skipReward());
-      document.addEventListener('keydown', (e) => {
-        const activeTag = document.activeElement ? document.activeElement.tagName : '';
-        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
-        if (!this.els.gameScreen.classList.contains('active')) return;
-
-        const key = e.key.toLowerCase();
-        if (key === 'e') {
-          if (this.game.state.gameOver || !this.game.battle.playerTurn) return;
-          e.preventDefault();
-          this.game.battle.endPlayerTurn();
-          return;
-        }
-
-        if (['1', '2', '3'].includes(key)) {
-          const idx = parseInt(key, 10) - 1;
-          if (this.els.cardReward.classList.contains('active')) {
-            const card = this.els.rewardCards.querySelectorAll('.ct-card')[idx];
-            if (card) { e.preventDefault(); card.click(); }
-            return;
-          }
-          if (this.els.relicReward.classList.contains('active')) {
-            const relic = this.els.relicChoices.querySelectorAll('.ct-relic-choice')[idx];
-            if (relic) { e.preventDefault(); relic.click(); }
-            return;
-          }
-          if (this.els.upgradeOverlay.classList.contains('active')) {
-            const card = this.els.upgradeCards.querySelectorAll('.ct-card')[idx];
-            if (card) { e.preventDefault(); card.click(); }
-            return;
-          }
-          if (this.els.eventOverlay.classList.contains('active')) {
-            const choice = this.els.eventChoices.querySelectorAll('.ct-event-choice')[idx];
-            if (choice) { e.preventDefault(); choice.click(); }
-            return;
-          }
-          if (this.els.restShop.classList.contains('active')) {
-            const choice = this.els.restChoices.querySelectorAll('.ct-rest-choice')[idx];
-            if (choice) { e.preventDefault(); choice.click(); }
-            return;
-          }
-        }
-
-        if (key === '0' && this.els.cardRemoval.classList.contains('active')) {
-          if (this.els.btnSkipRemoval) { e.preventDefault(); this.els.btnSkipRemoval.click(); }
-        }
-      });
+      CardTowerInput.bind({ document, elements: this.els, game: this.game });
 
       // Pile viewer (deck/draw/discard)
       this.els.deckInfo.addEventListener('click', (e) => {
@@ -1793,7 +1755,7 @@
       // Event delegation for hand card clicks (avoids re-adding listeners every render)
       this.els.handArea.addEventListener('click', (e) => {
         const cardEl = e.target.closest('.ct-card');
-        if (!cardEl || cardEl.classList.contains('cant-play')) return;
+        if (!cardEl || cardEl.classList.contains('cant-play') || cardEl.classList.contains('playing')) return;
         const uid = cardEl.dataset.uid;
         cardEl.classList.add('playing');
         setTimeout(() => {
@@ -1937,75 +1899,14 @@
     }
 
     _showClassSelection(daily) {
-      const maxUnlockedAsc = Storage.get('cardtower_max_ascension', 0);
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;overflow-y:auto;';
-      let html = '<div style="background:var(--bg-card,#1a1f2e);border-radius:12px;padding:24px;max-width:520px;width:90%;">';
-      html += '<h2 style="text-align:center;color:var(--gold,#ffd700);margin-bottom:16px;">选择修炼之道</h2>';
-
-      // 飞升难度选择
-      if (maxUnlockedAsc > 0) {
-        html += '<div style="text-align:center;margin-bottom:14px;">';
-        html += '<div style="color:var(--text-secondary,#aaa);font-size:0.8rem;margin-bottom:6px;">飞升难度 (通关解锁)</div>';
-        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">';
-        html += '<button class="btn btn-outline ct-asc-btn" data-asc="0" style="font-size:0.75rem;padding:3px 10px;border-color:var(--gold);color:var(--gold);">普通</button>';
-        for (let i = 1; i <= maxUnlockedAsc; i++) {
-          html += `<button class="btn btn-outline ct-asc-btn" data-asc="${i}" style="font-size:0.75rem;padding:3px 10px;">飞升${i}</button>`;
-        }
-        html += '</div>';
-        html += '<div id="ct-asc-desc" style="font-size:0.7rem;color:var(--text-muted,#888);margin-top:4px;">敌人正常强度</div>';
-        html += '</div>';
-      }
-
-      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">';
-      CLASSES.forEach(cls => {
-        html += `<div class="ct-class-card" data-class="${cls.id}" style="cursor:pointer;border:2px solid ${cls.color}30;border-radius:10px;padding:16px;text-align:center;background:${cls.color}08;transition:all 0.2s;">
-          <div style="font-size:2.5rem;margin-bottom:8px;">${cls.icon}</div>
-          <div style="font-size:1.1rem;font-weight:bold;color:${cls.color};margin-bottom:4px;">${cls.name}</div>
-          <div style="font-size:0.8rem;color:var(--text-secondary,#aaa);margin-bottom:8px;">${cls.desc}</div>
-          <div style="font-size:0.75rem;color:${cls.color};border-top:1px solid ${cls.color}30;padding-top:6px;">${cls.passive}</div>
-          <div style="font-size:0.7rem;color:var(--text-muted,#666);margin-top:4px;">HP: ${cls.statMod.hp}</div>
-        </div>`;
-      });
-      html += '</div></div>';
-      overlay.innerHTML = html;
-      document.body.appendChild(overlay);
-
-      // 飞升难度选择逻辑
-      let selectedAsc = 0;
-      const ascDescs = [
-        '敌人正常强度',
-        '敌人HP+10%, 卡牌奖励-1',
-        '敌人HP+20%, 卡牌奖励-1',
-        '敌人HP+30%, 卡牌奖励-1, Boss额外行动',
-        '敌人HP+40%, 卡牌奖励-1, Boss额外行动',
-        '敌人HP+50%, 卡牌奖励-2, Boss额外行动',
-        '敌人HP+60%, 卡牌奖励-2, Boss额外行动',
-        '敌人HP+70%, 卡牌奖励-2, Boss双倍行动',
-        '敌人HP+80%, 卡牌奖励-2, Boss双倍行动',
-        '敌人HP+90%, 卡牌奖励-2, Boss双倍行动',
-        '敌人HP+100%, 卡牌奖励-2, Boss双倍行动',
-      ];
-      overlay.querySelectorAll('.ct-asc-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          selectedAsc = parseInt(btn.dataset.asc);
-          overlay.querySelectorAll('.ct-asc-btn').forEach(b => { b.style.borderColor = ''; b.style.color = ''; });
-          btn.style.borderColor = 'var(--gold)';
-          btn.style.color = 'var(--gold)';
-          const descEl = overlay.querySelector('#ct-asc-desc');
-          if (descEl) descEl.textContent = ascDescs[selectedAsc] || '未知';
-        });
-      });
-
-      overlay.querySelectorAll('.ct-class-card').forEach(card => {
-        card.addEventListener('mouseenter', () => { card.style.borderColor = card.dataset.class === 'sword' ? '#ff6b6b' : card.dataset.class === 'talisman' ? '#a78bfa' : '#4ade80'; card.style.transform = 'translateY(-4px)'; });
-        card.addEventListener('mouseleave', () => { card.style.borderColor = ''; card.style.transform = ''; });
-        card.addEventListener('click', () => {
-          this.game.state.chosenClass = card.dataset.class;
-          this.game.state._pendingAscension = selectedAsc;
-          overlay.remove();
+      CardTowerLobby.open({
+        document, classes: CLASSES, maximumAscension: Storage.get('cardtower_max_ascension', 0),
+        escape: escapeHtml, sigil: this.presentation.sigil,
+        onChoose: ({ character, ascension }) => {
+          this.game.state.chosenClass = character;
+          this.game.state._pendingAscension = ascension;
           this.game.startGame(daily);
-        });
+        },
       });
     }
 
@@ -2093,165 +1994,33 @@
 
     /* --- Tower Map --- */
     renderTowerMap() {
-      const s = this.game.state;
-      let html = '';
-
-      FLOORS.forEach((floor, fi) => {
-        html += `<div class="ct-tower-floor-divider">${floor.name}</div>`;
-        floor.enemies.forEach((eid, ei) => {
-          const nodeIdx = fi * 4 + ei;
-          const globalNode = s.floorIndex * 4 + s.nodeIndex;
-          const completed = nodeIdx < globalNode || (s.gameOver && s.victory);
-          const current = nodeIdx === globalNode && !s.gameOver;
-          const tmpl = ENEMY_TEMPLATES[eid];
-          html += `<div class="ct-tower-node ${completed ? 'completed' : ''} ${current ? 'current' : ''}">
-            <span class="ct-tower-node-icon">${tmpl.sprite}</span>
-            <span class="ct-tower-node-label">${tmpl.name}</span>
-            ${completed ? '<span class="ct-tower-node-check">&#10003;</span>' : ''}
-          </div>`;
-        });
-        // Boss node
-        const bossIdx = fi * 4 + 3;
-        const globalNode = s.floorIndex * 4 + s.nodeIndex;
-        const completed = bossIdx < globalNode || (s.gameOver && s.victory);
-        const current = bossIdx === globalNode && !s.gameOver;
-        const bossTmpl = BOSS_TEMPLATES[floor.boss];
-        html += `<div class="ct-tower-node boss ${completed ? 'completed' : ''} ${current ? 'current' : ''}">
-          <span class="ct-tower-node-icon">${bossTmpl.sprite}</span>
-          <span class="ct-tower-node-label">${bossTmpl.name}</span>
-          ${completed ? '<span class="ct-tower-node-check">&#10003;</span>' : ''}
-        </div>`;
-      });
-
-      this.els.towerMap.innerHTML = html;
+      this.presentation.route(this.game.state, this.els.towerMap);
     }
 
     /* --- Deck Info --- */
     renderDeckInfo() {
-      const s = this.game.state;
-      this.els.deckInfo.innerHTML = `
-        <div class="ct-deck-stat ct-deck-click" data-pile="deck" role="button" tabindex="0"><span>牌组</span><span class="ct-deck-stat-val">${s.deck.length}</span></div>
-        <div class="ct-deck-stat ct-deck-click" data-pile="draw" role="button" tabindex="0"><span>抽牌堆</span><span class="ct-deck-stat-val">${s.drawPile.length}</span></div>
-        <div class="ct-deck-stat ct-deck-click" data-pile="discard" role="button" tabindex="0"><span>弃牌堆</span><span class="ct-deck-stat-val">${s.discardPile.length}</span></div>
-      `;
+      this.presentation.deck(this.game.state, this.els.deckInfo);
     }
 
     /* --- Enemies --- */
     renderEnemies() {
-      const s = this.game.state;
-      const enemies = this.game.battle.enemies;
-      if (!enemies || enemies.length === 0) {
-        this.els.enemyArea.innerHTML = '';
-        return;
-      }
-
-      this.els.enemyArea.innerHTML = enemies.map((e, i) => {
-        const hpPct = Math.max(0, (e.hp / e.maxHp) * 100);
-        const intent = this.game.battle.getEnemyIntent(e);
-        let intentClass = 'intent-attack';
-        if (intent.type === 'defend') intentClass = 'intent-defend';
-        if (intent.type === 'special') intentClass = 'intent-special';
-
-        let statuses = '';
-        if (e.block > 0) statuses += `<span class="ct-status-badge block">护甲 ${e.block}</span>`;
-        if (e.poison > 0) statuses += `<span class="ct-status-badge poison">毒 ${e.poison}</span>`;
-        if (e.burn > 0) statuses += `<span class="ct-status-badge burn">灼烧 ${e.burn}</span>`;
-        if (e.frozen > 0) statuses += `<span class="ct-status-badge frozen">冻结 ${e.frozen}</span>`;
-        if (e.enrageBonus > 0) statuses += `<span class="ct-status-badge enraged">狂暴 +${e.enrageBonus}</span>`;
-        if (e.charged) statuses += `<span class="ct-status-badge enraged">蓄力中</span>`;
-        if (e.vulnerable > 0) statuses += `<span class="ct-status-badge vulnerable">易伤 ${e.vulnerable}</span>`;
-        if (e.weak > 0) statuses += `<span class="ct-status-badge weak">虚弱 ${e.weak}</span>`;
-
-        let intentHtml = `意图: ${intent.label}`;
-        if (e.isBoss && s.hasRelic('seeIntent')) {
-          const next = e.pattern[(e.patternIndex + 1) % e.pattern.length];
-          if (next && next.label) intentHtml += `<div class="ct-intent-next">下一步: ${next.label}</div>`;
-        }
-
-        return `<div class="ct-enemy ${e.isBoss ? 'boss-enemy' : ''}" data-idx="${i}">
-          <span class="ct-enemy-sprite">${e.sprite}</span>
-          <div class="ct-enemy-name">${e.name}</div>
-          <div class="ct-enemy-hp-bar"><div class="ct-enemy-hp-fill" style="width:${hpPct}%"></div></div>
-          <div class="ct-enemy-hp-text">${e.hp} / ${e.maxHp}</div>
-          <div class="ct-enemy-intent ${intentClass}">${intentHtml}</div>
-          <div class="ct-enemy-statuses">${statuses}</div>
-        </div>`;
-      }).join('');
+      this.presentation.enemies(this.game, this.els.enemyArea);
     }
 
     /* --- Player Status --- */
     renderPlayerStatus() {
-      const s = this.game.state;
-      const cls = s.chosenClass ? CLASSES.find(c => c.id === s.chosenClass) : null;
-      let statusHTML = '';
-      if (cls) {
-        statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">${cls.icon}</span><span class="ct-ps-label">${cls.name}</span><span class="ct-ps-value" style="color:${cls.color};font-size:0.7rem;">${cls.passive.split('：')[1] || ''}</span></div>`;
-      }
-      if (s.ascension > 0) {
-        statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🔥</span><span class="ct-ps-label">飞升</span><span class="ct-ps-value" style="color:#ff6b6b;">${s.ascension}</span></div>`;
-      }
-      statusHTML += `
-        <div class="ct-ps-item"><span class="ct-ps-icon">❤</span><span class="ct-ps-label">生命</span><span class="ct-ps-value hp">${s.hp}/${s.maxHp}</span></div>
-        <div class="ct-ps-item"><span class="ct-ps-icon">⚡</span><span class="ct-ps-label">灵力</span><span class="ct-ps-value energy">${s.energy}/${s.maxEnergy + s.getRelicEffect('maxEnergyBonus')}</span></div>
-        <div class="ct-ps-item"><span class="ct-ps-icon">🛡</span><span class="ct-ps-label">护甲</span><span class="ct-ps-value block">${s.block}</span></div>
-      `;
-      if (s.poison > 0) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">☠</span><span class="ct-ps-label">中毒</span><span class="ct-ps-value hp">${s.poison}</span></div>`;
-      if (s.burn > 0) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🔥</span><span class="ct-ps-label">灼烧</span><span class="ct-ps-value hp">${s.burn}</span></div>`;
-      if (s.thorns > 0) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🦔</span><span class="ct-ps-label">荆棘</span><span class="ct-ps-value block">${s.thorns}</span></div>`;
-      if (s.bound) statusHTML += `<div class="ct-ps-item"><span class="ct-ps-icon">🔗</span><span class="ct-ps-label">缠绕</span><span class="ct-ps-value hp">!</span></div>`;
-      if (s.strength > 0) statusHTML += `<div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">💪</span><span class="ct-ps-label">力量</span><span class="ct-ps-value energy">${s.strength}</span></div>`;
-      if (s.vulnerable > 0) statusHTML += `<div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">💔</span><span class="ct-ps-label">易伤</span><span class="ct-ps-value hp">${s.vulnerable}</span></div>`;
-      if (s.weak > 0) statusHTML += `<div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">😵</span><span class="ct-ps-label">虚弱</span><span class="ct-ps-value hp">${s.weak}</span></div>`;
-
-      const summary = getBuildSummary(s.deck, s.relics);
-      if (summary.length > 0) {
-        statusHTML += `<div class="ct-ps-item ct-ps-build"><span class="ct-ps-icon">🧩</span><span class="ct-ps-label">构筑</span><span class="ct-ps-value build">${summary.map(t => `<span class="ct-tag">${escapeHtml(t)}</span>`).join('')}</span></div>`;
-      }
-
-      // Relics
-      const relicHTML = this.renderRelics();
-      if (relicHTML) statusHTML += `<div class="ct-ps-item ct-ps-relics">${relicHTML}</div>`;
-
-      this.els.playerStatus.innerHTML = statusHTML;
+      this.presentation.status(this.game, this.els.playerStatus, this.renderRelics());
     }
 
     /* --- Hand --- */
     renderHand() {
-      const s = this.game.state;
-      const hand = s.hand;
-      const battleMgr = this.game.battle;
-
-      this.els.handArea.innerHTML = hand.map((card, i) => {
-        const canPlay = battleMgr.canPlayCard(card);
-        const effectiveCost = battleMgr.getEffectiveCost(card);
-        const discounted = effectiveCost < card.cost;
-        const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
-        const tagsHtml = renderTagChips(getCardTags(card), 3);
-        let disabledAttrs = '';
-        if (!canPlay) {
-          let reason = '当前不可用';
-          if (!battleMgr.playerTurn) {
-            reason = '对手回合';
-          } else if (s.energy < effectiveCost) {
-            reason = `灵力不足（需要 ${effectiveCost}）`;
-          } else if (card.requiresExhaust && s.hand.filter(c => c.uid !== card.uid).length === 0) {
-            reason = '需要额外献祭一张手牌';
-          }
-          disabledAttrs = ` aria-disabled="true" data-disabled-reason="${escapeHtml(reason)}"`;
-        }
-        return `<div class="ct-card ${typeClass} ${canPlay ? '' : 'cant-play'} ${card.upgraded ? 'upgraded' : ''}" data-uid="${card.uid}"${disabledAttrs}>
-          <div class="ct-card-cost ${discounted ? 'discounted' : ''}">${effectiveCost}</div>
-          <div class="ct-card-art">${card.art}</div>
-          <div class="ct-card-name">${card.name}</div>
-          <div class="ct-card-type">${card.type === 'attack' ? '攻击' : card.type === 'defense' ? '防御' : '法术'}</div>
-          ${tagsHtml}
-          <div class="ct-card-desc">${cardDescResolved(card)}</div>
-        </div>`;
-      }).join('');
+      this.presentation.hand(this.game, this.els.handArea);
     }
 
     renderEndTurnButton() {
-      const canEnd = !!this.game.battle.playerTurn;
+      const canEnd = this.game.battle.playerTurn && this.game.battle.inBattle && this.game.battle.enemies.length > 0;
+      this.els.btnEndTurn.disabled = !canEnd;
+      this.els.btnEndTurn.textContent = canEnd ? '结束回合' : this.game.battle.inBattle ? '敌方行动中' : '战斗结束';
       this.els.btnEndTurn.setAttribute('aria-disabled', canEnd ? 'false' : 'true');
       if (!canEnd) {
         this.els.btnEndTurn.dataset.disabledReason = '对手回合';
@@ -2302,19 +2071,7 @@
 
     /* --- Card Reward --- */
     showCardReward(cards) {
-      this.els.rewardCards.innerHTML = cards.map(card => {
-        const typeClass = `card-${card.type === 'defense' ? 'defense' : card.type}`;
-        const tagsHtml = renderTagChips(getCardTags(card), 5);
-        return `<div class="ct-card ${typeClass}" data-id="${card.id}">
-          <div class="ct-card-cost">${card.cost}</div>
-          <div class="ct-card-art">${card.art}</div>
-          <div class="ct-card-name">${card.name}</div>
-          <div class="ct-card-type">${card.type === 'attack' ? '攻击' : card.type === 'defense' ? '防御' : '法术'}</div>
-          ${tagsHtml}
-          <div class="ct-card-desc">${cardDescResolved(card)}</div>
-        </div>`;
-      }).join('');
-
+      this.els.rewardCards.innerHTML = this.presentation.rewardCards(cards);
       this.els.cardReward.classList.add('active');
     }
 
@@ -2546,6 +2303,29 @@
   /* ============================================================
      GAME CONTROLLER
      ============================================================ */
+  function readTowerBonus(bonuses, key) {
+    const value = bonuses[key] ?? 0;
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error('仙塔开局加成 ' + key + ' 无效，请检查存档。');
+    }
+    return value;
+  }
+
+  function consumeTowerStartBonuses(storage) {
+    const bonuses = storage.get('xianyuan_tower_bonuses', {});
+    const permanentHp = readTowerBonus(bonuses, 'hp');
+    const nextRunHp = readTowerBonus(bonuses, 'heal_next');
+    const extraRelicChoices = readTowerBonus(bonuses, 'extraRelicChoices');
+    const hp = permanentHp + nextRunHp;
+    if (!Number.isSafeInteger(hp)) throw new Error('仙塔生命加成总值超出有效范围。');
+    if (nextRunHp > 0 || extraRelicChoices > 0) {
+      storage.setManyImmediate({
+        xianyuan_tower_bonuses: { ...bonuses, heal_next: 0, extraRelicChoices: 0 },
+      });
+    }
+    return Object.freeze({ hp, extraRelicChoices });
+  }
+
   class Game {
     constructor() {
       this.state = new GameState();
@@ -2562,6 +2342,7 @@
     }
 
     startGame(daily) {
+      const towerBonuses = consumeTowerStartBonuses(Storage);
       this.state.reset();
       this._isDaily = !!daily;
       if (daily) {
@@ -2582,19 +2363,10 @@
         });
       }
 
-      // 仙缘兑换：永久加成 / 下局一次性加成
-      var towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0, extraRelicChoices: 0 });
-      if (towerBonuses.hp > 0) {
-        this.state.hp += towerBonuses.hp;
-        this.state.maxHp += towerBonuses.hp;
-      }
-      if (towerBonuses.heal_next > 0) {
-        this.state.hp = Math.min(this.state.maxHp, this.state.hp + towerBonuses.heal_next);
-        towerBonuses.heal_next = 0;
-      }
-      this.state._xianyuanExtraRelicChoices = Math.max(0, towerBonuses.extraRelicChoices || 0);
-      if (towerBonuses.extraRelicChoices) towerBonuses.extraRelicChoices = 0;
-      Storage.set('xianyuan_tower_bonuses', towerBonuses);
+      // 一次性道具已提交消费；满血开局也同时提高本局生命上限。
+      this.state.hp += towerBonuses.hp;
+      this.state.maxHp += towerBonuses.hp;
+      this.state._xianyuanExtraRelicChoices = towerBonuses.extraRelicChoices;
 
       this.ui.showScreen('game');
       this.ui.logMessage('仙塔之旅开始...', '');

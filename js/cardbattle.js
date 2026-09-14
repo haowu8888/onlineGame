@@ -4,28 +4,6 @@
 
   /* ===================== 卡牌定义 ===================== */
 
-  // 弟子卡（随从）图标
-  const MINION_ART = {
-    '剑修弟子': '⚔️', '灵兽幼崽': '🐾', '符箓师': '📜', '丹修弟子': '💊',
-    '剑灵': '🗡️', '护法金刚': '🛡️', '天狐妖姬': '🦊', '雷法真人': '⚡',
-    '剑仙': '✨', '太上长老': '👴',
-    // 新可解锁卡
-    '灵狐巫女': '🦊', '铁壁傀儡': '🤖', '影杀者': '🗡️', '灵兽驯师': '🐲',
-    '雷击傀儡': '💣', '吞灵蟒': '🐍', '仙盾守卫': '🛡️', '破灭剑圣': '⚔️',
-    '九天玄女': '👸', '混沌魔神': '😈', '炼魂幽灵': '👻', '真武将军': '🏯',
-    '灵兽王': '🦁', '暗影刺客': '🌑', '玉面狐仙': '🦊',
-    // AI用
-    '妖兽': '🐺', '小妖': '👺', '毒蛇': '🐍', '妖兵': '👹', '石魔': '🪨',
-    '妖将': '😈', '魔修': '🧛', '血煞': '💀', '炎魔': '🔥', '天魔': '👿',
-    '魔将': '⚫', '噬魂者': '☠️', '暗影': '🌑', '魔尊护卫': '🏴',
-  };
-
-  const SPELL_ART = {
-    '灵气弹': '🔵', '金光咒': '🌟', '回春术': '💚', '天雷符': '⚡', '仙人指路': '🔮',
-    '烈焰风暴': '🔥', '灵力灌注': '💠', '天罚': '⛈️', '生命涌泉': '💧', '灵魂收割': '💀',
-    '妖火术': '🔥', '黑雾': '🌫️', '吞噬': '🕳️', '魔焰': '💜',
-  };
-
   /* --- 玩家卡牌库 --- */
   function createPlayerDeck() {
     const cards = [];
@@ -312,8 +290,7 @@
   }
 
   function getArt(card) {
-    if (card.type === 'spell') return SPELL_ART[card.name] || '🔮';
-    return MINION_ART[card.name] || '❓';
+    return CardBattlePresentation.art(card);
   }
 
   /* ===================== 游戏状态 ===================== */
@@ -1018,6 +995,12 @@
   const $enemyPortrait = document.querySelector('.cb-enemy-master .cb-master-portrait');
   const $diffBtns = document.querySelectorAll('.cb-diff-btn');
 
+  const battleView = CardBattlePresentation.create({
+    document, escape: escapeHtml, tactics: CardBattleTactics, maxField: MAX_FIELD,
+    descriptions: { battlecry: getBattlecryDesc, deathrattle: getDeathrattleDesc },
+  });
+  const deckView = CardBattleDeckView.create({ escape: escapeHtml, art: getArt, tactics: CardBattleTactics });
+
   function render() {
     if (!G) return;
     renderMasters();
@@ -1027,12 +1010,14 @@
     renderEnergy();
     renderTurnIndicator();
     renderDeckInfo();
+    battleView.selection({ state: G, spell: pendingSpell, minionIndex: selectedMinion });
+    battleView.summary({ state: G, animating, powerTarget: pickHeroPowerTarget(G.enemyField) });
   }
 
   function renderMasters() {
     // Enemy
     $enemyName.textContent = G.enemyName;
-    $enemyPortrait.textContent = G.enemyPortrait;
+    $enemyPortrait.innerHTML = CardBattlePresentation.sigil('enemy');
     const ePct = Math.max(0, G.enemyHP / G.enemyMaxHP * 100);
     $enemyHPFill.style.width = ePct + '%';
     $enemyHPText.textContent = Math.max(0, G.enemyHP) + '/' + G.enemyMaxHP;
@@ -1042,166 +1027,17 @@
     $playerHPFill.style.width = pPct + '%';
     $playerHPText.textContent = Math.max(0, G.playerHP) + '/' + G.playerMaxHP;
 
-    // Targetable states
-    $enemyMaster.classList.remove('targetable');
-    if (selectedMinion !== null && G.phase === 'player') {
-      // Check if enemy master is a valid target (no taunt)
-      const hasTaunt = G.enemyField.some(m => m.taunt && m.hp > 0);
-      if (!hasTaunt) {
-        $enemyMaster.classList.add('targetable');
-      }
-    }
-    if (pendingSpell && spellTargetType(pendingSpell.effect) === 'any') {
-      $enemyMaster.classList.add('targetable');
-    }
-    if (pendingSpell && spellTargetType(pendingSpell.effect) === 'any_minion') {
-      // No master targeting for any_minion
-    }
   }
 
   function renderField(who) {
-    const field = who === 'player' ? G.playerField : G.enemyField;
-    const $field = who === 'player' ? $playerField : $enemyField;
-    $field.innerHTML = '';
-
-    field.forEach((m, idx) => {
-      const div = document.createElement('div');
-      div.className = 'cb-minion';
-      if (who === 'enemy') div.classList.add('enemy-minion');
-      if (m.taunt) div.classList.add('has-taunt');
-      if (m.divineShield) div.classList.add('has-divine-shield');
-
-      // Player minions: show can-attack / sleeping
-      if (who === 'player' && G.phase === 'player') {
-        if (m.canAttack) {
-          div.classList.add('can-attack');
-        } else {
-          div.classList.add('sleeping');
-        }
-        if (selectedMinion === idx) {
-          div.classList.add('selected');
-        }
-      }
-
-      // Enemy minions: targetable when player is selecting attack target
-      if (who === 'enemy' && selectedMinion !== null && G.phase === 'player') {
-        const hasTaunt = G.enemyField.some(em => em.taunt && em.hp > 0);
-        if (!hasTaunt || m.taunt) {
-          div.classList.add('targetable');
-        }
-      }
-
-      // Spell targeting
-      if (pendingSpell) {
-        const tt = spellTargetType(pendingSpell.effect);
-        if (tt === 'enemy_minion' && who === 'enemy') {
-          div.classList.add('targetable');
-        }
-        if (tt === 'any') {
-          div.classList.add('targetable');
-        }
-      }
-
-      const isDamaged = m.hp < m.maxHp;
-      const drIcon = m.deathrattle ? '<div style="position:absolute;top:2px;left:2px;font-size:0.55rem">💀</div>' : '';
-      div.innerHTML = `
-        ${drIcon}
-        <div class="cb-minion-art">${getArt(m)}</div>
-        <div class="cb-minion-name">${m.name}</div>
-        <div class="cb-minion-atk">${m.atk}</div>
-        <div class="cb-minion-hp ${isDamaged ? 'damaged' : ''}">${m.hp}</div>
-      `;
-
-      // Click handlers (always bind so users get feedback)
-      if (who === 'player') {
-        div.addEventListener('click', () => {
-          if (G.phase !== 'player') {
-            showToast('非你的回合', 'info');
-            return;
-          }
-          onPlayerMinionClick(idx);
-        });
-      }
-      if (who === 'enemy') {
-        div.addEventListener('click', () => onEnemyMinionClick(idx));
-      }
-
-      $field.appendChild(div);
+    battleView.field({
+      who, state: G, animating, selection: { spell: pendingSpell, minionIndex: selectedMinion },
+      onClick: who === 'player' ? onPlayerMinionClick : onEnemyMinionClick,
     });
-
-    // Empty field placeholder
-    if (field.length === 0) {
-      const empty = document.createElement('div');
-      empty.style.cssText = 'color: var(--text-muted); font-size: 0.8rem; opacity: 0.5;';
-      empty.textContent = who === 'player' ? '你的战场' : '对手战场';
-      $field.appendChild(empty);
-    }
   }
 
   function renderHand() {
-    $playerHand.innerHTML = '';
-    G.playerHand.forEach((card, idx) => {
-      const div = document.createElement('div');
-      const isSpell = card.type === 'spell';
-      const canPlay = card.cost <= G.playerEnergy && G.phase === 'player'
-        && (isSpell || G.playerField.length < MAX_FIELD);
-
-      div.className = 'cb-card' + (isSpell ? ' spell-card' : '');
-      if (canPlay && !animating) div.classList.add('playable');
-      else div.classList.add('unplayable');
-
-      let statsHTML = '';
-      if (!isSpell) {
-        statsHTML = `
-          <div class="cb-card-stats">
-            <span class="cb-card-atk">⚔ ${card.atk}</span>
-            <span class="cb-card-hp">❤ ${card.hp}</span>
-          </div>`;
-      }
-
-      let descText = '';
-      if (isSpell && card.desc) {
-        descText = card.desc;
-      } else {
-        const parts = [];
-        if (card.charge) parts.push('冲锋');
-        if (card.divineShield) parts.push('圣盾');
-        if (card.taunt) parts.push('嘲讽');
-        if (card.battlecry) parts.push(getBattlecryDesc(card.battlecry));
-        if (card.deathrattle) parts.push(getDeathrattleDesc(card.deathrattle));
-        descText = parts.join(' ');
-      }
-
-      div.innerHTML = `
-        <div class="cb-card-cost">${card.cost}</div>
-        <div class="cb-card-art">${getArt(card)}</div>
-        <div class="cb-card-name">${card.name}</div>
-        <div class="cb-card-desc">${descText}</div>
-        ${statsHTML}
-      `;
-
-      div.addEventListener('click', () => {
-        if (animating) {
-          showToast('动画进行中，稍后再试', 'info');
-          return;
-        }
-        if (G.phase !== 'player') {
-          showToast('非你的回合', 'info');
-          return;
-        }
-        if (card.cost > G.playerEnergy) {
-          showToast(`灵力不足（需要${card.cost}）`, 'info');
-          return;
-        }
-        if (!isSpell && G.playerField.length >= MAX_FIELD) {
-          showToast(`战场已满（最多${MAX_FIELD}个随从）`, 'info');
-          return;
-        }
-        onHandCardClick(idx);
-      });
-
-      $playerHand.appendChild(div);
-    });
+    battleView.hand({ state: G, animating, spell: pendingSpell, onClick: onHandCardClick });
   }
 
   function getBattlecryDesc(cry) {
@@ -1232,7 +1068,7 @@
     // Update hero power button state
     const $hp = document.getElementById('btn-hero-power');
     if ($hp) {
-      const canUse = G.phase === 'player' && !G.playerHeroPowerUsed && G.playerEnergy >= 2 && !G.gameOver;
+      const canUse = G.phase === 'player' && !animating && !G.playerHeroPowerUsed && G.playerEnergy >= 2 && !G.gameOver;
       $hp.setAttribute('aria-disabled', canUse ? 'false' : 'true');
       if (!canUse) {
         let reason = '当前不可使用';
@@ -1253,65 +1089,34 @@
     return list.slice().sort((a, b) => (b.atk - a.atk) || (a.hp - b.hp))[0];
   }
 
-  /** Hero power: deal 2 damage to any target (minion or enemy master) */
+  /** 灵技自动斩杀仙师，否则攻击最高攻击随从；同攻击时优先低生命。 */
   function useHeroPower(owner) {
-    const HERO_POWER_COST = 2;
-    if (owner === 'player') {
-      if (G.playerHeroPowerUsed || G.playerEnergy < HERO_POWER_COST) return false;
-      G.playerEnergy -= HERO_POWER_COST;
-      G.playerHeroPowerUsed = true;
-      if (G.enemyHP <= 2) {
-        dealDamageToMaster('enemy', 2);
-        return true;
-      }
-      // Deal 2 damage to highest-attack enemy minion or enemy master
-      if (G.enemyField.length > 0) {
-        const t = pickHeroPowerTarget(G.enemyField);
-        if (t) {
-          dealDamageToMinion(t, 2);
-          removeDeadMinions();
-        }
-      } else {
-        dealDamageToMaster('enemy', 2);
-      }
+    const { cost, damage } = CardBattleTactics.HERO_POWER;
+    const usedKey = owner + 'HeroPowerUsed';
+    const energyKey = owner + 'Energy';
+    if (G.gameOver || G[usedKey] || G[energyKey] < cost) return false;
+    G[energyKey] -= cost;
+    G[usedKey] = true;
+    const opponent = owner === 'player' ? 'enemy' : 'player';
+    const target = G[opponent + 'HP'] <= damage ? null : pickHeroPowerTarget(G[opponent + 'Field']);
+    if (target) {
+      dealDamageToMinion(target, damage);
+      removeDeadMinions();
     } else {
-      if (G.enemyHeroPowerUsed || G.enemyEnergy < HERO_POWER_COST) return false;
-      G.enemyEnergy -= HERO_POWER_COST;
-      G.enemyHeroPowerUsed = true;
-      if (G.playerHP <= 2) {
-        dealDamageToMaster('player', 2);
-        return true;
-      }
-      // AI: deal 2 to highest-attack player minion or player master
-      if (G.playerField.length > 0) {
-        const t = pickHeroPowerTarget(G.playerField);
-        if (t) {
-          dealDamageToMinion(t, 2);
-          removeDeadMinions();
-        }
-      } else {
-        dealDamageToMaster('player', 2);
-      }
+      dealDamageToMaster(opponent, damage);
     }
+    checkGameOver();
     return true;
   }
 
   function renderTurnIndicator() {
-    if (G.phase === 'player') {
-      $turnIndicator.textContent = '你的回合';
-      $turnIndicator.classList.remove('enemy-turn');
-      $endTurnBtn.setAttribute('aria-disabled', 'false');
-      delete $endTurnBtn.dataset.disabledReason;
-    } else if (G.phase === 'enemy') {
-      $turnIndicator.textContent = '对手回合';
-      $turnIndicator.classList.add('enemy-turn');
-      $endTurnBtn.setAttribute('aria-disabled', 'true');
-      $endTurnBtn.dataset.disabledReason = '对手回合';
-    } else {
-      $turnIndicator.textContent = G.winner === 'player' ? '胜利！' : '战败...';
-      $endTurnBtn.setAttribute('aria-disabled', 'true');
-      $endTurnBtn.dataset.disabledReason = '对局已结束';
-    }
+    const playerTurn = G.phase === 'player' && !G.gameOver;
+    const ended = G.phase === 'gameover' || G.gameOver;
+    $turnIndicator.textContent = ended ? (G.winner === 'player' ? '胜利！' : '战败') : playerTurn ? '你的回合' : '对手回合';
+    $turnIndicator.classList.toggle('enemy-turn', !playerTurn);
+    $endTurnBtn.disabled = !playerTurn || animating;
+    $endTurnBtn.setAttribute('aria-disabled', String(!playerTurn || animating));
+    $endTurnBtn.textContent = ended ? '对局已结束' : playerTurn ? '结束回合' : '对手行动中';
   }
 
   function renderDeckInfo() {
@@ -1331,203 +1136,110 @@
     document.body.classList.remove('cb-spell-target-mode');
   }
 
-  function onHandCardClick(idx) {
-    if (G.phase !== 'player' || animating || G.gameOver) return;
+  function commitPlayerSpell({ card, index, minion = null, master = null }) {
+    animating = true;
+    G.playerEnergy -= card.cost;
+    G.playerHand.splice(index, 1);
+    if (G.tracker) G.tracker.playerCardsPlayed++;
+    executeSpell(card, 'player', minion, master);
     clearSelection();
+    checkGameOver();
+    animating = false;
+    render();
+    $playerHand.children[Math.min(index, G.playerHand.length - 1)]?.focus({ preventScroll: true });
+  }
 
+  function castPendingSpell({ who, index, master = false }) {
+    const targets = CardBattleTactics.selectionTargets({ state: G, spell: pendingSpell, minionIndex: null });
+    const valid = master ? targets.master : targets[who].includes(index);
+    if (!valid) {
+      showToast('此目标不符合「' + pendingSpell.name + '」的条件', 'info');
+      return;
+    }
+    commitPlayerSpell({
+      card: pendingSpell, index: pendingSpellHandIdx,
+      minion: master ? null : G[who + 'Field'][index], master: master ? 'enemy' : null,
+    });
+  }
+
+  function onHandCardClick(idx) {
+    if (!G || G.phase !== 'player' || animating || G.gameOver) return;
     const card = G.playerHand[idx];
-    if (card.cost > G.playerEnergy) return;
-
+    if (!card) return;
+    const status = CardBattleTactics.cardStatus({ card, state: G, animating, maxField: MAX_FIELD });
+    if (!status.playable) { showToast(status.reason, 'info'); return; }
+    clearSelection();
     if (card.type === 'minion') {
-      if (G.playerField.length >= MAX_FIELD) {
-        showToast('战场已满（最多6个随从）', 'error');
-        return;
-      }
       animating = true;
       playMinionCard(card, idx, 'player');
       removeDeadMinions();
       checkGameOver();
       animating = false;
       render();
-    } else {
-      // Spell card
-      if (spellNeedsTarget(card.effect)) {
-        // Need target selection
-        const tt = spellTargetType(card.effect);
-        if (tt === 'enemy_minion' && G.enemyField.length === 0) {
-          showToast('没有可用目标', 'error');
-          return;
-        }
-        if (tt === 'any_minion' && G.enemyField.length === 0 && G.playerField.length === 0) {
-          showToast('没有可用目标', 'error');
-          return;
-        }
-        pendingSpell = card;
-        pendingSpellHandIdx = idx;
-        $targetHint.style.display = 'flex';
-        document.body.classList.add('cb-spell-target-mode');
-        render();
-      } else {
-        // No target needed, play immediately
-        animating = true;
-        G.playerEnergy -= card.cost;
-        G.playerHand.splice(idx, 1);
-        if (G.tracker) G.tracker.playerCardsPlayed++;
-        executeSpell(card, 'player', null, null);
-        checkGameOver();
-        animating = false;
-        render();
-      }
+      return;
     }
+    if (!spellNeedsTarget(card.effect)) {
+      commitPlayerSpell({ card, index: idx });
+      return;
+    }
+    pendingSpell = card;
+    pendingSpellHandIdx = idx;
+    document.body.classList.add('cb-spell-target-mode');
+    render();
+    battleView.focusTarget();
   }
 
   function onPlayerMinionClick(idx) {
-    if (G.phase !== 'player' || animating || G.gameOver) return;
-
-    if (pendingSpell) {
-      // If spell targets 'any', player minions are also valid
-      const tt = spellTargetType(pendingSpell.effect);
-      if (tt === 'any') {
-        // Target this friendly minion (rare case, but deal6any can target anything)
-        const card = pendingSpell;
-        animating = true;
-        G.playerEnergy -= card.cost;
-        G.playerHand.splice(pendingSpellHandIdx, 1);
-        if (G.tracker) G.tracker.playerCardsPlayed++;
-        executeSpell(card, 'player', G.playerField[idx], null);
-        clearSelection();
-        checkGameOver();
-        animating = false;
-        render();
-        return;
-      }
-      return;
-    }
-
-    const m = G.playerField[idx];
-    if (!m.canAttack) return;
-
-    if (selectedMinion === idx) {
-      // Deselect
-      clearSelection();
-      render();
-      return;
-    }
-
+    if (!G || G.phase !== 'player' || animating || G.gameOver) return;
+    if (pendingSpell) { castPendingSpell({ who: 'player', index: idx }); return; }
+    const minion = G.playerField[idx];
+    if (!minion || !minion.canAttack) return;
+    if (selectedMinion === idx) { clearSelection(); render(); return; }
     selectedMinion = idx;
-    $targetHint.style.display = 'flex';
     render();
+    battleView.focusTarget();
   }
 
   function onEnemyMinionClick(idx) {
-    if (G.phase !== 'player' || animating || G.gameOver) return;
-
-    if (pendingSpell) {
-      // Target for spell
-      const card = pendingSpell;
-      const tt = spellTargetType(card.effect);
-      if (tt === 'enemy_minion' || tt === 'any' || tt === 'any_minion') {
-        animating = true;
-        G.playerEnergy -= card.cost;
-        G.playerHand.splice(pendingSpellHandIdx, 1);
-        if (G.tracker) G.tracker.playerCardsPlayed++;
-        executeSpell(card, 'player', G.enemyField[idx], null);
-        clearSelection();
-        checkGameOver();
-        animating = false;
-        render();
-      }
-      return;
-    }
-
+    if (!G || G.phase !== 'player' || animating || G.gameOver) return;
+    if (pendingSpell) { castPendingSpell({ who: 'enemy', index: idx }); return; }
     if (selectedMinion === null) return;
-
     const attacker = G.playerField[selectedMinion];
     if (!attacker || !attacker.canAttack) { clearSelection(); render(); return; }
-
-    const target = G.enemyField[idx];
-    const hasTaunt = G.enemyField.some(m => m.taunt && m.hp > 0);
-
-    if (hasTaunt && !target.taunt) {
-      showToast('必须先攻击嘲讽随从！', 'error');
-      return;
-    }
-
-    minionAttackTarget(attacker, selectedMinion, target, 'minion');
+    const targets = CardBattleTactics.attackTargets(G.enemyField);
+    if (!targets.enemy.includes(idx)) { showToast('必须先攻击嘲讽随从！', 'info'); return; }
+    minionAttackTarget(attacker, selectedMinion, G.enemyField[idx], 'minion');
     clearSelection();
     render();
   }
 
-  // Click enemy master to attack
-  $enemyMaster.addEventListener('click', () => {
-    if (G.phase !== 'player' || animating || G.gameOver) return;
-
-    if (pendingSpell) {
-      const card = pendingSpell;
-      const tt = spellTargetType(card.effect);
-      if (tt === 'any') {
-        animating = true;
-        G.playerEnergy -= card.cost;
-        G.playerHand.splice(pendingSpellHandIdx, 1);
-        if (G.tracker) G.tracker.playerCardsPlayed++;
-        executeSpell(card, 'player', null, 'enemy');
-        clearSelection();
-        checkGameOver();
-        animating = false;
-        render();
-      }
-      return;
-    }
-
+  function onEnemyMasterClick() {
+    if (!G || G.phase !== 'player' || animating || G.gameOver) return;
+    if (pendingSpell) { castPendingSpell({ master: true }); return; }
     if (selectedMinion === null) return;
-
     const attacker = G.playerField[selectedMinion];
     if (!attacker || !attacker.canAttack) { clearSelection(); render(); return; }
-
-    const hasTaunt = G.enemyField.some(m => m.taunt && m.hp > 0);
-    if (hasTaunt) {
-      showToast('必须先攻击嘲讽随从！', 'error');
+    if (!CardBattleTactics.attackTargets(G.enemyField).master) {
+      showToast('必须先攻击嘲讽随从！', 'info');
       return;
     }
-
     minionAttackTarget(attacker, selectedMinion, null, 'master');
     clearSelection();
     render();
-  });
+  }
+
+  $enemyMaster.addEventListener('click', onEnemyMasterClick);
 
   // End turn button
   $endTurnBtn.addEventListener('click', () => {
-    if (G.phase !== 'player' || G.gameOver) return;
+    if (!G || G.phase !== 'player' || G.gameOver || animating) return;
     clearSelection();
     startEnemyTurn();
   });
 
-  document.addEventListener('keydown', (e) => {
-    const key = e.key.toLowerCase();
-    const activeTag = document.activeElement ? document.activeElement.tagName : '';
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
-    if (!G || G.gameOver) return;
-    if (key === 'e' && G.phase === 'player') {
-      e.preventDefault();
-      $endTurnBtn.click();
-      return;
-    }
-    if (key === 'h' && G.phase === 'player') {
-      const btn = document.getElementById('btn-hero-power');
-      if (btn) { e.preventDefault(); btn.click(); }
-      return;
-    }
-    if (key === 'c') {
-      const btn = document.getElementById('btn-cancel');
-      if (btn) { e.preventDefault(); btn.click(); }
-      return;
-    }
-    if (G.phase === 'player' && ['1','2','3','4','5','6','7','8','9'].includes(key)) {
-      const idx = parseInt(key, 10) - 1;
-      const cards = $playerHand.querySelectorAll('.cb-card');
-      const card = cards[idx];
-      if (card) { e.preventDefault(); card.click(); }
-    }
+  CardBattleInput.bind({
+    document,
+    readState: () => ({ state: G, selecting: pendingSpell !== null || selectedMinion !== null, animating }),
   });
 
   // Hero power button
@@ -1541,8 +1253,11 @@
 
   // Cancel button
   document.getElementById('btn-cancel').addEventListener('click', () => {
+    const index = pendingSpell ? pendingSpellHandIdx : selectedMinion;
+    const container = pendingSpell ? $playerHand : $playerField;
     clearSelection();
     render();
+    if (index !== null) container.children[index]?.focus({ preventScroll: true });
   });
 
   /* ===================== 伤害数字动画 ===================== */
@@ -1641,6 +1356,41 @@
     });
   }
 
+  function renderResultActions(actions) {
+    const container = document.querySelector('.cb-result-actions');
+    const buttons = actions.map((action, index) => {
+      const button = document.createElement('button');
+      button.id = action.id;
+      button.type = 'button';
+      button.className = index === 0 ? 'btn btn-gold' : 'btn btn-outline';
+      button.textContent = action.label;
+      button.addEventListener('click', action.onClick);
+      return button;
+    });
+    container.replaceChildren(...buttons);
+  }
+
+  function retryNormalMatch() {
+    const lastDiff = G ? G.diff : 0;
+    newGame(lastDiff);
+    showBattle();
+    render();
+  }
+
+  function finishArenaRun() {
+    const data = getArenaData();
+    if (data.currentRun && data.currentRun.streak > data.bestStreak) {
+      data.bestStreak = data.currentRun.streak;
+    }
+    if (typeof CrossGameAchievements !== 'undefined') {
+      CrossGameAchievements.trackStat('cardbattle_arena_best', data.bestStreak || 0);
+    }
+    data.currentRun = null;
+    saveArenaData(data);
+    arenaState = null;
+    showStart();
+  }
+
   function showResult() {
     // Arena mode handling
     if (G && G.isArena) { showArenaResult(); return; }
@@ -1717,6 +1467,10 @@
     const renderResultScreen = (rewardCard) => {
       $battle.style.display = 'none';
       $result.style.display = '';
+      renderResultActions([
+        { id: 'btn-retry', label: '再来一局', onClick: retryNormalMatch },
+        { id: 'btn-back-menu', label: '返回选关', onClick: showStart },
+      ]);
 
       const $title = document.getElementById('result-title');
       $title.textContent = won ? '胜利！' : '战败...';
@@ -1791,6 +1545,7 @@
     const unlocked = Storage.get('cardbattle_unlocked', 0);
     $diffBtns.forEach(btn => {
       const d = parseInt(btn.dataset.diff);
+      btn.setAttribute('aria-disabled', String(d > unlocked));
       if (d <= unlocked) {
         btn.classList.remove('locked');
       } else {
@@ -1829,18 +1584,6 @@
       showBattle();
       render();
     });
-  });
-
-  // Result buttons
-  document.getElementById('btn-retry').addEventListener('click', () => {
-    const lastDiff = G ? G.diff : 0;
-    newGame(lastDiff);
-    showBattle();
-    render();
-  });
-
-  document.getElementById('btn-back-menu').addEventListener('click', () => {
-    showStart();
   });
 
   /* ===================== 收藏/组牌系统 ===================== */
@@ -1953,38 +1696,7 @@
   }
 
   function renderDeckList(decks, activeIdx) {
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-      <h2 style="font-family:var(--font-display);color:var(--gold);margin:0">套牌管理</h2>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-gold btn-sm" id="deck-new">新建套牌</button>
-        <button class="btn btn-outline btn-sm" id="deck-back">返回</button>
-      </div>
-    </div>`;
-
-    // Default deck option
-    html += `<div style="background:var(--bg-card);border:2px solid ${activeIdx===-1?'var(--gold)':'var(--border-color)'};border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer" class="deck-select" data-idx="-1">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="color:var(--text-primary);font-weight:bold">默认牌组</span>
-        <span style="font-size:0.8rem;color:${activeIdx===-1?'var(--gold)':'var(--text-muted)'}">${activeIdx===-1?'使用中':'点击使用'}</span>
-      </div>
-      <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">30张初始卡牌</div>
-    </div>`;
-
-    decks.forEach((d, i) => {
-      html += `<div style="background:var(--bg-card);border:2px solid ${activeIdx===i?'var(--gold)':'var(--border-color)'};border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer" class="deck-select" data-idx="${i}">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="color:var(--text-primary);font-weight:bold">${escapeHtml(d.name)}</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <span style="font-size:0.8rem;color:${d.cards.length===30?'var(--green)':'var(--red)'}">${d.cards.length}/30</span>
-            <span style="font-size:0.8rem;color:${activeIdx===i?'var(--gold)':'var(--text-muted)'}">${activeIdx===i?'使用中':'点击使用'}</span>
-            <button class="btn btn-outline btn-sm deck-edit" data-idx="${i}" style="font-size:0.7rem;padding:2px 6px">编辑</button>
-            <button class="btn btn-outline btn-sm deck-del" data-idx="${i}" style="font-size:0.7rem;padding:2px 6px;color:var(--red)">删</button>
-          </div>
-        </div>
-      </div>`;
-    });
-
-    $collection.innerHTML = html;
+    $collection.innerHTML = deckView.list({ decks, activeIndex: activeIdx, defaultSize: createPlayerDeck().length });
     document.getElementById('deck-back').addEventListener('click', showStart);
     document.getElementById('deck-new').addEventListener('click', () => {
       const name = prompt('套牌名称:', '自定义套牌 ' + (decks.length + 1));
@@ -2022,73 +1734,17 @@
     });
   }
 
+  function focusDeckCard(selector, id) {
+    const button = Array.from($collection.querySelectorAll(selector)).find(item => item.dataset.cid === id);
+    button?.focus({ preventScroll: true });
+  }
+
   function renderDeckEditor(deckIdx) {
     const decks = getDecks();
     const deck = decks[deckIdx];
     if (!deck) return;
     const col = getCollection();
-    // Count cards in deck by id
-    const deckCount = {};
-    deck.cards.forEach(id => { deckCount[id] = (deckCount[id] || 0) + 1; });
-
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <h2 style="font-family:var(--font-display);color:var(--gold);margin:0">编辑: ${escapeHtml(deck.name)}</h2>
-      <span style="color:${deck.cards.length===30?'var(--green)':'var(--red)'}; font-weight:bold">${deck.cards.length}/30</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <button class="btn btn-outline btn-sm" id="de-export">导出</button>
-        <button class="btn btn-outline btn-sm" id="de-import">导入</button>
-        <button class="btn btn-outline btn-sm" id="de-back">完成</button>
-      </div>
-    </div>`;
-
-    // Deck contents
-    html += '<div style="margin-bottom:12px"><div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">当前套牌:</div>';
-    if (deck.cards.length === 0) {
-      html += '<div style="color:var(--text-muted);text-align:center;padding:8px">空套牌 - 从下方添加卡牌</div>';
-    } else {
-      // Group by card id
-      const grouped = {};
-      deck.cards.forEach(id => { grouped[id] = (grouped[id] || 0) + 1; });
-      html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
-      Object.entries(grouped).sort((a, b) => {
-        const ca = CARD_CATALOG_MAP[a[0]], cb = CARD_CATALOG_MAP[b[0]];
-        return (ca ? ca.cost : 0) - (cb ? cb.cost : 0);
-      }).forEach(([id, cnt]) => {
-        const cat = CARD_CATALOG_MAP[id];
-        if (!cat) return;
-        html += `<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;padding:4px 8px;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:4px" class="de-remove" data-cid="${id}">
-          <span style="color:#6aafff">${cat.cost}</span>
-          <span>${getArt(cat)}</span>
-          <span style="color:var(--text-primary)">${cat.name}</span>
-          <span style="color:var(--text-muted)">x${cnt}</span>
-          <span style="color:var(--red);font-size:0.7rem">-</span>
-        </div>`;
-      });
-      html += '</div>';
-    }
-    html += '</div>';
-
-    // Available cards to add
-    html += '<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">可添加的卡牌:</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
-    CARD_CATALOG.forEach(cat => {
-      const owned = col[cat.id] || 0;
-      if (owned === 0) return;
-      const inDeck = deckCount[cat.id] || 0;
-      const canAdd = inDeck < owned && deck.cards.length < 30;
-      const disabledReason = deck.cards.length >= 30 ? '套牌已满（30/30）' : (inDeck >= owned ? '已达到拥有上限' : '当前不可用');
-      html += `<div style="background:${canAdd?'var(--bg-card)':'rgba(50,50,50,0.3)'};border:1px solid ${canAdd?'var(--border-color)':'rgba(100,100,100,0.2)'};border-radius:6px;padding:4px 8px;font-size:0.75rem;cursor:${canAdd?'pointer':'not-allowed'};display:flex;align-items:center;gap:4px;${canAdd?'':'opacity:0.5'}" class="de-add-item ${canAdd?'de-add':''}" data-cid="${cat.id}" aria-disabled="${canAdd?'false':'true'}" ${canAdd?'':`data-disabled-reason="${escapeHtml(disabledReason)}"`}>
-        <span style="color:#6aafff">${cat.cost}</span>
-        <span>${getArt(cat)}</span>
-        <span style="color:var(--text-primary)">${cat.name}</span>
-        <span style="color:var(--text-muted)">${inDeck}/${owned}</span>
-        ${cat.type==='minion'?`<span style="font-size:0.65rem;color:var(--text-muted)">⚔${cat.atk} ❤${cat.hp}</span>`:''}
-        ${canAdd?'<span style="color:var(--green);font-size:0.7rem">+</span>':''}
-      </div>`;
-    });
-    html += '</div>';
-
-    $collection.innerHTML = html;
+    $collection.innerHTML = deckView.editor({ deck, collection: col, catalog: CARD_CATALOG_MAP });
 
     function exportDeck() {
       const payload = JSON.stringify({ name: deck.name, cards: deck.cards }, null, 0);
@@ -2144,6 +1800,7 @@
         deck.cards.push(cid);
         saveDecks(decks);
         renderDeckEditor(deckIdx);
+        focusDeckCard('.de-add-item', cid);
       });
     });
     $collection.querySelectorAll('.de-remove').forEach(el => {
@@ -2154,6 +1811,7 @@
           deck.cards.splice(idx, 1);
           saveDecks(decks);
           renderDeckEditor(deckIdx);
+          focusDeckCard(deck.cards.includes(cid) ? '.de-remove' : '.de-add-item', cid);
         }
       });
     });
@@ -2165,48 +1823,9 @@
 
   /* --- Phase 4B: 联动仙卡录 --- */
   function getCardcollectCards() {
-    const save = Storage.get('cardcollect_save', null);
-    if (!save || !save.owned) return [];
-    // CHARACTER_DATA is in cardcollect.js scope; read from save directly
-    const results = [];
-    Object.entries(save.owned).forEach(([idStr, data]) => {
-      if (!data) return;
-      const id = parseInt(idStr);
-      const name = data.name || ('仙卡#' + id);
-      const role = data.role || 'ATK';
-      const quality = data.quality || '凡';
-      const lv = data.level || 1;
-      // Convert cardcollect stats to cardbattle card
-      const qMul = quality === '圣' ? 2.5 : quality === '仙' ? 2 : quality === '灵' ? 1.5 : 1;
-      if (role === 'ATK') {
-        // ATK → aggressive minion
-        const cost = Math.min(10, Math.max(1, Math.floor(2 + qMul + lv / 10)));
-        results.push({
-          id: 'cc_' + id, name: name, type: 'minion',
-          cost: cost, atk: Math.floor(cost * 1.2), hp: Math.floor(cost * 0.8),
-          charge: quality === '仙' || quality === '圣',
-          maxCopy: 1, _fromCardcollect: true
-        });
-      } else if (role === 'DEF') {
-        // DEF → taunt minion
-        const cost = Math.min(10, Math.max(1, Math.floor(2 + qMul + lv / 10)));
-        results.push({
-          id: 'cc_' + id, name: name, type: 'minion',
-          cost: cost, atk: Math.floor(cost * 0.6), hp: Math.floor(cost * 1.8),
-          taunt: true, maxCopy: 1, _fromCardcollect: true
-        });
-      } else {
-        // SUP → spell or battlecry minion
-        const cost = Math.min(10, Math.max(1, Math.floor(1 + qMul + lv / 10)));
-        results.push({
-          id: 'cc_' + id, name: name, type: 'minion',
-          cost: cost, atk: Math.floor(cost * 0.8), hp: Math.floor(cost * 1.2),
-          battlecry: quality === '圣' ? 'heal5aoe3' : quality === '仙' ? 'aoe3' : 'heal3',
-          maxCopy: 1, _fromCardcollect: true
-        });
-      }
+    return CardBattleCollection.fromSave({
+      save: Storage.get('cardcollect_save', null), catalog: CardCollectCatalog.byId,
     });
-    return results;
   }
 
   // Merge cardcollect cards into collection
@@ -2220,7 +1839,6 @@
       if (!CARD_CATALOG_MAP[c.id]) {
         CARD_CATALOG.push(c);
         CARD_CATALOG_MAP[c.id] = c;
-        MINION_ART[c.name] = MINION_ART[c.name] || '🃏';
       }
       if (!col[c.id]) { col[c.id] = 1; added++; }
     });
@@ -2370,24 +1988,16 @@
         <div class="cb-result-stat"><span class="stat-label">历史最佳</span><span class="stat-value" style="color:var(--gold)">${bestStreak}</span></div>
         ${uiWon ? '<div class="cb-result-stat"><span class="stat-label">剩余生命</span><span class="stat-value">' + (arenaState ? arenaState.hp : G.playerHP) + '/30</span></div>' : ''}
       `;
-      // Replace result buttons
-      const $actions = document.querySelector('.cb-result-actions');
-      if (uiWon && arenaState) {
-        $actions.innerHTML = '<button class="btn btn-gold" id="arena-next">下一场</button><button class="btn btn-outline" id="arena-quit">结束竞技场</button>';
-        document.getElementById('arena-next').addEventListener('click', () => startArenaMatch());
-        document.getElementById('arena-quit').addEventListener('click', () => {
-          const d = getArenaData();
-          if (d.currentRun && d.currentRun.streak > d.bestStreak) d.bestStreak = d.currentRun.streak;
-          if (typeof CrossGameAchievements !== 'undefined') {
-            CrossGameAchievements.trackStat('cardbattle_arena_best', d.bestStreak || 0);
-          }
-          d.currentRun = null; saveArenaData(d); arenaState = null; showStart();
-        });
-      } else {
-        $actions.innerHTML = '<button class="btn btn-gold" id="btn-retry-a">再来一局</button><button class="btn btn-outline" id="btn-back-menu-a">返回选关</button>';
-        document.getElementById('btn-retry-a').addEventListener('click', () => { startArenaRun(); });
-        document.getElementById('btn-back-menu-a').addEventListener('click', showStart);
-      }
+      const actions = uiWon && arenaState
+        ? [
+          { id: 'arena-next', label: '下一场', onClick: startArenaMatch },
+          { id: 'arena-quit', label: '结束竞技场', onClick: finishArenaRun },
+        ]
+        : [
+          { id: 'btn-retry-a', label: '再来一局', onClick: startArenaRun },
+          { id: 'btn-back-menu-a', label: '返回选关', onClick: showStart },
+        ];
+      renderResultActions(actions);
       return;
     }
   }
@@ -2404,6 +2014,7 @@
 
   /* ===================== 初始化 ===================== */
 
+  initNav('cardbattle');
   initParticles('#particles', 20);
   getCollection(); // Initialize collection if needed
   syncCardcollectToCollection(); // Sync cards from cardcollect
