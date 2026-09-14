@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>guigu explore audit</title></head>
+<body>
+<iframe id="app" style="width:1440px;height:2800px;border:0;"></iframe>
+<pre id="result">running</pre>
+<script>
+const GAME_URL = 'file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/guigu.html';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const resultEl = document.getElementById('result');
+const frame = document.getElementById('app');
+function setResult(data) { resultEl.textContent = JSON.stringify(data, null, 2); document.title = data.ok ? 'PASS' : 'FAIL'; }
+async function loadGame() {
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      frame.removeEventListener('load', done);
+      resolve({ win: frame.contentWindow, doc: frame.contentDocument });
+    };
+    frame.addEventListener('load', done, { once: true });
+    frame.src = GAME_URL + '?t=' + Date.now();
+    setTimeout(() => reject(new Error('load timeout')), 15000);
+  });
+}
+async function waitFor(fn, label, timeout = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(50);
+  }
+  throw new Error('wait timeout: ' + label);
+}
+(async () => {
+  try {
+    let ctx = await loadGame();
+    Object.keys(ctx.win.localStorage).filter((k) => k.startsWith('guigu_save_')).forEach((k) => ctx.win.localStorage.removeItem(k));
+    ctx = await loadGame();
+    let { win, doc } = ctx;
+    await waitFor(() => doc.querySelector("button[data-action='new'][data-slot='0']"), 'new slot');
+    doc.querySelector("button[data-action='new'][data-slot='0']").click();
+    await waitFor(() => doc.querySelector('#create-name'), 'create name');
+    const nameInput = doc.querySelector('#create-name');
+    nameInput.value = '鬼谷测';
+    await sleep(80);
+    doc.querySelector('#create-next').click();
+    await waitFor(() => doc.querySelector('.spirit-root-option'), 'spirit root');
+    doc.querySelector('.spirit-root-option').click();
+    await sleep(80);
+    doc.querySelector('#create-next').click();
+    await waitFor(() => doc.querySelector('.sect-option'), 'sect');
+    doc.querySelector('.sect-option').click();
+    await sleep(80);
+    doc.querySelector('#create-next').click();
+    await waitFor(() => doc.querySelectorAll('.talent-option').length >= 2, 'talents');
+    doc.querySelectorAll('.talent-option')[0].click();
+    doc.querySelectorAll('.talent-option')[1].click();
+    await sleep(80);
+    doc.querySelector('#create-next').click();
+    await waitFor(() => doc.querySelector('.personality-option'), 'personality');
+    doc.querySelector('.personality-option').click();
+    await sleep(80);
+    doc.querySelector('#create-next').click();
+    await waitFor(() => doc.querySelector('#create-confirm'), 'confirm');
+    doc.querySelector('#create-confirm').click();
+    await waitFor(() => doc.querySelector('#guigu-game'), 'game root');
+    await waitFor(() => doc.querySelector('.guigu-tab[data-tab="adventure"]'), 'adventure tab');
+    const before = JSON.parse(win.localStorage.getItem('guigu_save_0'));
+    doc.querySelector('.guigu-tab[data-tab="adventure"]').click();
+    await waitFor(() => doc.querySelector('.action-card[data-action="explore"]'), 'explore card');
+    doc.querySelector('.action-card[data-action="explore"]').click();
+    await sleep(250);
+    const after = JSON.parse(win.localStorage.getItem('guigu_save_0'));
+    setResult({
+      ok: true,
+      before: { month: before.month, day: before.day, exp: before.exp, gold: before.gold, explored: before.explored || 0 },
+      after: { month: after.month, day: after.day, exp: after.exp, gold: after.gold, explored: after.explored || 0 },
+      delta: { month: after.month - before.month, day: after.day - before.day, exp: after.exp - before.exp, gold: after.gold - before.gold, explored: (after.explored||0) - (before.explored||0) },
+      toastText: Array.from(doc.querySelectorAll('.toast')).map((el) => el.textContent.trim())
+    });
+  } catch (error) {
+    setResult({ ok: false, error: String(error && error.stack || error) });
+  }
+})();
+</script>
+</body>
+</html>

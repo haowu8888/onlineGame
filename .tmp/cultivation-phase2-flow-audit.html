@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cultivation phase2 flow audit</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div id="particles"></div>
+  <div id="char-create"></div>
+  <div id="cult-game">
+    <div id="status-bar"></div>
+    <div id="cult-tabs">
+      <button class="cult-tab active" data-tab="cultivate">cultivate</button>
+      <button class="cult-tab" data-tab="battle">battle</button>
+      <button class="cult-tab" data-tab="alchemy">alchemy</button>
+      <button class="cult-tab" data-tab="forge">forge</button>
+      <button class="cult-tab" data-tab="shop">shop</button>
+      <button class="cult-tab" data-tab="inventory">inventory</button>
+      <button class="cult-tab" data-tab="pet">pet</button>
+      <button class="cult-tab" data-tab="technique">technique</button>
+      <button class="cult-tab" data-tab="sect">sect</button>
+      <button class="cult-tab" data-tab="world">world</button>
+      <button class="cult-tab" data-tab="inbox" id="tab-inbox">inbox</button>
+      <button class="cult-tab" data-tab="bestiary">bestiary</button>
+      <button class="cult-tab" data-tab="achievement">achievement</button>
+    </div>
+    <div class="cult-panel active" id="panel-cultivate" data-panel="cultivate"></div>
+    <div class="cult-panel" id="panel-world" data-panel="world"></div>
+    <div class="cult-panel" id="panel-inbox" data-panel="inbox"></div>
+    <div class="cult-panel" id="panel-battle" data-panel="battle"></div>
+    <div class="cult-panel" id="panel-alchemy" data-panel="alchemy"></div>
+    <div class="cult-panel" id="panel-forge" data-panel="forge"></div>
+    <div class="cult-panel" id="panel-shop" data-panel="shop"></div>
+    <div class="cult-panel" id="panel-inventory" data-panel="inventory"></div>
+    <div class="cult-panel" id="panel-pet" data-panel="pet"></div>
+    <div class="cult-panel" id="panel-technique" data-panel="technique"></div>
+    <div class="cult-panel" id="panel-sect" data-panel="sect"></div>
+    <div class="cult-panel" id="panel-bestiary" data-panel="bestiary"></div>
+    <div class="cult-panel" id="panel-achievement" data-panel="achievement"></div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ cultivation: 2 }));
+    localStorage.setItem('cultivation_save_1', JSON.stringify({
+      name: '流转审计',
+      spiritRoot: 'fire',
+      sect: 'sword',
+      realm: 5,
+      exp: 0,
+      gold: 9000,
+      hp: 3200,
+      maxHp: 3200,
+      atk: 400,
+      def: 200,
+      spirit: 260,
+      maxSpirit: 260,
+      inventory: { herb: 12, crystal: 8, beast_core: 6, ore: 6, capture_talisman: 0 },
+      pills: { hp_pill: 3, atk_pill: 1, def_pill: 1 },
+      equipment: { weapon: null, armor: null, accessory: null },
+      ownedEquips: [],
+      totalExp: 0,
+      totalKills: 0,
+      totalCrafts: 0,
+      totalEvents: 0,
+      achievements: [],
+      insight: 0,
+      lastOnline: Date.now(),
+      created: Date.now(),
+      currentLocation: 'mist_forest'
+    }));
+    window.__errors = [];
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cultivation.js" defer></script>
+  <script>
+    function wait(ms) {
+      return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+      });
+    }
+
+    function getPhase2State() {
+      return JSON.parse(localStorage.getItem('cultivation_save_1') || '{}').phase2Adventure || {};
+    }
+
+    async function ensureRouteChoices() {
+      if (document.querySelectorAll('.phase2-route-card').length) return;
+      const startBtn = document.getElementById('btn-phase2-adventure-start');
+      if (startBtn) {
+        startBtn.click();
+        await wait(120);
+      }
+    }
+
+    async function rerollRoutes(routeBias) {
+      const biasBtn = document.querySelector('[data-route-bias="' + routeBias + '"]');
+      if (biasBtn) {
+        biasBtn.click();
+        await wait(120);
+      }
+      await ensureRouteChoices();
+    }
+
+    async function pickRouteByType(types, routeBiases, maxAttempts) {
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        await ensureRouteChoices();
+        const state = getPhase2State();
+        const choice = (state.currentChoices || []).find(function (item) {
+          return types.includes(item.type);
+        });
+        if (choice) {
+          document.querySelector('[data-route-choice="' + choice.choiceId + '"]')?.click();
+          await wait(180);
+          return choice;
+        }
+        await rerollRoutes(routeBiases[attempt % routeBiases.length]);
+      }
+      return null;
+    }
+
+    async function finishBattle() {
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const backBtn = document.querySelector('[data-action="back"]');
+        if (backBtn) {
+          backBtn.click();
+          await wait(180);
+          return true;
+        }
+        const attackBtn = document.querySelector('[data-action="attack"]');
+        if (!attackBtn) break;
+        attackBtn.click();
+        await wait(180);
+      }
+      return false;
+    }
+
+    window.addEventListener('load', function () {
+      (async function () {
+        await wait(80);
+        document.querySelector('[data-enter="1"]')?.click();
+        await wait(120);
+        document.querySelector('.cult-tab[data-tab="battle"]')?.click();
+        await wait(120);
+
+        const result = {
+          immediateChoices: [],
+          blessingBeforeBattle: null,
+          blessingAfterBattle: null,
+          battleChoiceType: null,
+          battleResolved: false,
+          finalChoiceCount: 0,
+          finalStep: 0,
+          finalBlessingCount: 0,
+          errors: window.__errors
+        };
+
+        const firstImmediate = await pickRouteByType(['event', 'rest', 'harvest'], ['steady', 'greedy'], 4);
+        if (firstImmediate) {
+          result.immediateChoices.push(firstImmediate.type);
+        }
+
+        const secondImmediate = await pickRouteByType(['event', 'rest', 'harvest'], ['steady', 'greedy'], 4);
+        if (secondImmediate) {
+          result.immediateChoices.push(secondImmediate.type);
+        }
+
+        result.blessingBeforeBattle = document.querySelectorAll('[data-route-blessing]').length;
+        if (result.blessingBeforeBattle) {
+          document.querySelector('[data-route-blessing]')?.click();
+          await wait(120);
+        }
+
+        const battleChoice = await pickRouteByType(['battle'], ['gamble', 'steady', 'greedy'], 8);
+        result.battleChoiceType = battleChoice ? battleChoice.type : null;
+        if (battleChoice) {
+          result.battleResolved = await finishBattle();
+        }
+
+        result.blessingAfterBattle = document.querySelectorAll('[data-route-blessing]').length;
+        const finalState = getPhase2State();
+        result.finalChoiceCount = document.querySelectorAll('.phase2-route-card').length;
+        result.finalStep = finalState.step || 0;
+        result.finalBlessingCount = (finalState.blessings || []).length;
+        result.pass =
+          result.immediateChoices.length === 2 &&
+          result.blessingBeforeBattle >= 1 &&
+          result.battleChoiceType === 'battle' &&
+          result.battleResolved &&
+          result.blessingAfterBattle >= 1 &&
+          result.finalChoiceCount === 3 &&
+          result.finalStep >= 3 &&
+          result.finalBlessingCount >= 1 &&
+          result.errors.length === 0;
+
+        document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+      })();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+  <title>cardtower phase2 flow audit</title>
+</head>
+<body><nav class="nav">
+    <a href="../index.html" class="nav-brand">仙界游坊</a>
+    <button class="nav-toggle" aria-label="菜单">?</button>
+    <ul class="nav-links">
+      <li><a href="../index.html" class="">主页</a></li>
+      <li><a href="cultivation.html" class="">修仙之路</a></li><li><a href="lifesim.html" class="">仙途模拟器</a></li><li><a href="guigu.html" class="">鬼谷八荒</a></li><li><a href="knife.html" class="">转转刀</a></li><li><a href="cardtower.html" class="active">斩仙塔</a></li><li><a href="cardbattle.html" class="">灵卡对决</a></li><li><a href="cardcollect.html" class="">仙卡录</a></li>
+    </ul>
+    <button class="nav-daily-btn" title="每日仙令" aria-label="每日仙令">??<span class="nav-badge hidden" aria-hidden="true">0</span></button>
+    <button class="nav-settings-btn" title="设置">?</button>
+  <div class="nav-backdrop"></div></nav>
+  <pre id="result">{
+  "eliteReached": true,
+  "affixVisible": true,
+  "relicChoiceCount": 3,
+  "nextAvailableCount": 2,
+  "gameExposed": true,
+  "errors": [],
+  "pass": true
+}</pre>
+  
+  <div class="particles-container" id="particles"><div class="particle" style="width: 5.21034px; height: 5.21034px; background: var(--purple-light); left: 62.0933%; animation-duration: 19.8709s; animation-delay: -7.61239s;"></div><div class="particle" style="width: 3.07344px; height: 3.07344px; background: var(--purple-light); left: 34.9326%; animation-duration: 13.231s; animation-delay: -0.45829s;"></div><div class="particle" style="width: 2.23239px; height: 2.23239px; background: var(--cyan); left: 93.2452%; animation-duration: 16.9457s; animation-delay: -9.01218s;"></div><div class="particle" style="width: 5.67371px; height: 5.67371px; background: var(--cyan); left: 32.724%; animation-duration: 23.5088s; animation-delay: -5.21818s;"></div><div class="particle" style="width: 4.89864px; height: 4.89864px; background: var(--gold); left: 15.736%; animation-duration: 15.6967s; animation-delay: -11.0345s;"></div><div class="particle" style="width: 2.05046px; height: 2.05046px; background: var(--cyan); left: 27.8822%; animation-duration: 10.7412s; animation-delay: -6.01022s;"></div><div class="particle" style="width: 5.506px; height: 5.506px; background: var(--cyan); left: 31.4166%; animation-duration: 11.4111s; animation-delay: -0.133241s;"></div><div class="particle" style="width: 5.15871px; height: 5.15871px; background: var(--purple-light); left: 53.172%; animation-duration: 20.7906s; animation-delay: -2.4522s;"></div><div class="particle" style="width: 2.32252px; height: 2.32252px; background: var(--purple-light); left: 70.9313%; animation-duration: 24.889s; animation-delay: -18.5878s;"></div><div class="particle" style="width: 3.59569px; height: 3.59569px; background: var(--cyan); left: 63.1543%; animation-duration: 11.4012s; animation-delay: -4.10048s;"></div><div class="particle" style="width: 3.67961px; height: 3.67961px; background: var(--purple-light); left: 5.01649%; animation-duration: 13.9356s; animation-delay: -0.27402s;"></div><div class="particle" style="width: 5.32696px; height: 5.32696px; background: var(--gold); left: 95.7717%; animation-duration: 22.5723s; animation-delay: -14.3916s;"></div></div>
+  
+  <div class="page-wrapper">
+    <div class="ct-app" id="ct-app">
+      <div class="ct-screen ct-start-screen" id="ct-start">
+        <div class="ct-start-inner">
+          <div class="ct-start-tower"></div>
+          <h1 class="ct-start-title">?????</h1>
+          <p class="ct-start-subtitle">???</p>
+          <button class="btn btn-gold btn-lg ct-start-btn" id="ct-btn-start">???</button>
+          <div class="ct-leaderboard" id="ct-leaderboard"><h3>仙塔榜</h3><div class="ct-lb-empty">暂无记录</div></div>
+        <button class="btn btn-outline btn-lg" style="margin-left: 12px;">每日挑战</button><button class="btn btn-outline btn-lg" style="margin-left: 12px;">图鉴</button></div>
+      </div>
+      <div class="ct-screen ct-game-screen active" id="ct-game">
+        <div class="ct-tower-panel" id="ct-tower-panel">
+          <div class="ct-tower-title">????????</div>
+          <div class="ct-tower-map" id="ct-tower-map"><div class="ct-tower-floor-divider">?1? ? ????</div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-0-row-0-lane-0" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">妖修</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node  completed  " data-node-id="act-0-row-0-lane-1" data-node-type="event">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              <span class="ct-tower-node-check">?</span>
+            </div>
+            <div class="ct-tower-node-title">???</div>
+            <div class="ct-node-preview" data-node-preview="????? / ???">????? / ???</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-0-row-0-lane-2" data-node-type="rest">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="?? ? ?? / ??">?? ? ?? / ??</div>
+            <div class="ct-node-next">?????</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node  completed  " data-node-id="act-0-row-1-lane-0" data-node-type="elite">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???? 12 ??????????? 4 ???">??</span>
+              <span class="ct-tower-node-check">?</span>
+            </div>
+            <div class="ct-tower-node-title">妖兽</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-0-row-1-lane-2" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">妖修</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    available" data-node-id="act-0-row-2-lane-0" data-node-type="event">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">????</div>
+            <div class="ct-node-preview" data-node-preview="?? / ?? / ??">?? / ?? / ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    available" data-node-id="act-0-row-2-lane-1" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">魔修</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">????? / ?? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-0-row-2-lane-2" data-node-type="rest">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="?? ? ?? / ??">?? ? ?? / ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-0-row-3-lane-0" data-node-type="rest">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="?? ? ?? / ??">?? ? ?? / ??</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-0-row-3-lane-1" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">妖修</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-0-row-3-lane-2" data-node-type="elite">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="??????? +2?">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">魂修士</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">?????</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node boss   " data-node-id="act-0-row-4-lane-1" data-node-type="boss">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">魔尊</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ????">????? ? ????</div>
+            <div class="ct-node-next">????? / ?? / ??</div>
+          </button></div><div class="ct-tower-floor-divider">?2? ? ????</div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-1-row-5-lane-0" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="??????? +2?">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">尸魔鬼</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-5-lane-1" data-node-type="event">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">????</div>
+            <div class="ct-node-preview" data-node-preview="?? / ??? / ????">?? / ??? / ????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-5-lane-2" data-node-type="shop">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="???? ? ????">???? ? ????</div>
+            <div class="ct-node-next">?????</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-1-row-6-lane-0" data-node-type="elite">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="????????? 2?">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">尸魔鬼</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-6-lane-2" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">天妖客</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-1-row-7-lane-0" data-node-type="event">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">????</div>
+            <div class="ct-node-preview" data-node-preview="?? / ?? / ??">?? / ?? / ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-7-lane-1" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">尸魔鬼</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">????? / ?? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-7-lane-2" data-node-type="shop">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="???? ? ????">???? ? ????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-1-row-8-lane-0" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">天妖客</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-8-lane-1" data-node-type="elite">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???????? 1 ????">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">龙卫</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-1-row-8-lane-2" data-node-type="rest">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="?? ? ?? / ??">?? ? ?? / ??</div>
+            <div class="ct-node-next">?????</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node boss   " data-node-id="act-1-row-9-lane-1" data-node-type="boss">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">尸王</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ????">????? ? ????</div>
+            <div class="ct-node-next">????? / ?? / ??</div>
+          </button></div><div class="ct-tower-floor-divider">?3? ? ????</div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-2-row-10-lane-0" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???? 12 ??????????? 4 ???">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">魔影</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-10-lane-1" data-node-type="event">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">????</div>
+            <div class="ct-node-preview" data-node-preview="?? / ??? / ????">?? / ??? / ????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-10-lane-2" data-node-type="shop">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="???? ? ????">???? ? ????</div>
+            <div class="ct-node-next">?????</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-2-row-11-lane-0" data-node-type="elite">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???? 12 ??????????? 4 ???">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">雷兽</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-11-lane-2" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">魔影</div>
+            <div class="ct-node-preview" data-node-preview="?????">?????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-2-row-12-lane-0" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???????? 1 ????">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">龙卫</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-12-lane-1" data-node-type="rest">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="?? ? ?? / ??">?? ? ?? / ??</div>
+            <div class="ct-node-next">????? / ?? / ??</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-12-lane-2" data-node-type="shop">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="???? ? ????">???? ? ????</div>
+            <div class="ct-node-next">????? / ??</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node    " data-node-id="act-2-row-13-lane-0" data-node-type="battle">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???? 12 ??????????? 4 ???">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">魔影</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-13-lane-1" data-node-type="elite">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              <span class="ct-node-affix" title="???????? 1 ????">??</span>
+              
+            </div>
+            <div class="ct-tower-node-title">魔影</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ??">????? ? ??</div>
+            <div class="ct-node-next">?????</div>
+          </button><button type="button" class="ct-tower-node    " data-node-id="act-2-row-13-lane-2" data-node-type="rest">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">?</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">??</div>
+            <div class="ct-node-preview" data-node-preview="?? ? ?? / ??">?? ? ?? / ??</div>
+            <div class="ct-node-next">?????</div>
+          </button></div><div class="ct-tower-row"><button type="button" class="ct-tower-node boss   " data-node-id="act-2-row-14-lane-1" data-node-type="boss">
+            <div class="ct-tower-node-head">
+              <span class="ct-tower-node-icon">??</span>
+              <span class="ct-tower-node-label">??</span>
+              
+              
+            </div>
+            <div class="ct-tower-node-title">虚空主宰</div>
+            <div class="ct-node-preview" data-node-preview="????? ? ????">????? ? ????</div>
+            <div class="ct-node-next">?????</div>
+          </button></div></div>
+          <div class="ct-tower-deck-info" id="ct-deck-info">
+        <div class="ct-deck-stat ct-deck-click" data-pile="deck" role="button" tabindex="0"><span>牌组</span><span class="ct-deck-stat-val">10</span></div>
+        <div class="ct-deck-stat ct-deck-click" data-pile="draw" role="button" tabindex="0"><span>抽牌堆</span><span class="ct-deck-stat-val">5</span></div>
+        <div class="ct-deck-stat ct-deck-click" data-pile="discard" role="button" tabindex="0"><span>弃牌堆</span><span class="ct-deck-stat-val">0</span></div>
+      </div>
+        </div>
+        <div class="ct-battle-panel" id="ct-battle-panel">
+          <div class="ct-enemy-area" id="ct-enemy-area"><div class="ct-enemy " data-idx="0">
+          <span class="ct-enemy-sprite">??</span>
+          <div class="ct-enemy-name">妖兽</div>
+          <div class="ct-enemy-affix" data-enemy-affix="warded" title="???? 12 ??????????? 4 ???">?? ? ????</div>
+          <div class="ct-enemy-hp-bar"><div class="ct-enemy-hp-fill" style="width:0%"></div></div>
+          <div class="ct-enemy-hp-text">0 / 121</div>
+          <div class="ct-enemy-intent intent-attack">??: 兽爪 攻击20</div>
+          <div class="ct-enemy-statuses"><span class="ct-status-badge block">?? 12</span><span class="ct-status-badge affix" data-enemy-affix="warded" title="???? 12 ??????????? 4 ???">??</span></div>
+        </div></div>
+          <div class="ct-battle-info" id="ct-battle-info">
+            <div class="ct-player-status" id="ct-player-status"><div class="ct-ps-item"><span class="ct-ps-icon">??</span><span class="ct-ps-label">剑修</span><span class="ct-ps-value" style="color:#ff6b6b;font-size:0.7rem;">每回合自动获得1力量</span></div>
+        <div class="ct-ps-item"><span class="ct-ps-icon">?</span><span class="ct-ps-label">生命</span><span class="ct-ps-value hp">70/70</span></div>
+        <div class="ct-ps-item"><span class="ct-ps-icon">?</span><span class="ct-ps-label">灵力</span><span class="ct-ps-value energy">3/3</span></div>
+        <div class="ct-ps-item"><span class="ct-ps-icon">??</span><span class="ct-ps-label">护甲</span><span class="ct-ps-value block">0</span></div>
+      <div class="ct-ps-item ct-status-effect"><span class="ct-ps-icon">??</span><span class="ct-ps-label">力量</span><span class="ct-ps-value energy">1</span></div><div class="ct-ps-item ct-ps-build"><span class="ct-ps-icon">??</span><span class="ct-ps-label">构筑</span><span class="ct-ps-value build"><span class="ct-tag">护甲</span><span class="ct-tag">毒煞魔道</span><span class="ct-tag">抽牌</span></span></div><div class="ct-ps-item ct-ps-relics"><div class="ct-relic-badges"><span class="ct-relic-badge" title="魂锁: 每回合给敌人施加2毒">??</span></div></div></div>
+          </div>
+          <div class="ct-battle-log" id="ct-battle-log">?????: ?? / ??</div>
+          <div class="ct-hand-area" id="ct-hand-area"><div class="ct-card card-spell  " data-uid="c20">
+          <div class="ct-card-cost ">1</div>
+          <div class="ct-card-art">??</div>
+          <div class="ct-card-name">冥想</div>
+          <div class="ct-card-type">法术</div>
+          <div class="ct-card-tags"><span class="ct-tag">法术</span><span class="ct-tag">抽牌</span></div>
+          <div class="ct-card-desc">抽2张牌</div>
+        </div><div class="ct-card card-attack  " data-uid="c12">
+          <div class="ct-card-cost ">1</div>
+          <div class="ct-card-art">??</div>
+          <div class="ct-card-name">斩击</div>
+          <div class="ct-card-type">攻击</div>
+          <div class="ct-card-tags"><span class="ct-tag">攻击</span></div>
+          <div class="ct-card-desc">造成6点伤害</div>
+        </div><div class="ct-card card-defense  " data-uid="c17">
+          <div class="ct-card-cost ">1</div>
+          <div class="ct-card-art">??</div>
+          <div class="ct-card-name">护体</div>
+          <div class="ct-card-type">防御</div>
+          <div class="ct-card-tags"><span class="ct-tag">防御</span><span class="ct-tag">护甲</span></div>
+          <div class="ct-card-desc">获得5点<span class="ct-keyword-tip" data-tip="抵挡等量的攻击伤害，回合结束后清零">护甲</span></div>
+        </div><div class="ct-card card-attack  " data-uid="c14">
+          <div class="ct-card-cost ">1</div>
+          <div class="ct-card-art">??</div>
+          <div class="ct-card-name">斩击</div>
+          <div class="ct-card-type">攻击</div>
+          <div class="ct-card-tags"><span class="ct-tag">攻击</span></div>
+          <div class="ct-card-desc">造成6点伤害</div>
+        </div><div class="ct-card card-defense  " data-uid="c16">
+          <div class="ct-card-cost ">1</div>
+          <div class="ct-card-art">??</div>
+          <div class="ct-card-name">护体</div>
+          <div class="ct-card-type">防御</div>
+          <div class="ct-card-tags"><span class="ct-tag">防御</span><span class="ct-tag">护甲</span></div>
+          <div class="ct-card-desc">获得5点<span class="ct-keyword-tip" data-tip="抵挡等量的攻击伤害，回合结束后清零">护甲</span></div>
+        </div></div>
+          <div class="ct-battle-actions" id="ct-battle-actions">
+            <button class="btn btn-outline btn-sm" id="ct-btn-end-turn" aria-disabled="false">???????</button>
+          </div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-card-reward" id="ct-card-reward">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">????</h2>
+          <p class="ct-overlay-subtitle">????????????????</p>
+          <div class="ct-reward-cards" id="ct-reward-cards"></div>
+          <button class="btn btn-outline btn-sm ct-skip-btn" id="ct-btn-skip-reward">????</button>
+        </div>
+      </div>
+      <div class="ct-overlay ct-event-overlay" id="ct-event-overlay">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title" id="ct-event-title">???</h2>
+          <p class="ct-overlay-desc" id="ct-event-desc">??????????????????????</p>
+          <div class="ct-event-choices" id="ct-event-choices">
+          <button class="ct-event-choice" data-choice-id="small_bet">
+            <span class="ct-event-choice-label">????</span>
+            <span class="ct-event-choice-desc">?? 6 ???60% ????????????</span>
+          </button>
+        
+          <button class="ct-event-choice" data-choice-id="big_bet">
+            <span class="ct-event-choice-label">??????</span>
+            <span class="ct-event-choice-desc">?? 12 ???45% ??????????</span>
+          </button>
+        
+          <button class="ct-event-choice" data-choice-id="leave">
+            <span class="ct-event-choice-label">??????</span>
+            <span class="ct-event-choice-desc">??????????</span>
+          </button>
+        </div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-upgrade-overlay" id="ct-upgrade-overlay">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">????</h2>
+          <p class="ct-overlay-subtitle">???????????????</p>
+          <div class="ct-upgrade-cards" id="ct-upgrade-cards"></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-relic-reward" id="ct-relic-reward">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">?????</h2>
+          <p class="ct-overlay-subtitle">????????????</p>
+          <div class="ct-relic-choices" id="ct-relic-choices"><div class="ct-relic-choice" data-id="soul_chain">
+          <div class="ct-relic-choice-icon">??</div>
+          <div class="ct-relic-choice-name">魂锁</div>
+          <div class="ct-relic-choice-desc">每回合给敌人施加2毒</div>
+          <div class="ct-relic-choice-set">套装：?? 毒煞魔道（0→1）</div>
+        </div><div class="ct-relic-choice" data-id="ice_crystal">
+          <div class="ct-relic-choice-icon">??</div>
+          <div class="ct-relic-choice-name">冰晶</div>
+          <div class="ct-relic-choice-desc">每3回合冻结敌人1回合</div>
+          
+        </div><div class="ct-relic-choice" data-id="earth_shield">
+          <div class="ct-relic-choice-icon">??</div>
+          <div class="ct-relic-choice-name">地盾</div>
+          <div class="ct-relic-choice-desc">每回合获得2护甲</div>
+          <div class="ct-relic-choice-set">套装：??? 铁骨守御（0→1）</div>
+        </div></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-rest-shop" id="ct-rest-shop">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">???/????</h2>
+          <p class="ct-overlay-subtitle">???</p>
+          <div class="ct-rest-choices" id="ct-rest-choices"></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-card-removal" id="ct-card-removal">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">????</h2>
+          <p class="ct-overlay-subtitle">????????????</p>
+          <div class="ct-removal-cards" id="ct-removal-cards"></div>
+          <button class="btn btn-outline btn-sm ct-skip-btn" id="ct-btn-skip-removal">???</button>
+        </div>
+      </div>
+      <div class="ct-overlay ct-gameover-overlay" id="ct-gameover">
+        <div class="ct-overlay-box ct-gameover-box">
+          <h2 class="ct-overlay-title" id="ct-gameover-title"></h2>
+          <div class="ct-gameover-stats" id="ct-gameover-stats"></div>
+          <button class="btn btn-gold btn-lg" id="ct-btn-restart">??ε???</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ cardtower: 2 }));
+    window.__errors = [];
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer=""></script>
+  <script src="../js/cardtower.js" defer=""></script>
+  <script>
+    function sleep(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
+
+    async function runAudit() {
+      document.getElementById('ct-btn-start')?.click();
+      await sleep(180);
+      document.querySelector('.ct-class-card')?.click();
+      await sleep(320);
+
+      const firstChoice = document.querySelector('.ct-tower-node.available[data-node-type="event"]') ||
+        document.querySelector('.ct-tower-node.available[data-node-type="rest"]') ||
+        document.querySelector('.ct-tower-node.available');
+      firstChoice?.click();
+      await sleep(260);
+
+      const eventChoice = document.querySelector('#ct-event-choices [data-choice-id="leave"]') ||
+        document.querySelector('#ct-event-choices .ct-event-choice:last-child') ||
+        document.querySelector('#ct-event-choices .ct-event-choice');
+      if (eventChoice) {
+        eventChoice.click();
+        await sleep(260);
+      }
+
+      const restChoice = document.querySelector('#ct-rest-choices .ct-rest-choice');
+      if (restChoice) {
+        restChoice.click();
+        await sleep(260);
+      }
+
+      const eliteNode = document.querySelector('.ct-tower-node.available[data-node-type="elite"]');
+      eliteNode?.click();
+      await sleep(350);
+
+      const affixEl = document.querySelector('.ct-enemy-affix, .ct-status-badge.affix, [data-enemy-affix]');
+      const game = window.__cardtowerGame;
+      if (game && game.battle && game.battle.enemies) {
+        game.battle.enemies.forEach(function (enemy) { enemy.hp = 0; });
+        game.battle.battleWon();
+      }
+      await sleep(900);
+
+      const relicChoices = document.querySelectorAll('#ct-relic-choices .ct-relic-choice');
+      relicChoices[0]?.click();
+      await sleep(320);
+
+      const nextNodes = document.querySelectorAll('.ct-tower-node.available');
+      const result = {
+        eliteReached: !!eliteNode,
+        affixVisible: !!affixEl,
+        relicChoiceCount: relicChoices.length,
+        nextAvailableCount: nextNodes.length,
+        gameExposed: !!game,
+        errors: window.__errors
+      };
+      result.pass = result.eliteReached && result.affixVisible && result.relicChoiceCount >= 3 && result.nextAvailableCount >= 1 && result.gameExposed && result.errors.length === 0;
+      document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+    }
+
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        runAudit().catch(function (error) {
+          window.__errors.push(String(error));
+          document.getElementById('result').textContent = JSON.stringify({ pass: false, errors: window.__errors }, null, 2);
+        });
+      }, 120);
+    });
+  </script>
+
+
+
+<button class="sound-toggle" aria-label="音效开关">??</button><div class="guide-overlay active"><div class="guide-backdrop"></div><div class="guide-tooltip" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"><div class="guide-step-indicator">1 / 3</div><div class="guide-text"><strong>欢迎来到斩仙塔！</strong><p>肉鸽卡牌攀塔，从初始牌组出发，逐层击败妖魔。</p></div><div class="guide-actions"><button class="btn btn-sm guide-skip-btn">跳过引导</button><button class="btn btn-gold btn-sm guide-next-btn">下一步</button></div></div></div><div class="toast-container" aria-live="polite" role="status"></div></body></html>

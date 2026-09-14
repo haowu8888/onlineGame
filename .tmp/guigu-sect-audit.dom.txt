@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+  <meta charset="UTF-8">
+  <title>guigu phase2 sect audit</title>
+</head>
+<body><nav class="nav">
+    <a href="../index.html" class="nav-brand">仙界游坊</a>
+    <button class="nav-toggle" aria-label="菜单">☰</button>
+    <ul class="nav-links">
+      <li><a href="../index.html" class="">主页</a></li>
+      <li><a href="cultivation.html" class="">修仙之路</a></li><li><a href="lifesim.html" class="">仙途模拟器</a></li><li><a href="guigu.html" class="active">鬼谷八荒</a></li><li><a href="knife.html" class="">转转刀</a></li><li><a href="cardtower.html" class="">斩仙塔</a></li><li><a href="cardbattle.html" class="">灵卡对决</a></li><li><a href="cardcollect.html" class="">仙卡录</a></li>
+    </ul>
+    <button class="nav-daily-btn" title="每日仙令" aria-label="每日仙令">📜<span class="nav-badge hidden" aria-hidden="true">0</span></button>
+    <button class="nav-settings-btn" title="设置">⚙</button>
+  <div class="nav-backdrop"></div></nav>
+  <pre id="result">{
+  "gameExposed": true,
+  "orderId": "sect_patrol_1774611385461",
+  "pressureValue": 0,
+  "summarySuccess": true,
+  "nextOrderId": "sect_retreat_1774611386261",
+  "pressureVisible": true,
+  "orderVisible": true,
+  "errors": [],
+  "pass": true
+}</pre>
+  
+  <div class="particles-container" id="particles"><div class="particle" style="width: 5.3749px; height: 5.3749px; background: var(--purple-light); left: 23.0475%; animation-duration: 13.0863s; animation-delay: -8.57488s;"></div><div class="particle" style="width: 2.00843px; height: 2.00843px; background: var(--gold); left: 86.9221%; animation-duration: 11.5946s; animation-delay: -6.97247s;"></div><div class="particle" style="width: 2.97626px; height: 2.97626px; background: var(--purple-light); left: 73.6601%; animation-duration: 20.0873s; animation-delay: -11.2846s;"></div><div class="particle" style="width: 3.77048px; height: 3.77048px; background: var(--cyan); left: 17.9524%; animation-duration: 11.6991s; animation-delay: -8.46685s;"></div><div class="particle" style="width: 4.12587px; height: 4.12587px; background: var(--gold); left: 84.3653%; animation-duration: 21.6422s; animation-delay: -15.8402s;"></div><div class="particle" style="width: 4.13512px; height: 4.13512px; background: var(--purple-light); left: 10.0755%; animation-duration: 15.9376s; animation-delay: -12.8374s;"></div><div class="particle" style="width: 2.25888px; height: 2.25888px; background: var(--cyan); left: 94.8567%; animation-duration: 13.1522s; animation-delay: -2.74777s;"></div><div class="particle" style="width: 5.45078px; height: 5.45078px; background: var(--purple-light); left: 34.5127%; animation-duration: 22.7566s; animation-delay: -3.2019s;"></div><div class="particle" style="width: 3.4651px; height: 3.4651px; background: var(--purple-light); left: 97.3882%; animation-duration: 18.2185s; animation-delay: -16.739s;"></div><div class="particle" style="width: 4.86393px; height: 4.86393px; background: var(--purple-light); left: 73.8975%; animation-duration: 20.6701s; animation-delay: -2.75757s;"></div><div class="particle" style="width: 2.34054px; height: 2.34054px; background: var(--purple-light); left: 37.562%; animation-duration: 12.0123s; animation-delay: -1.9429s;"></div><div class="particle" style="width: 4.18938px; height: 4.18938px; background: var(--purple-light); left: 10.7295%; animation-duration: 19.8546s; animation-delay: -15.1825s;"></div></div>
+  
+  <div class="page-wrapper">
+    <div class="game-container">
+      <div class="char-create" id="char-create" style="display: none;"><span class="back-to-slots" id="back-slots">← 返回存档</span><h2>创建角色</h2><div class="step-indicator"><div class="step-dot done ">1</div><div class="step-dot done ">2</div><div class="step-dot done ">3</div><div class="step-dot done ">4</div><div class="step-dot done ">5</div><div class="step-dot  active">6</div></div><div class="create-step active"><h3>确认角色</h3><div class="create-confirm">
+        <div class="confirm-row"><span class="label">道号</span><span class="value">宗门审计</span></div>
+        <div class="confirm-row"><span class="label">性别</span><span class="value">男</span></div>
+        <div class="confirm-row"><span class="label">灵根</span><span class="value">金灵根</span></div>
+        <div class="confirm-row"><span class="label">宗门</span><span class="value">剑宗</span></div>
+        <div class="confirm-row"><span class="label">天赋</span><span class="value">气运之子、铜皮铁骨</span></div>
+        <div class="confirm-row"><span class="label">性格</span><span class="value">正义凛然</span></div>
+      </div></div><div class="create-nav"><button class="btn btn-outline btn-sm" id="create-prev">上一步</button><button class="btn btn-gold" id="create-confirm">踏入鬼谷</button></div></div>
+      <div class="guigu-game" id="guigu-game" style="">
+        <div class="status-bar" id="status-bar">
+      <div class="stat-item"><span class="stat-label">道号</span><span class="stat-value" id="gsb-name">宗门审计</span></div>
+      <div class="stat-item"><span class="stat-label">境界</span><span class="stat-value" id="gsb-realm" style="color: rgb(170, 170, 170);">凡人</span></div>
+      <div class="stat-item"><span class="stat-label" id="gsb-life-label">寿命 16/80</span><div class="bar bar-life"><div class="bar-fill" id="gsb-life-fill" style="width: 80%;"></div></div></div>
+      <div class="stat-item"><span class="stat-label" id="gsb-hp-label">气血 100/100</span><div class="bar bar-hp"><div class="bar-fill" id="gsb-hp-fill" style="width: 100%;"></div></div></div>
+      <div class="stat-item"><span class="stat-label" id="gsb-sp-label">灵力 45/45</span><div class="bar bar-sp"><div class="bar-fill" id="gsb-sp-fill" style="width: 100%;"></div></div></div>
+      <div class="stat-item"><span class="stat-label">灵石</span><span class="stat-value" id="gsb-gold">1.0万</span></div></div>
+        <div class="calendar-bar" id="calendar-bar">
+      <div class="calendar-item">?? ?1? 2?</div>
+      <div class="calendar-item">??: <div class="bar bar-demon" style="width:60px;display:inline-block;vertical-align:middle"><div class="bar-fill" style="width:0%"></div></div> 0/100</div>
+      <div class="calendar-item alignment-neutral">??: ??</div>
+      <div class="calendar-item month-plan-chip" data-month-plan-focus="" data-month-plan-days="0">??: ???????</div>
+      <div class="calendar-item sect-pressure-chip" data-sect-pressure-value="0">????: 0 ? 闭关令</div></div>
+        <div class="news-ticker" id="news-ticker"><div class="news-ticker-inner"><span class="news-item">【第1年】【月结】宗门差事，没吃到明显红利</span><span class="news-item">【第1年】【宗门】巡山令完成，贡献+390，灵石+40</span><span class="news-item">【第1年】【主修】本月改走“宗门差事”路线。</span><span class="news-item">【第1年】获得成就【心如明镜】</span><span class="news-item">【第1年】获得成就【探索先锋】</span><span class="news-item">【第1年】获得成就【初入修途】</span><span class="news-item">【第1年】你踏入了鬼谷世界，开始了修行之路。</span></div></div>
+        <div class="guigu-tabs" id="guigu-tabs">
+          <button class="guigu-tab" data-tab="overview">总览</button>
+          <button class="guigu-tab" data-tab="cultivate">修炼</button>
+          <button class="guigu-tab" data-tab="map">大地图</button>
+          <button class="guigu-tab" data-tab="adventure">历练</button>
+          <button class="guigu-tab" data-tab="npc">人物</button>
+          <button class="guigu-tab" data-tab="craft">炼制</button>
+          <button class="guigu-tab" data-tab="market">坊市</button>
+          <button class="guigu-tab" data-tab="cave">洞府</button>
+          <button class="guigu-tab" data-tab="skill">功法</button>
+          <button class="guigu-tab active" data-tab="sect">宗门</button>
+          <button class="guigu-tab" data-tab="inventory">乾坤袋</button>
+          <button class="guigu-tab" data-tab="achievement">成就</button>
+          <button class="guigu-tab" data-tab="bounty">悬赏</button>
+          <button class="guigu-tab" data-tab="mount">坐骑</button>
+        </div>
+        <div class="guigu-panel" id="panel-overview" data-panel="overview"><div class="phase2-top-grid"><div class="phase2-card month-current"><h3>????</h3><div class="phase2-kv"><span>宗门差事</span><strong>30 ?</strong></div><p class="phase2-note">贡献更好刷，宗门压力更容易控。</p></div><div class="phase2-card month-order" data-sect-order-id="sect_patrol_1774611385461"><h3>????</h3><div class="phase2-kv"><span>巡山令</span><strong>0 / 4</strong></div><p class="phase2-note">本月巡查外域 4 次。</p></div></div><div class="overview-grid">
+      <div class="overview-card"><h3>角色信息</h3>
+        <div class="info-row"><span class="label">道号</span><span class="value">宗门审计</span></div>
+        <div class="info-row"><span class="label">境界</span><span class="value" style="color:#aaa">凡人</span></div>
+        <div class="info-row"><span class="label">灵根</span><span class="value">金灵根</span></div>
+        <div class="info-row"><span class="label">宗门</span><span class="value">剑宗</span></div>
+        <div class="info-row"><span class="label">性格</span><span class="value">正义凛然</span></div>
+        <div class="info-row"><span class="label">年龄</span><span class="value">16岁</span></div>
+        <div style="margin-top:8px"><span class="talent-tag">气运之子</span><span class="talent-tag">铜皮铁骨</span></div>
+      </div>
+      <div class="overview-card"><h3>属性</h3>
+        <div class="info-row"><span class="label">攻击</span><span class="value">14</span></div>
+        <div class="info-row"><span class="label">防御</span><span class="value">7</span></div>
+        <div class="info-row"><span class="label">气血</span><span class="value">100/100</span></div>
+        <div class="info-row"><span class="label">灵力</span><span class="value">45/45</span></div>
+        <div class="info-row"><span class="label">经验</span><span class="value">0/500</span></div>
+        <div class="exp-bar-wrap"><div class="bar bar-exp"><div class="bar-fill" style="width:0%"></div></div></div>
+        <div class="info-row"><span class="label">修炼速度</span><span class="value">4/天</span></div>
+      </div>
+      <div class="overview-card" style="grid-column:1/-1"><h3>快捷操作</h3>
+        <div class="quick-actions">
+          <button class="btn btn-gold btn-sm" id="qa-meditate">修炼30天</button>
+          <button class="btn btn-outline btn-sm" id="qa-wudao">悟道修炼</button>
+          <button class="btn btn-outline btn-sm" id="qa-map">查看地图</button>
+          <button class="btn btn-outline btn-sm" id="qa-save">手动存档</button>
+          <button class="btn btn-outline btn-sm" id="qa-back">返回存档</button>
+        </div>
+      </div>
+    </div></div>
+        <div class="guigu-panel" id="panel-cultivate" data-panel="cultivate"></div>
+        <div class="guigu-panel" id="panel-map" data-panel="map"></div>
+        <div class="guigu-panel" id="panel-adventure" data-panel="adventure"></div>
+        <div class="guigu-panel" id="panel-npc" data-panel="npc"></div>
+        <div class="guigu-panel" id="panel-craft" data-panel="craft"></div>
+        <div class="guigu-panel" id="panel-market" data-panel="market"></div>
+        <div class="guigu-panel" id="panel-cave" data-panel="cave"></div>
+        <div class="guigu-panel" id="panel-skill" data-panel="skill"></div>
+        <div class="guigu-panel active" id="panel-sect" data-panel="sect"><div class="phase2-top-grid"><div class="phase2-card month-chooser"><h3>????</h3><p class="phase2-note">??????????????????</p><div class="month-focus-grid"><button class="month-focus-card accent-gold" data-month-focus="training" type="button"><span class="focus-name">闭关修行</span><span class="focus-desc">修炼收益更厚，突破更稳。</span></button><button class="month-focus-card accent-cyan" data-month-focus="adventure" type="button"><span class="focus-name">外出历练</span><span class="focus-desc">机缘更肥，外出牌堆更敢给。</span></button><button class="month-focus-card accent-green" data-month-focus="sect" type="button"><span class="focus-name">宗门差事</span><span class="focus-desc">贡献更好刷，宗门压力更容易控。</span></button><button class="month-focus-card accent-purple" data-month-focus="social" type="button"><span class="focus-name">经营人脉</span><span class="focus-desc">谈话、邀约、传闻收益更高。</span></button></div></div><div class="phase2-card month-order" data-sect-order-id="sect_retreat_1774611386261"><h3>????</h3><div class="phase2-kv"><span>闭关令</span><strong>0 / 30</strong></div><p class="phase2-note">本月闭关 30 天。</p></div></div><div class="phase2-card month-summary"><h3>????</h3><div class="summary-line"><span>????</span><strong>没吃到明显红利</strong></div><div class="summary-line"><span>????</span><strong>机缘牌处理 0 张，巡查 4 次。</strong></div><div class="summary-line"><span>????</span><strong>巡山令：4 / 4</strong></div><div class="summary-line"><span>????</span><strong>贡献+390，灵石+40</strong></div><p class="phase2-note">下月提示：下月风向偏稳，但机缘从来不讲武德。</p></div></div>
+        <div class="guigu-panel" id="panel-inventory" data-panel="inventory"></div>
+        <div class="guigu-panel" id="panel-achievement" data-panel="achievement"></div>
+        <div class="guigu-panel" id="panel-bounty" data-panel="bounty"></div>
+        <div class="guigu-panel" id="panel-mount" data-panel="mount"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ guigu: 2 }));
+    localStorage.setItem('guide_completed', JSON.stringify({ guigu: true }));
+    window.__errors = [];
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer=""></script>
+  <script src="../js/guigu.js" defer=""></script>
+  <script>
+    function sleep(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
+
+    async function waitFor(selector, timeout) {
+      var start = Date.now();
+      while (Date.now() - start < timeout) {
+        var node = document.querySelector(selector);
+        if (node) return node;
+        await sleep(50);
+      }
+      return null;
+    }
+
+    async function createCharacter() {
+      await waitFor('[data-action="new"]', 4000);
+      document.querySelector('[data-action="new"][data-slot="0"]')?.click();
+      await sleep(120);
+      document.getElementById('create-name').value = '宗门审计';
+      document.getElementById('create-next')?.click();
+      await sleep(120);
+      document.querySelector('.spirit-root-option')?.click();
+      await sleep(80);
+      document.getElementById('create-next')?.click();
+      await sleep(120);
+      document.querySelector('.sect-option')?.click();
+      await sleep(80);
+      document.getElementById('create-next')?.click();
+      await sleep(120);
+      var firstTalent = document.querySelector('.talent-option:not(.disabled)');
+      firstTalent?.click();
+      await sleep(100);
+      var secondTalent = document.querySelector('.talent-option:not(.disabled):not(.selected)');
+      secondTalent?.click();
+      await sleep(60);
+      document.getElementById('create-next')?.click();
+      await sleep(120);
+      document.querySelector('.personality-option')?.click();
+      await sleep(80);
+      document.getElementById('create-next')?.click();
+      await sleep(120);
+      document.getElementById('create-confirm')?.click();
+      await sleep(360);
+      document.querySelector('[data-month-focus="sect"]')?.click();
+      await sleep(240);
+    }
+
+    async function runAudit() {
+      await createCharacter();
+      document.querySelector('.guigu-tab[data-tab="sect"]')?.click();
+      await sleep(200);
+
+      var game = window.__guiguGame;
+      var oldOrder = game && game.state && game.state.sectPressure ? game.state.sectPressure.currentOrder : null;
+      if (game && oldOrder) {
+        game.state.gold = Math.max(game.state.gold, 9999);
+        game.state.day = 30;
+        game.state.monthlyStats = game.state.monthlyStats || {};
+        game.state.monthlyStats[oldOrder.metric] = oldOrder.target;
+        game.advanceDays(1);
+      }
+      await sleep(260);
+      document.querySelector('.guigu-tab[data-tab="sect"]')?.click();
+      await sleep(200);
+
+      var nextOrder = game && game.state && game.state.sectPressure ? game.state.sectPressure.currentOrder : null;
+      var summary = game && game.state ? game.state.lastMonthSummary : null;
+      var result = {
+        gameExposed: !!game,
+        orderId: oldOrder ? oldOrder.id : null,
+        pressureValue: game && game.state && game.state.sectPressure ? game.state.sectPressure.pressure : null,
+        summarySuccess: !!(summary && summary.sectOrderSuccess === true),
+        nextOrderId: nextOrder ? nextOrder.id : null,
+        pressureVisible: !!document.querySelector('[data-sect-pressure-value]'),
+        orderVisible: !!document.querySelector('[data-sect-order-id]'),
+        errors: window.__errors
+      };
+      result.pass =
+        result.gameExposed &&
+        !!result.orderId &&
+        result.pressureVisible &&
+        result.orderVisible &&
+        result.summarySuccess &&
+        !!result.nextOrderId &&
+        result.nextOrderId !== result.orderId &&
+        result.errors.length === 0;
+      document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+    }
+
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        runAudit().catch(function (error) {
+          window.__errors.push(String(error));
+          document.getElementById('result').textContent = JSON.stringify({ pass: false, errors: window.__errors }, null, 2);
+        });
+      }, 150);
+    });
+  </script>
+
+
+<button class="sound-toggle" aria-label="音效开关">🔊</button><div class="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal" aria-labelledby="settings-title">
+        <div class="modal-header">
+          <h3 class="modal-title" id="settings-title">设置</h3>
+          <button class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+      <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 14px; padding-bottom: 14px;">
+        <label class="form-label">玩家昵称</label>
+        <input type="text" class="form-input" data-profile="name" maxlength="12" value="" placeholder="用于排行榜显示">
+        <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 6px;">跨游戏通用（最多 12 字）</div>
+      </div>
+    <div class="form-group"><label class="form-label">自动保存</label><label class="form-check">
+            <input type="checkbox" data-key="autoSave" checked="">
+            <span>每分钟自动保存</span>
+          </label></div><div class="form-group"><label class="form-label">特效</label><label class="form-check">
+            <input type="checkbox" data-key="effects" checked="">
+            <span>启用战斗特效</span>
+          </label></div></div>
+        <div style="border-top: 1px solid var(--border-color); margin: 16px 0; padding-top: 16px;">
+          <label class="form-label">数据管理</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <button class="btn btn-outline btn-sm modal-export">导出存档</button>
+            <button class="btn btn-outline btn-sm modal-import">导入存档</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-sm modal-reset">重置</button>
+          <button class="btn btn-gold btn-sm modal-save">保存</button>
+        </div>
+      </div>
+    </div><div class="toast-container" aria-live="polite" role="status"></div></body></html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cultivation reset integration</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div id="particles"></div>
+  <div id="char-create"></div>
+  <div id="cult-game">
+    <div id="status-bar"></div>
+    <div id="cult-tabs">
+      <button data-tab="cultivate"></button>
+      <button data-tab="battle"></button>
+      <button data-tab="alchemy"></button>
+      <button data-tab="forge"></button>
+      <button data-tab="shop"></button>
+      <button data-tab="inventory"></button>
+      <button data-tab="pet"></button>
+      <button data-tab="technique"></button>
+      <button data-tab="sect"></button>
+      <button data-tab="world"></button>
+      <button data-tab="inbox" id="tab-inbox"></button>
+      <button data-tab="bestiary"></button>
+      <button data-tab="achievement"></button>
+    </div>
+    <div id="panel-cultivate" data-panel="cultivate"></div>
+    <div id="panel-world" data-panel="world"></div>
+    <div id="panel-inbox" data-panel="inbox"></div>
+    <div id="panel-battle" data-panel="battle"></div>
+    <div id="panel-alchemy" data-panel="alchemy"></div>
+    <div id="panel-forge" data-panel="forge"></div>
+    <div id="panel-shop" data-panel="shop"></div>
+    <div id="panel-inventory" data-panel="inventory"></div>
+    <div id="panel-pet" data-panel="pet"></div>
+    <div id="panel-technique" data-panel="technique"></div>
+    <div id="panel-sect" data-panel="sect"></div>
+    <div id="panel-bestiary" data-panel="bestiary"></div>
+    <div id="panel-achievement" data-panel="achievement"></div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('cultivation_save_1', JSON.stringify({ name: 'old-cult' }));
+    localStorage.setItem('guigu_save_0', JSON.stringify({ name: 'keep-guigu' }));
+    window.__confirmCalls = 0;
+    window.__errors = [];
+    window.confirm = function () {
+      window.__confirmCalls += 1;
+      return true;
+    };
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cultivation.js" defer></script>
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        const result = {
+          confirmCalls: window.__confirmCalls,
+          cultivationCleared: localStorage.getItem('cultivation_save_1') === null,
+          guiguPreserved: localStorage.getItem('guigu_save_0') !== null,
+          slotText: document.getElementById('char-create').textContent.replace(/\s+/g, ' ').trim(),
+          errors: window.__errors
+        };
+        result.pass = result.confirmCalls === 1 && result.cultivationCleared && result.guiguPreserved && result.slotText.includes('空存档');
+        document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+      }, 0);
+    });
+  </script>
+</body>
+</html>

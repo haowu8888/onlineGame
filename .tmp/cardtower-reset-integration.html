@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cardtower reset integration</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div id="particles"></div>
+  <div id="ct-app">
+    <div id="ct-start" class="ct-screen active">
+      <div>
+        <button id="ct-btn-start" type="button">start</button>
+        <div id="ct-leaderboard"></div>
+      </div>
+    </div>
+    <div id="ct-game" class="ct-screen">
+      <div id="ct-tower-panel"></div>
+      <div id="ct-tower-map"></div>
+      <div id="ct-deck-info"></div>
+      <div id="ct-battle-panel"></div>
+      <div id="ct-enemy-area"></div>
+      <div id="ct-battle-info"><div id="ct-player-status"></div></div>
+      <div id="ct-battle-log"></div>
+      <div id="ct-hand-area"></div>
+      <div id="ct-battle-actions"><button id="ct-btn-end-turn" type="button">end</button></div>
+    </div>
+    <div id="ct-card-reward" class="ct-overlay"><div id="ct-reward-cards"></div><button id="ct-btn-skip-reward" type="button">skip</button></div>
+    <div id="ct-event-overlay" class="ct-overlay"><div id="ct-event-title"></div><div id="ct-event-desc"></div><div id="ct-event-choices"></div></div>
+    <div id="ct-upgrade-overlay" class="ct-overlay"><div id="ct-upgrade-cards"></div></div>
+    <div id="ct-gameover" class="ct-overlay"><div id="ct-gameover-title"></div><div id="ct-gameover-stats"></div><button id="ct-btn-restart" type="button">restart</button></div>
+    <div id="ct-relic-reward" class="ct-overlay"><div id="ct-relic-choices"></div></div>
+    <div id="ct-rest-shop" class="ct-overlay"><div id="ct-rest-choices"></div></div>
+    <div id="ct-card-removal" class="ct-overlay"><div id="ct-removal-cards"></div><button id="ct-btn-skip-removal" type="button">remove-skip</button></div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('cardtower_daily_best', JSON.stringify({ date: '2026-03-01', score: 88 }));
+    localStorage.setItem('xianyuan_tower_bonuses', JSON.stringify({ hp: 20 }));
+    localStorage.setItem('guigu_save_0', JSON.stringify({ name: 'keep-guigu' }));
+    window.__confirmCalls = 0;
+    window.confirm = function () {
+      window.__confirmCalls += 1;
+      return true;
+    };
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cardtower.js" defer></script>
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        const result = {
+          confirmCalls: window.__confirmCalls,
+          dailyBestCleared: localStorage.getItem('cardtower_daily_best') === null,
+          towerBonusCleared: localStorage.getItem('xianyuan_tower_bonuses') === null,
+          guiguPreserved: localStorage.getItem('guigu_save_0') !== null,
+          startVisible: document.getElementById('ct-start').classList.contains('active')
+        };
+        result.pass = result.confirmCalls === 1 && result.dailyBestCleared && result.towerBonusCleared && result.guiguPreserved && result.startVisible;
+        document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+      }, 0);
+    });
+  </script>
+</body>
+</html>

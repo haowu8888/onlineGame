@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>knife death audit</title></head>
+<body>
+<iframe id="app" style="width:1440px;height:2600px;border:0;"></iframe>
+<pre id="result">running</pre>
+<script>
+const GAME_URL = 'file:///D:/vscodeApp/onlineGame/.worktrees/browser-audit/games/knife.html';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const resultEl = document.getElementById('result');
+const frame = document.getElementById('app');
+function setResult(data) { resultEl.textContent = JSON.stringify(data, null, 2); document.title = data.ok ? 'PASS' : 'FAIL'; }
+async function loadGame() {
+  return new Promise((resolve, reject) => {
+    const done = () => {
+      frame.removeEventListener('load', done);
+      resolve({ win: frame.contentWindow, doc: frame.contentDocument });
+    };
+    frame.addEventListener('load', done, { once: true });
+    frame.src = GAME_URL + '?t=' + Date.now();
+    setTimeout(() => reject(new Error('load timeout')), 15000);
+  });
+}
+async function waitFor(fn, label, timeout = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(50);
+  }
+  throw new Error('wait timeout: ' + label);
+}
+(async () => {
+  try {
+    const { win, doc } = await loadGame();
+    win.__knifeErrors = [];
+    win.addEventListener('error', (e) => win.__knifeErrors.push(e.message || String(e.error || 'error')));
+    const oldErr = win.console.error.bind(win.console);
+    win.console.error = (...args) => { win.__knifeErrors.push(args.map((a) => String(a)).join(' ')); oldErr(...args); };
+    let gameOverCount = 0;
+    let lastTitle = '';
+    const titleEl = await waitFor(() => doc.querySelector('#knife-overlay-title'), 'overlay title');
+    const observer = new MutationObserver(() => {
+      const text = titleEl.textContent || '';
+      if (text !== lastTitle && text.includes('侠客陨落')) gameOverCount += 1;
+      lastTitle = text;
+    });
+    observer.observe(titleEl, { childList: true, subtree: true, characterData: true });
+    await waitFor(() => doc.querySelector('.knife-mod-btn[data-mod-id="one_hp"]'), 'one hp modifier');
+    doc.querySelector('.knife-mod-btn[data-mod-id="one_hp"]').click();
+    await sleep(100);
+    doc.querySelector('#knife-overlay-btn').click();
+    await waitFor(() => doc.querySelector('#hp-text')?.textContent?.includes('1/1'), 'one hp applied', 10000);
+    await waitFor(() => titleEl.textContent && titleEl.textContent.includes('侠客陨落'), 'game over title', 30000);
+    await sleep(500);
+    observer.disconnect();
+    setResult({
+      ok: true,
+      hpText: doc.querySelector('#hp-text')?.textContent || '',
+      wave: doc.querySelector('#hud-wave')?.textContent || '',
+      kills: doc.querySelector('#hud-kills')?.textContent || '',
+      title: titleEl.textContent || '',
+      gameOverCount,
+      errors: win.__knifeErrors
+    });
+  } catch (error) {
+    setResult({ ok: false, error: String(error && error.stack || error) });
+  }
+})();
+</script>
+</body>
+</html>

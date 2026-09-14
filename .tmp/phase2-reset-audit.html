@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>phase2 reset audit</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <script src="../js/shared.js"></script>
+  <script>
+    (function () {
+      const resultEl = document.getElementById('result');
+
+      localStorage.clear();
+      localStorage.setItem('cultivation_save_1', JSON.stringify({ name: 'old-cult' }));
+      localStorage.setItem('guigu_save_0', JSON.stringify({ name: 'keep-guigu' }));
+      localStorage.setItem('cardtower_daily_best', JSON.stringify({ date: '2026-03-01', score: 99 }));
+
+      if (!window.Phase2SaveReset || typeof window.Phase2SaveReset.ensure !== 'function') {
+        resultEl.textContent = JSON.stringify({
+          pass: false,
+          reason: 'missing-helper'
+        }, null, 2);
+        return;
+      }
+
+      let confirmCalls = 0;
+      window.confirm = function () {
+        confirmCalls += 1;
+        return true;
+      };
+
+      const first = window.Phase2SaveReset.ensure('cultivation');
+      const second = window.Phase2SaveReset.ensure('cultivation');
+      const marks = JSON.parse(localStorage.getItem('phase2_reset_confirmations') || '{}');
+
+      const outcome = {
+        firstStatus: first && first.status,
+        secondStatus: second && second.status,
+        confirmCalls,
+        cultivationCleared: localStorage.getItem('cultivation_save_1') === null,
+        guiguPreserved: localStorage.getItem('guigu_save_0') !== null,
+        cardtowerPreserved: localStorage.getItem('cardtower_daily_best') !== null,
+        confirmationVersion: marks.cultivation
+      };
+      outcome.pass =
+        outcome.firstStatus === 'reset' &&
+        outcome.secondStatus === 'already-confirmed' &&
+        outcome.confirmCalls === 1 &&
+        outcome.cultivationCleared &&
+        outcome.guiguPreserved &&
+        outcome.cardtowerPreserved &&
+        outcome.confirmationVersion === 2;
+
+      resultEl.textContent = JSON.stringify(outcome, null, 2);
+    })();
+  </script>
+</body>
+</html>

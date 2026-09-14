@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cardtower phase2 flow audit</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div class="app-loading"><div class="app-loading-spinner"></div></div>
+  <div class="particles-container" id="particles"></div>
+  <nav class="game-nav">
+    <a href="../index.html" class="game-nav-back">&larr; 仙界游戏</a>
+    <span class="game-nav-title">斩仙塔</span>
+  </nav>
+  <div class="page-wrapper">
+    <div class="ct-app" id="ct-app">
+      <div class="ct-screen ct-start-screen active" id="ct-start">
+        <div class="ct-start-inner">
+          <div class="ct-start-tower"></div>
+          <h1 class="ct-start-title">斩仙塔</h1>
+          <p class="ct-start-subtitle">审计</p>
+          <button class="btn btn-gold btn-lg ct-start-btn" id="ct-btn-start">开始</button>
+          <div class="ct-leaderboard" id="ct-leaderboard"></div>
+        </div>
+      </div>
+      <div class="ct-screen ct-game-screen" id="ct-game">
+        <div class="ct-tower-panel" id="ct-tower-panel">
+          <div class="ct-tower-title">仙塔进度</div>
+          <div class="ct-tower-map" id="ct-tower-map"></div>
+          <div class="ct-tower-deck-info" id="ct-deck-info"></div>
+        </div>
+        <div class="ct-battle-panel" id="ct-battle-panel">
+          <div class="ct-enemy-area" id="ct-enemy-area"></div>
+          <div class="ct-battle-info" id="ct-battle-info">
+            <div class="ct-player-status" id="ct-player-status"></div>
+          </div>
+          <div class="ct-battle-log" id="ct-battle-log"></div>
+          <div class="ct-hand-area" id="ct-hand-area"></div>
+          <div class="ct-battle-actions" id="ct-battle-actions">
+            <button class="btn btn-outline btn-sm" id="ct-btn-end-turn">结束回合</button>
+          </div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-card-reward" id="ct-card-reward">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">战利品</h2>
+          <p class="ct-overlay-subtitle">选择一张卡牌加入牌组</p>
+          <div class="ct-reward-cards" id="ct-reward-cards"></div>
+          <button class="btn btn-outline btn-sm ct-skip-btn" id="ct-btn-skip-reward">跳过</button>
+        </div>
+      </div>
+      <div class="ct-overlay ct-event-overlay" id="ct-event-overlay">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title" id="ct-event-title"></h2>
+          <p class="ct-overlay-desc" id="ct-event-desc"></p>
+          <div class="ct-event-choices" id="ct-event-choices"></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-upgrade-overlay" id="ct-upgrade-overlay">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">锻造</h2>
+          <p class="ct-overlay-subtitle">选择一张卡牌进行强化</p>
+          <div class="ct-upgrade-cards" id="ct-upgrade-cards"></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-relic-reward" id="ct-relic-reward">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">法宝奖励</h2>
+          <p class="ct-overlay-subtitle">选择一件法宝</p>
+          <div class="ct-relic-choices" id="ct-relic-choices"></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-rest-shop" id="ct-rest-shop">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">营地/黑市</h2>
+          <p class="ct-overlay-subtitle">审计</p>
+          <div class="ct-rest-choices" id="ct-rest-choices"></div>
+        </div>
+      </div>
+      <div class="ct-overlay ct-card-removal" id="ct-card-removal">
+        <div class="ct-overlay-box">
+          <h2 class="ct-overlay-title">净化</h2>
+          <p class="ct-overlay-subtitle">选择一张卡牌移除</p>
+          <div class="ct-removal-cards" id="ct-removal-cards"></div>
+          <button class="btn btn-outline btn-sm ct-skip-btn" id="ct-btn-skip-removal">取消</button>
+        </div>
+      </div>
+      <div class="ct-overlay ct-gameover-overlay" id="ct-gameover">
+        <div class="ct-overlay-box ct-gameover-box">
+          <h2 class="ct-overlay-title" id="ct-gameover-title"></h2>
+          <div class="ct-gameover-stats" id="ct-gameover-stats"></div>
+          <button class="btn btn-gold btn-lg" id="ct-btn-restart">再次登塔</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ cardtower: 2 }));
+    window.__errors = [];
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cardtower.js" defer></script>
+  <script>
+    function sleep(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, ms); });
+    }
+
+    async function runAudit() {
+      document.getElementById('ct-btn-start')?.click();
+      await sleep(180);
+      document.querySelector('.ct-class-card')?.click();
+      await sleep(320);
+
+      const firstChoice = document.querySelector('.ct-tower-node.available[data-node-type="event"]') ||
+        document.querySelector('.ct-tower-node.available[data-node-type="rest"]') ||
+        document.querySelector('.ct-tower-node.available');
+      firstChoice?.click();
+      await sleep(260);
+
+      const eventChoice = document.querySelector('#ct-event-choices [data-choice-id="leave"]') ||
+        document.querySelector('#ct-event-choices .ct-event-choice:last-child') ||
+        document.querySelector('#ct-event-choices .ct-event-choice');
+      if (eventChoice) {
+        eventChoice.click();
+        await sleep(260);
+      }
+
+      const restChoice = document.querySelector('#ct-rest-choices .ct-rest-choice');
+      if (restChoice) {
+        restChoice.click();
+        await sleep(260);
+      }
+
+      const eliteNode = document.querySelector('.ct-tower-node.available[data-node-type="elite"]');
+      eliteNode?.click();
+      await sleep(350);
+
+      const affixEl = document.querySelector('.ct-enemy-affix, .ct-status-badge.affix, [data-enemy-affix]');
+      const game = window.__cardtowerGame;
+      if (game && game.battle && game.battle.enemies) {
+        game.battle.enemies.forEach(function (enemy) { enemy.hp = 0; });
+        game.battle.battleWon();
+      }
+      await sleep(900);
+
+      const relicChoices = document.querySelectorAll('#ct-relic-choices .ct-relic-choice');
+      relicChoices[0]?.click();
+      await sleep(320);
+
+      const nextNodes = document.querySelectorAll('.ct-tower-node.available');
+      const result = {
+        eliteReached: !!eliteNode,
+        affixVisible: !!affixEl,
+        relicChoiceCount: relicChoices.length,
+        nextAvailableCount: nextNodes.length,
+        gameExposed: !!game,
+        errors: window.__errors
+      };
+      result.pass = result.eliteReached && result.affixVisible && result.relicChoiceCount >= 3 && result.nextAvailableCount >= 1 && result.gameExposed && result.errors.length === 0;
+      document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+    }
+
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        runAudit().catch(function (error) {
+          window.__errors.push(String(error));
+          document.getElementById('result').textContent = JSON.stringify({ pass: false, errors: window.__errors }, null, 2);
+        });
+      }, 120);
+    });
+  </script>
+</body>
+</html>
+

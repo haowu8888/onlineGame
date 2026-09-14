@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>cultivation phase2 route audit</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div id="particles"></div>
+  <div id="char-create"></div>
+  <div id="cult-game">
+    <div id="status-bar"></div>
+    <div id="cult-tabs">
+      <button class="cult-tab active" data-tab="cultivate">cultivate</button>
+      <button class="cult-tab" data-tab="battle">battle</button>
+      <button class="cult-tab" data-tab="alchemy">alchemy</button>
+      <button class="cult-tab" data-tab="forge">forge</button>
+      <button class="cult-tab" data-tab="shop">shop</button>
+      <button class="cult-tab" data-tab="inventory">inventory</button>
+      <button class="cult-tab" data-tab="pet">pet</button>
+      <button class="cult-tab" data-tab="technique">technique</button>
+      <button class="cult-tab" data-tab="sect">sect</button>
+      <button class="cult-tab" data-tab="world">world</button>
+      <button class="cult-tab" data-tab="inbox" id="tab-inbox">inbox</button>
+      <button class="cult-tab" data-tab="bestiary">bestiary</button>
+      <button class="cult-tab" data-tab="achievement">achievement</button>
+    </div>
+    <div class="cult-panel active" id="panel-cultivate" data-panel="cultivate"></div>
+    <div class="cult-panel" id="panel-world" data-panel="world"></div>
+    <div class="cult-panel" id="panel-inbox" data-panel="inbox"></div>
+    <div class="cult-panel" id="panel-battle" data-panel="battle"></div>
+    <div class="cult-panel" id="panel-alchemy" data-panel="alchemy"></div>
+    <div class="cult-panel" id="panel-forge" data-panel="forge"></div>
+    <div class="cult-panel" id="panel-shop" data-panel="shop"></div>
+    <div class="cult-panel" id="panel-inventory" data-panel="inventory"></div>
+    <div class="cult-panel" id="panel-pet" data-panel="pet"></div>
+    <div class="cult-panel" id="panel-technique" data-panel="technique"></div>
+    <div class="cult-panel" id="panel-sect" data-panel="sect"></div>
+    <div class="cult-panel" id="panel-bestiary" data-panel="bestiary"></div>
+    <div class="cult-panel" id="panel-achievement" data-panel="achievement"></div>
+  </div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('phase2_reset_confirmations', JSON.stringify({ cultivation: 2 }));
+    localStorage.setItem('cultivation_save_1', JSON.stringify({
+      name: '测修',
+      spiritRoot: 'wood',
+      sect: 'sword',
+      realm: 2,
+      exp: 0,
+      gold: 5000,
+      hp: 180,
+      maxHp: 180,
+      atk: 40,
+      def: 20,
+      spirit: 60,
+      maxSpirit: 60,
+      inventory: { herb: 5, crystal: 2, beast_core: 1, ore: 1, capture_talisman: 0 },
+      pills: { hp_pill: 2 },
+      equipment: { weapon: null, armor: null, accessory: null },
+      ownedEquips: [],
+      totalExp: 0,
+      totalKills: 0,
+      totalCrafts: 0,
+      totalEvents: 0,
+      achievements: [],
+      lastOnline: Date.now(),
+      created: Date.now(),
+      currentLocation: 'mist_forest'
+    }));
+    window.__errors = [];
+    window.__debug = {
+      routeStartListenerCount: 0,
+      routeStartClicked: false
+    };
+    (function () {
+      const originalAddEventListener = EventTarget.prototype.addEventListener;
+      EventTarget.prototype.addEventListener = function (type, listener, options) {
+        if (
+          type === 'click' &&
+          this &&
+          this.id === 'btn-phase2-adventure-start'
+        ) {
+          window.__debug.routeStartListenerCount += 1;
+        }
+        return originalAddEventListener.call(this, type, listener, options);
+      };
+    })();
+    window.addEventListener('error', function (event) {
+      window.__errors.push(event.message);
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      window.__errors.push(String(event.reason));
+    });
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/cultivation.js" defer></script>
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        document.querySelector('[data-enter="1"]')?.click();
+        setTimeout(function () {
+          document.querySelector('.cult-tab[data-tab="battle"]')?.click();
+          setTimeout(function () {
+            const startVisibleBeforeClick = !!document.getElementById('btn-phase2-adventure-start');
+            const beforeClickState = JSON.parse(localStorage.getItem('cultivation_save_1') || '{}').phase2Adventure || null;
+            const routeStartBtn = document.getElementById('btn-phase2-adventure-start');
+            if (routeStartBtn) {
+              routeStartBtn.addEventListener('click', function () {
+                window.__debug.routeStartClicked = true;
+              }, { once: true });
+              routeStartBtn.click();
+            }
+            setTimeout(function () {
+              const afterState = JSON.parse(localStorage.getItem('cultivation_save_1') || '{}').phase2Adventure || null;
+              const result = {
+                routeBiasVisible: !!document.querySelector('[data-route-bias="steady"]'),
+                startVisibleBeforeClick,
+                startVisible: !!document.getElementById('btn-phase2-adventure-start'),
+                choiceCount: document.querySelectorAll('.phase2-route-card').length,
+                routeStartListenerCount: window.__debug.routeStartListenerCount,
+                routeStartClicked: window.__debug.routeStartClicked,
+                beforeChoiceCount: Array.isArray(beforeClickState?.currentChoices) ? beforeClickState.currentChoices.length : null,
+                afterChoiceCount: Array.isArray(afterState?.currentChoices) ? afterState.currentChoices.length : null,
+                afterRouteBias: afterState?.routeBias || null,
+                afterOmen: afterState?.omen || null,
+                errors: window.__errors
+              };
+              result.pass =
+                result.routeBiasVisible &&
+                result.startVisibleBeforeClick &&
+                result.choiceCount === 3 &&
+                result.afterChoiceCount === 3 &&
+                result.errors.length === 0;
+              document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+            }, 50);
+          }, 50);
+        }, 50);
+      }, 50);
+    });
+  </script>
+</body>
+</html>

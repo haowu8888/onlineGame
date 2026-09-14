@@ -812,12 +812,198 @@
   border: 1px solid rgba(74,218,212,0.3);
 }
 
+/* --- 阶段2月度策略 --- */
+.month-plan-chip,
+.sect-pressure-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(212,164,74,0.08);
+  border: 1px solid rgba(212,164,74,0.18);
+}
+
+.phase2-top-grid,
+.sect-phase2-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.phase2-card {
+  background: linear-gradient(180deg, rgba(18,24,37,0.96) 0%, rgba(11,16,27,0.98) 100%);
+  border: 1px solid rgba(212,164,74,0.18);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.18);
+}
+
+.phase2-card h3 {
+  margin-bottom: 10px;
+  color: var(--gold);
+  font-size: 1rem;
+}
+
+.phase2-note {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.phase2-kv,
+.summary-line,
+.pressure-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.summary-line {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(212,164,74,0.14);
+  font-size: 0.82rem;
+}
+
+.month-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.month-focus-card {
+  text-align: left;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.month-focus-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 24px rgba(0,0,0,0.18);
+}
+
+.month-focus-card .focus-name {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.month-focus-card .focus-desc {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.month-focus-card.accent-gold:hover { border-color: rgba(212,164,74,0.55); }
+.month-focus-card.accent-cyan:hover { border-color: rgba(74,218,212,0.55); }
+.month-focus-card.accent-green:hover { border-color: rgba(74,212,106,0.55); }
+.month-focus-card.accent-purple:hover { border-color: rgba(154,106,212,0.55); }
+
+.encounter-deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.encounter-card {
+  background: radial-gradient(circle at top, rgba(212,164,74,0.08), rgba(15,20,31,0.98) 70%);
+  border: 1px solid rgba(212,164,74,0.2);
+  border-radius: 18px;
+  padding: 16px;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.encounter-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.encounter-type {
+  font-family: var(--font-display);
+  color: var(--gold-light);
+  font-size: 1rem;
+}
+
+.encounter-terrain {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(74,218,212,0.1);
+  color: var(--cyan-light);
+  font-size: 0.72rem;
+}
+
+.encounter-prompt {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  flex: 1;
+}
+
+.encounter-choices {
+  display: grid;
+  gap: 8px;
+}
+
+.encounter-choice-btn {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
+}
+
+.encounter-choice-btn:hover {
+  border-color: rgba(212,164,74,0.55);
+  background: rgba(212,164,74,0.08);
+  transform: translateY(-1px);
+}
+
+.encounter-choice-btn span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.encounter-choice-btn small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.encounter-result {
+  margin-top: 14px;
+}
+
+.pressure-row .bar {
+  flex: 1;
+}
+
 /* --- 响应式 --- */
 @media (max-width: 768px) {
   .overview-grid { grid-template-columns: 1fr; }
   .equip-slots { grid-template-columns: 1fr 1fr; }
   .battle-field { grid-template-columns: 1fr; }
   .npc-modal-actions { grid-template-columns: 1fr; }
+  .month-focus-grid,
+  .encounter-deck-grid,
+  .phase2-top-grid,
+  .sect-phase2-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
   .map-grid { grid-template-columns: repeat(15, 24px); grid-template-rows: repeat(15, 24px); }

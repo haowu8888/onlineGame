@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>guigu reset integration</title>
+</head>
+<body>
+  <pre id="result">pending</pre>
+  <div id="particles"></div>
+  <div id="char-create"></div>
+  <div id="guigu-game" style="display:none;"></div>
+  <script>
+    localStorage.clear();
+    localStorage.setItem('guigu_save_0', JSON.stringify({ name: 'old-guigu', realm: 0, age: 18, talents: [] }));
+    localStorage.setItem('cultivation_save_1', JSON.stringify({ name: 'keep-cult' }));
+    window.__confirmCalls = 0;
+    window.confirm = function () {
+      window.__confirmCalls += 1;
+      return true;
+    };
+  </script>
+  <script src="../js/shared.js" defer></script>
+  <script src="../js/guigu.js" defer></script>
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        const result = {
+          confirmCalls: window.__confirmCalls,
+          guiguCleared: localStorage.getItem('guigu_save_0') === null,
+          cultivationPreserved: localStorage.getItem('cultivation_save_1') !== null,
+          slotText: document.getElementById('char-create').textContent.replace(/\s+/g, ' ').trim()
+        };
+        result.pass = result.confirmCalls === 1 && result.guiguCleared && result.cultivationPreserved && result.slotText.includes('空存档');
+        document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+      }, 0);
+    });
+  </script>
+</body>
+</html>
