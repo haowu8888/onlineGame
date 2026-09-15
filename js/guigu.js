@@ -1612,7 +1612,7 @@ class GuiguGame {
   getTravelDays(){
     const s=this.state;
     return GuiguRoute.getStepDays({
-      baseDays:TIME_COSTS.explore,
+      baseDays:Math.max(1,Math.round(TIME_COSTS.explore*this.getPlanMultiplier('moveDays'))),
       mount:s.activeMount?MOUNTS_MAP[s.activeMount]:null,
       feed:s.mountFeed||0,
     });
@@ -1628,27 +1628,11 @@ class GuiguGame {
     this.revealFog(x,y,1);
     this.updateBountyProgress('explore',1);
     this.updateNpcQuestProgress('explore',1);
-<<<<<<< HEAD
+    this.trackMonthlyStat('exploreSteps',1);
     const exploreDays=this.getTravelDays();
     if(s.activeMount&&MOUNTS_MAP[s.activeMount]){
       s.mountRides=(s.mountRides||0)+1;
       if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_mount_rides',s.mountRides);
-=======
-    this.trackMonthlyStat('exploreSteps',1);
-    let exploreDays=TIME_COSTS.explore;
-    exploreDays=Math.max(1,Math.round(exploreDays*this.getPlanMultiplier('moveDays')));
-    if(s.activeMount){
-      const mt=MOUNTS_MAP[s.activeMount];
-      if(mt){
-        // mountFeed: each 10 adds ~1.5% speed (cap 15%)
-        const extra=Math.min(0.15,(s.mountFeed||0)*0.0015);
-        const spd=Math.min(0.7,mt.speedBonus+extra);
-        exploreDays=Math.max(1,Math.round(exploreDays*(1-spd)));
-
-        s.mountRides=(s.mountRides||0)+1;
-        if(typeof CrossGameAchievements!=='undefined') CrossGameAchievements.trackStat('guigu_mount_rides',s.mountRides);
-      }
->>>>>>> c9bbd8eb26f5d0172912965d532fd8c38cf17b25
     }
     this.advanceDays(exploreDays);
     const cell=s.map[y][x];
@@ -2525,11 +2509,6 @@ class GuiguUI {
       {key:'autoSave',label:'自动保存',type:'checkbox',default:true,checkLabel:'每分钟自动保存'},
       {key:'effects',label:'特效',type:'checkbox',default:true,checkLabel:'启用战斗特效'}
     ],'guigu_settings',()=>{});
-    const resetState=typeof Phase2SaveReset!=='undefined'?Phase2SaveReset.ensure('guigu'):null;
-    if(resetState&&resetState.status==='cancelled'){
-      this.renderResetBlocked();
-      return;
-    }
     this.renderSlotSelection();
     this._bindHotkeys();
     // Bind game events
@@ -2546,14 +2525,6 @@ class GuiguUI {
       if (!this.settings.get('autoSave')) return;
       if (this.game.state && !this.game.state.dead) this.game.saveGame();
     }, 60000);
-  }
-
-  renderResetBlocked(){
-    const el=this._getEl('char-create');
-    const gameEl=this._getEl('guigu-game');
-    if(gameEl)gameEl.style.display='none';
-    if(!el)return;
-    el.innerHTML=`<div style="max-width:520px;margin:48px auto;padding:24px;border:1px solid var(--border-color);border-radius:20px;background:rgba(8,15,26,0.92);text-align:center;"><h2 style="margin-bottom:12px;color:var(--gold);">阶段2更新需清档</h2><p style="margin-bottom:16px;color:var(--text-secondary);line-height:1.7;">你刚才取消了新版清档确认。<code>鬼谷八荒</code> 当前版本不兼容旧档，确认清档后才能继续进入。</p><button class="btn btn-outline btn-sm" type="button" onclick="window.location.href='../index.html'">返回首页</button></div>`;
   }
 
   refreshUI(){
@@ -3030,15 +3001,15 @@ class GuiguUI {
     this.game.ensurePhase2State();
     const hdP=s.heartDemon;
     const alignCls=s.alignment>0?'alignment-good':s.alignment<0?'alignment-evil':'alignment-neutral';
-    const alignText=s.alignment>0?'??+'+s.alignment:s.alignment<0?'??'+s.alignment:'??';
+    const alignText=s.alignment>0?'正道 +'+s.alignment:s.alignment<0?'魔道 '+s.alignment:'中立';
     const focus=s.monthPlan&&s.monthPlan.focus?MONTH_PLAN_MAP[s.monthPlan.focus]:null;
     const order=s.sectPressure?s.sectPressure.currentOrder:null;
     el.innerHTML=`
-      <div class="calendar-item">?? ?${s.year}? ${s.month}?</div>
-      <div class="calendar-item">??: <div class="bar bar-demon" style="width:60px;display:inline-block;vertical-align:middle"><div class="bar-fill" style="width:${hdP}%"></div></div> ${hdP}/100</div>
-      <div class="calendar-item ${alignCls}">??: ${alignText}</div>
-      <div class="calendar-item month-plan-chip" data-month-plan-focus="${focus?focus.id:''}" data-month-plan-days="${focus?s.monthPlan.daysLeft:0}">${focus?('??: '+focus.name+' ? ??'+s.monthPlan.daysLeft+'?'):'??: ???????'}</div>
-      <div class="calendar-item sect-pressure-chip" data-sect-pressure-value="${s.sectPressure?s.sectPressure.pressure:0}">????: ${s.sectPressure?s.sectPressure.pressure:0}${order?' ? '+order.name:''}</div>`;
+      <div class="calendar-item">历时 第${s.year}年 ${s.month}月</div>
+      <div class="calendar-item">心魔：<div class="bar bar-demon" style="width:60px;display:inline-block;vertical-align:middle"><div class="bar-fill" style="width:${hdP}%"></div></div> ${hdP}/100</div>
+      <div class="calendar-item ${alignCls}">立场：${alignText}</div>
+      <div class="calendar-item month-plan-chip" data-month-plan-focus="${focus?focus.id:''}" data-month-plan-days="${focus?s.monthPlan.daysLeft:0}">${focus?('月令：'+focus.name+' · 剩余 '+s.monthPlan.daysLeft+' 天'):'月令：请先选择本月计划'}</div>
+      <div class="calendar-item sect-pressure-chip" data-sect-pressure-value="${s.sectPressure?s.sectPressure.pressure:0}">宗门压力：${s.sectPressure?s.sectPressure.pressure:0}${order?' · '+order.name:''}</div>`;
   }
 
   renderNewsTicker(){
@@ -3051,7 +3022,7 @@ class GuiguUI {
   /* === 总览面板 === */
   renderMonthPlanChooser(note){
     const cards=MONTH_PLAN_OPTIONS.map(option=>`<button class="month-focus-card accent-${option.accent}" data-month-focus="${option.id}" type="button"><span class="focus-name">${option.name}</span><span class="focus-desc">${option.desc}</span></button>`).join('');
-    return `<div class="phase2-card month-chooser"><h3>????</h3><p class="phase2-note">${note||'???????????????????'}</p><div class="month-focus-grid">${cards}</div></div>`;
+    return `<div class="phase2-card month-chooser"><h3>本月计划</h3><p class="phase2-note">${note||'选择本月侧重，安排接下来的修行与行旅。'}</p><div class="month-focus-grid">${cards}</div></div>`;
   }
 
   renderPhase2SnapshotCards(){
@@ -3061,16 +3032,16 @@ class GuiguUI {
     const summary=s.lastMonthSummary;
     let html='<div class="phase2-top-grid">';
     if(focus){
-      html+=`<div class="phase2-card month-current"><h3>????</h3><div class="phase2-kv"><span>${focus.name}</span><strong>${s.monthPlan.daysLeft} ?</strong></div><p class="phase2-note">${focus.desc}</p></div>`;
+      html+=`<div class="phase2-card month-current"><h3>本月计划</h3><div class="phase2-kv"><span>${focus.name}</span><strong>${s.monthPlan.daysLeft} 天</strong></div><p class="phase2-note">${focus.desc}</p></div>`;
     }else{
-      html+=this.renderMonthPlanChooser('??????????????????');
+      html+=this.renderMonthPlanChooser('新月已至，请选择接下来的修行计划。');
     }
     if(order){
-      html+=`<div class="phase2-card month-order" data-sect-order-id="${order.id}"><h3>????</h3><div class="phase2-kv"><span>${order.name}</span><strong>${s.monthlyStats[order.metric]||0} / ${order.target}</strong></div><p class="phase2-note">${order.desc}</p></div>`;
+      html+=`<div class="phase2-card month-order" data-sect-order-id="${order.id}"><h3>宗门月令</h3><div class="phase2-kv"><span>${order.name}</span><strong>${s.monthlyStats[order.metric]||0} / ${order.target}</strong></div><p class="phase2-note">${order.desc}</p></div>`;
     }
     html+='</div>';
     if(summary){
-      html+=`<div class="phase2-card month-summary"><h3>????</h3><div class="summary-line"><span>????</span><strong>${summary.gainText}</strong></div><div class="summary-line"><span>????</span><strong>${summary.encounterText}</strong></div><div class="summary-line"><span>????</span><strong>${summary.sectEvaluation}</strong></div><div class="summary-line"><span>????</span><strong>${summary.orderResult}</strong></div><p class="phase2-note">${summary.nextRiskHint}</p></div>`;
+      html+=`<div class="phase2-card month-summary"><h3>上月纪要</h3><div class="summary-line"><span>修行收获</span><strong>${summary.gainText}</strong></div><div class="summary-line"><span>行旅见闻</span><strong>${summary.encounterText}</strong></div><div class="summary-line"><span>宗门评价</span><strong>${summary.sectEvaluation}</strong></div><div class="summary-line"><span>月令结果</span><strong>${summary.orderResult}</strong></div><p class="phase2-note">${summary.nextRiskHint}</p></div>`;
     }
     return html;
   }
@@ -3080,7 +3051,7 @@ class GuiguUI {
       btn.addEventListener('click',()=>{
         const picked=this.game.selectMonthPlan(btn.dataset.monthFocus);
         if(!picked)return;
-        showToast('???????'+MONTH_PLAN_MAP[picked.focus].name,'success');
+        showToast('本月计划已定：'+MONTH_PLAN_MAP[picked.focus].name,'success');
         this.refreshUI();
       });
     });
@@ -3518,9 +3489,9 @@ class GuiguUI {
     if(!s.encounterDeck.length)this.game.refillEncounterDeck();
     const terrain=this.game.getCurrentTerrain();
     const focus=MONTH_PLAN_MAP[s.monthPlan.focus];
-    const cardsHtml=(s.encounterDeck||[]).map(card=>`<article class="encounter-card" data-encounter-card-id="${card.id}"><div class="encounter-head"><span class="encounter-type">${card.title}</span><span class="encounter-terrain">${terrain?terrain.name:'??'}</span></div><p class="encounter-prompt">${card.prompt}</p><div class="encounter-choices">${card.choices.map(choice=>`<button class="encounter-choice-btn" type="button" data-encounter-card="${card.id}" data-encounter-choice="${choice.id}"><span>${choice.label}</span><small>${choice.hint}</small></button>`).join('')}</div></article>`).join('');
-    const lastResult=s.lastEncounterResult?`<div class="phase2-card encounter-result"><h3>????</h3><p class="phase2-note">${s.lastEncounterResult.text}</p></div>`:'';
-    el.innerHTML=`${phase2Html}<div class="panel-title">??</div><div class="location-header"><h3>${terrain?terrain.icon:''} ${terrain?terrain.name:'??'}</h3><p>?????${focus?focus.name:''}????????????????????????????????????</p></div><div class="encounter-deck-grid">${cardsHtml}</div>${lastResult}`;
+    const cardsHtml=(s.encounterDeck||[]).map(card=>`<article class="encounter-card" data-encounter-card-id="${card.id}"><div class="encounter-head"><span class="encounter-type">${card.title}</span><span class="encounter-terrain">${terrain?terrain.name:'荒野'}</span></div><p class="encounter-prompt">${card.prompt}</p><div class="encounter-choices">${card.choices.map(choice=>`<button class="encounter-choice-btn" type="button" data-encounter-card="${card.id}" data-encounter-choice="${choice.id}"><span>${choice.label}</span><small>${choice.hint}</small></button>`).join('')}</div></article>`).join('');
+    const lastResult=s.lastEncounterResult?`<div class="phase2-card encounter-result"><h3>行旅结果</h3><p class="phase2-note">${s.lastEncounterResult.text}</p></div>`:'';
+    el.innerHTML=`${phase2Html}<div class="panel-title">历练</div><div class="location-header"><h3>${terrain?terrain.icon:''} ${terrain?terrain.name:'荒野'}</h3><p>本月侧重「${focus?focus.name:''}」。从下方遭遇中选择行动；地形、选择与月令共同影响收获和风险。</p></div><div class="encounter-deck-grid">${cardsHtml}</div>${lastResult}`;
     this.bindMonthPlanActions(el);
     el.querySelectorAll('[data-encounter-choice]').forEach(btn=>{
       btn.addEventListener('click',()=>{
@@ -3530,65 +3501,6 @@ class GuiguUI {
           this.showBattleModal();
         }else{
           showToast(result.text,'success');
-
-    el.innerHTML=`<div class="panel-title">历练</div><div class="location-header"><h3>${curTerrain.icon} ${curTerrain.name}</h3><p>危险等级: ${'★'.repeat(curTerrain.danger)||'安全'} <span class="action-card-badge ${diff.badge}" style="margin-left:8px">${diff.label}</span></p></div>${cardsHtml}<div class="monster-list" id="adventure-monster-list" style="display:none">${monHtml}</div>`;
-
-    // Card action handlers (avoid duplicate listeners on re-render)
-    el.onclick=(e)=>{
-      const card=e.target.closest('.action-card[data-action]');
-      if(card){
-        if (card.dataset.disabled === '1') {
-          showToast(card.dataset.disabledReason || '当前不可用', 'info');
-          return;
-        }
-        const action=card.dataset.action;
-        if(action==='battle'){
-          // Show/toggle monster list
-          const monList=document.getElementById('adventure-monster-list');
-          if(monList)monList.style.display=monList.style.display==='none'?'block':'none';
-        }else if(action==='explore'){
-          // Search the area for hidden resources/encounters
-          const terrain=curTerrain;
-          if(terrain.res.length&&Math.random()<0.5){
-            const matId=terrain.res[Math.floor(Math.random()*terrain.res.length)];
-            const mat=MATERIALS_MAP[matId];
-            if(mat){
-              this.game.addItem({id:mat.id,name:mat.name,type:'material',count:1});
-              showToast('搜索发现了 '+mat.name+'！','success');
-            }
-          }else if(Math.random()<0.38){
-            const goldFind=randomInt(10,100)*(s.realm+1);
-            s.gold+=goldFind;
-            showToast('搜索发现了 '+goldFind+' 灵石！','success');
-          }else{
-            showToast('搜索未发现任何东西','info');
-          }
-          this.game.advanceDays(TIME_COSTS.explore);
-          this.refreshUI();
-        }else if(action==='rest'){
-          const hpRecover=Math.floor(s.maxHp*0.38);
-          const spRecover=Math.floor(s.maxSp*0.28);
-          s.hp=Math.min(s.maxHp,s.hp+hpRecover);
-          s.sp=Math.min(s.maxSp,s.sp+spRecover);
-          this.game.advanceDays(TIME_COSTS.rest);
-          showToast('休息恢复了 '+hpRecover+' 气血, '+spRecover+' 灵力','success');
-          this.refreshUI();
-        }else if(action==='gather'){
-          const terrain=curTerrain;
-          if(terrain.res.length){
-            const matId=terrain.res[Math.floor(Math.random()*terrain.res.length)];
-            const mat=MATERIALS_MAP[matId];
-            if(mat&&Math.random()<0.7){
-              this.game.addItem({id:mat.id,name:mat.name,type:'material',count:1});
-              this.game.updateBountyProgress('collect_herb',1);
-              this.game.updateNpcQuestProgress('collect_herb',1);
-              showToast('采集获得 '+mat.name,'success');
-            }else{
-              showToast('采集未获得材料','info');
-            }
-          }
-          this.game.advanceDays(TIME_COSTS.explore);
-          this.refreshUI();
         }
         this.refreshUI();
       });
@@ -3779,23 +3691,23 @@ class GuiguUI {
     const progress=order?(s.monthlyStats[order.metric]||0):0;
     const pressure=s.sectPressure.pressure;
     const summary=s.lastMonthSummary;
-    el.innerHTML=`${phase2Html}<div class="panel-title">??</div>
+    el.innerHTML=`${phase2Html}<div class="panel-title">宗门</div>
       <div class="sect-phase2-grid">
-        <div class="phase2-card sect-pressure-card"><h3>????</h3><div class="pressure-row"><span data-sect-pressure-value="${pressure}">${pressure}</span><div class="bar bar-demon"><div class="bar-fill" style="width:${pressure}%"></div></div></div><p class="phase2-note">???????????????????????</p></div>
-        <div class="phase2-card sect-order-card" data-sect-order-id="${order?order.id:''}"><h3>${order?order.name:'????'}</h3><div class="phase2-kv"><span>????</span><strong>${order?progress+' / '+order.target:'--'}</strong></div><p class="phase2-note">${order?order.desc:'???????????'}</p><p class="phase2-note">?????${order?order.rewardText:''}</p></div>
+        <div class="phase2-card sect-pressure-card"><h3>宗门压力</h3><div class="pressure-row"><span data-sect-pressure-value="${pressure}">${pressure}</span><div class="bar bar-demon"><div class="bar-fill" style="width:${pressure}%"></div></div></div><p class="phase2-note">完成月令、积累贡献，留意月末评价与下月风险。</p></div>
+        <div class="phase2-card sect-order-card" data-sect-order-id="${order?order.id:''}"><h3>${order?order.name:'暂无月令'}</h3><div class="phase2-kv"><span>完成进度</span><strong>${order?progress+' / '+order.target:'--'}</strong></div><p class="phase2-note">${order?order.desc:'宗门尚未下达本月任务。'}</p><p class="phase2-note">月令奖励：${order?order.rewardText:''}</p></div>
       </div>
       <div class="sect-info-card"><h3>${sect?sect.icon+' '+sect.name:''}</h3><p style="color:var(--text-secondary);font-size:0.85rem">${sect?sect.desc:''}</p>
-        <div class="sect-rank-info"><div class="sect-stat"><div class="sect-stat-label">??</div><div class="sect-stat-value">${rankName}</div></div><div class="sect-stat"><div class="sect-stat-label">??</div><div class="sect-stat-value">${formatNumber(s.sect_data.contribution)}</div></div></div>
+        <div class="sect-rank-info"><div class="sect-stat"><div class="sect-stat-label">职阶</div><div class="sect-stat-value">${rankName}</div></div><div class="sect-stat"><div class="sect-stat-label">贡献</div><div class="sect-stat-value">${formatNumber(s.sect_data.contribution)}</div></div></div>
       </div>
       <div class="sect-actions">
-        <button class="btn btn-gold btn-sm" id="donate-100">??100??</button>
-        <button class="btn btn-gold btn-sm" id="donate-1000">??1000??</button>
+        <button class="btn btn-gold btn-sm" id="donate-100">捐赠 100 灵石</button>
+        <button class="btn btn-gold btn-sm" id="donate-1000">捐赠 1000 灵石</button>
       </div>
-      ${summary?`<div class="phase2-card month-summary"><h3>??????</h3><div class="summary-line"><span>??</span><strong>${summary.sectEvaluation}</strong></div><div class="summary-line"><span>??</span><strong>${summary.orderResult}</strong></div><p class="phase2-note">${summary.nextRiskHint}</p></div>`:''}
-      <div class="sect-members"><h4 style="color:var(--gold-light);margin-bottom:8px">??</h4>${members.map(n=>`<span style="display:inline-block;padding:4px 8px;margin:2px;background:var(--bg-primary);border-radius:var(--radius-sm);font-size:0.8rem">${escapeHtml(n.name)} (${REALMS[n.realm].name})</span>`).join('')}</div>`;
+      ${summary?`<div class="phase2-card month-summary"><h3>上月宗门评价</h3><div class="summary-line"><span>评价</span><strong>${summary.sectEvaluation}</strong></div><div class="summary-line"><span>月令</span><strong>${summary.orderResult}</strong></div><p class="phase2-note">${summary.nextRiskHint}</p></div>`:''}
+      <div class="sect-members"><h4 style="color:var(--gold-light);margin-bottom:8px">同门</h4>${members.map(n=>`<span style="display:inline-block;padding:4px 8px;margin:2px;background:var(--bg-primary);border-radius:var(--radius-sm);font-size:0.8rem">${escapeHtml(n.name)} (${REALMS[n.realm].name})</span>`).join('')}</div>`;
     this.bindMonthPlanActions(el);
-    document.getElementById('donate-100')?.addEventListener('click',()=>{if(this.game.donateSect(100)){showToast('????','success');this.refreshUI()}else showToast('????','error')});
-    document.getElementById('donate-1000')?.addEventListener('click',()=>{if(this.game.donateSect(1000)){showToast('????','success');this.refreshUI()}else showToast('????','error')});
+    document.getElementById('donate-100')?.addEventListener('click',()=>{if(this.game.donateSect(100)){showToast('捐赠成功','success');this.refreshUI()}else showToast('灵石不足','error')});
+    document.getElementById('donate-1000')?.addEventListener('click',()=>{if(this.game.donateSect(1000)){showToast('捐赠成功','success');this.refreshUI()}else showToast('灵石不足','error')});
   }
 
   renderInventoryPanel(){
@@ -4486,7 +4398,8 @@ class GuiguUI {
 
 /* ==================== 启动 ==================== */
 document.addEventListener('DOMContentLoaded',()=>{
-  new GuiguUI();
+  const sceneUI = new GuiguUI();
+  GameScenes.register(GameScenePorts.guigu({ ui: sceneUI, models: RpgSceneModels, terrain: TERRAIN, document }));
   // 新手引导
   if (typeof GuideSystem !== 'undefined') {
     GuideSystem.start('guigu', [

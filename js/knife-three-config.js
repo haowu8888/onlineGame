@@ -1,6 +1,6 @@
 export const ARENA = Object.freeze({
-  background: 0xa8c5bb,
-  floor: 0x98ac86,
+  background: 0x9ab8b9,
+  floor: 0x63856c,
   jade: 0x5dddc4,
   gold: 0xffd584,
   vermilion: 0xe85f48,
@@ -8,7 +8,7 @@ export const ARENA = Object.freeze({
   pixelsPerUnit: 24,
   cameraHeight: 30,
   cameraDepth: 27,
-  menuZoom: 1.08,
+  menuZoom: 1.24,
   menuHeroOffset: 0.23,
   viewportWidth: 800,
   viewportHeight: 600,

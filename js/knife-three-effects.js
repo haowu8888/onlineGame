@@ -1,9 +1,9 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { ARENA, worldPosition } from './knife-three-config.js?v=33';
-import { InstanceBatch } from './knife-three-batch.js?v=33';
-import { BladeTrails } from './knife-three-trails.js?v=33';
-import { DashTrails } from './knife-three-dash.js?v=33';
-import { ArenaLoot } from './knife-three-loot.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { ARENA, worldPosition } from './knife-three-config.js?v=34';
+import { InstanceBatch } from './knife-three-batch.js?v=34';
+import { BladeTrails } from './knife-three-trails.js?v=34';
+import { DashTrails } from './knife-three-dash.js?v=34';
+import { ArenaLoot } from './knife-three-loot.js?v=34';
 
 const FX = Object.freeze({
   gemHeight: 0.45, bladeThickness: 0.04, bladeCoreLift: 0.045,

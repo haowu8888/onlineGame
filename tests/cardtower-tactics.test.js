@@ -17,17 +17,25 @@ test('仙塔手牌摘要使用折扣后的真实费用，并要求黄泉炼有�
   assert.equal(tactics.handSummary({ cards, costs: [0, 2, 1], energy: 1, canAct: false }).playableCount, 0);
 });
 
-test('仙塔路线跟随实际层数和当前节点，胜利后所有层与守关节点完成', () => {
-  const floors = Array.from({ length: 15 }, (_, index) => ({ name: '第 ' + index + ' 层', enemies: ['a', 'b'], boss: 'boss' }));
-  const route = tactics.route({ floors, floorIndex: 6, nodeIndex: 1, victory: false });
-  assert.equal(route.length, 15);
-  assert.equal(route[5].status, 'complete');
-  assert.equal(route[6].status, 'current');
-  assert.deepEqual(route[6].nodes.map(node => node.status), ['complete', 'current', 'upcoming']);
-  assert.equal(route[6].nodes[2].boss, true);
-  assert.equal(route[7].status, 'upcoming');
-  const victory = tactics.route({ floors, floorIndex: 14, nodeIndex: 2, victory: true });
-  assert.ok(victory.every(floor => floor.status === 'complete' && floor.nodes.every(node => node.status === 'complete')));
+test('仙塔路线使用真实分支，只标记走过的节点，弹窗期间不允许选择下一步', () => {
+  const runtime = loadGame({ file: 'cardtower.js', entry: "document.addEventListener('DOMContentLoaded'", exports: '{ GameState, buildTowerRows }' });
+  const state = new runtime.api.GameState();
+  state.towerRows = runtime.api.buildTowerRows(() => 0);
+  state.towerNodeMap = Object.fromEntries(state.towerRows.flatMap(row => row.nodes.map(node => [node.id, node])));
+  const first = state.towerRows[0].nodes[0];
+  state.currentNodeId = first.id;
+  state.completedNodeIds = [first.id];
+  state.availableNodeIds = [...first.nextIds];
+  const before = JSON.stringify(state);
+  const route = tactics.route({ state, canSelect: true });
+  assert.equal(route.length, state.towerRows.length);
+  assert.equal(route[0].nodes[0].completed, true);
+  assert.equal(route[0].nodes[1].completed, false);
+  assert.equal(route[1].current, true);
+  const available = route.flatMap(row => row.nodes).filter(node => node.selectable).map(node => node.id);
+  assert.deepEqual(Array.from(available), Array.from(first.nextIds));
+  assert.equal(tactics.route({ state, canSelect: false }).flatMap(row => row.nodes).some(node => node.selectable), false);
+  assert.equal(JSON.stringify(state), before);
 });
 
 test('仙塔纯文本牌面解析真实数值，牌组分析不更改原牌组', () => {

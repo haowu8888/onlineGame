@@ -3688,7 +3688,8 @@
   // --- 初始化 ---
   initNav('lifesim');
   initParticles('#particles', 15);
-  new LifeSimUI();
+  const sceneUI = new LifeSimUI();
+  GameScenes.register(GameScenePorts.lifesim({ ui: sceneUI, models: RpgSceneModels, realms: CULTIVATION_REALMS, document }));
 
   if (!window._lifesimHotkeysBound) {
     window._lifesimHotkeysBound = true;
@@ -3696,7 +3697,7 @@
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
-      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(activeTag)) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A', 'CANVAS'].includes(activeTag)) return;
       if (document.querySelector('.modal-overlay.active')) return;
       const btn = document.getElementById('btn-qte-proceed') || document.getElementById('btn-continue');
       if (btn && btn.getClientRects().length > 0) {

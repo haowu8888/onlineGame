@@ -36,15 +36,18 @@
     }), { total: 0, attack: 0, defense: 0, spell: 0 });
   }
 
-  function route({ floors, floorIndex, nodeIndex, victory }) {
-    return floors.map((floor, index) => ({
-      name: floor.name,
-      status: victory || index < floorIndex ? 'complete' : index === floorIndex ? 'current' : 'upcoming',
-      nodes: [...floor.enemies, floor.boss].map((key, position) => ({
-        key,
-        boss: position === floor.enemies.length,
-        status: victory || index < floorIndex || (index === floorIndex && position < nodeIndex)
-          ? 'complete' : index === floorIndex && position === nodeIndex ? 'current' : 'upcoming',
+  function route({ state, canSelect }) {
+    const completed = new Set(state.completedNodeIds);
+    const available = new Set(state.availableNodeIds);
+    const current = state.towerNodeMap[state.availableNodeIds[0] || state.currentNodeId];
+    return state.towerRows.map(row => ({
+      ...row, currentAct: Boolean(current && row.actIndex === current.actIndex),
+      current: Boolean(current && row.rowIndex === current.rowIndex),
+      completed: row.nodes.some(node => completed.has(node.id)),
+      nodes: row.nodes.map(node => ({
+        ...node, nextIds: [...node.nextIds],
+        completed: completed.has(node.id), selected: node.id === state.currentNodeId,
+        selectable: canSelect && available.has(node.id),
       })),
     }));
   }

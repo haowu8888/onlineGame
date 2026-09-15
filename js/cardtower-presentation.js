@@ -4,7 +4,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
 
-  const SIGILS = '../assets/cardtower/sigils.svg?v=33#';
+  const SIGILS = '../assets/cardtower/sigils.svg?v=34#';
   const TYPE_NAMES = Object.freeze({ attack: '攻击', defense: '防御', spell: '法术' });
   const TYPE_SIGILS = Object.freeze({ attack: 'blade', defense: 'shield', spell: 'seal' });
   const CONDITIONS = Object.freeze([
@@ -17,25 +17,36 @@
   }
 
   function create(options) {
-    const { document, escape: escapeHtml, tactics, classes, floors, enemyTemplates, bossTemplates } = options;
+    const { document, escape: escapeHtml, tactics, classes, nodeMeta } = options;
 
     function route(state, container) {
-      const progress = tactics.route({ floors, floorIndex: state.floorIndex, nodeIndex: state.nodeIndex, victory: state.victory });
-      const current = progress[state.floorIndex];
-      const floorList = progress.map((floor, index) => '<li class="ct-route-floor ' + floor.status + '"'
-        + (floor.status === 'current' ? ' aria-current="step"' : '') + '><span class="ct-route-number">'
-        + (floor.status === 'complete' ? '✓' : index + 1) + '</span><span>'
-        + escapeHtml(floor.name.split('·').pop().trim()) + '</span></li>').join('');
-      const nodes = current.nodes.map((node, index) => {
-        const enemy = enemyTemplates[node.key] || bossTemplates[node.key];
-        return '<li class="ct-route-node ' + node.status + (node.boss ? ' boss' : '') + '">'
-          + '<span>' + (node.status === 'complete' ? '✓' : index + 1) + '</span><strong>'
-          + escapeHtml(enemy.name) + '</strong><small>' + (node.boss ? '守关' : '遭遇') + '</small></li>';
-      }).join('');
-      container.innerHTML = '<ol class="ct-route-floors" aria-label="' + floors.length + ' 层攀塔路线">' + floorList
-        + '</ol><div class="ct-route-current"><p>本层行程</p><ol>' + nodes + '</ol></div>';
-      const location = document.getElementById('ct-location');
-      location.textContent = current.name + ' · 第 ' + (state.nodeIndex + 1) + ' 战';
+      const progress = tactics.route({ state, canSelect: options.canSelect() });
+      const rows = progress.filter(row => row.currentAct);
+      const current = rows.find(row => row.current);
+      const acts = [...new Map(progress.map(row => [row.actIndex, row.actName]))];
+      const chapters = acts.map(([index, name]) => '<span class="ct-route-act'
+        + (current && index === current.actIndex ? ' current' : '') + '">' + escapeHtml(name) + '</span>').join('');
+      container.innerHTML = '<div class="ct-route-acts">' + chapters + '</div>'
+        + '<p class="ct-route-progress">已走过 ' + state.completedNodeIds.length + ' 处 · 每层择一路</p>'
+        + rows.map(row => '<div class="ct-tower-row" aria-label="第 ' + (row.rowIndex + 1) + ' 层路线">'
+          + row.nodes.map(routeNode).join('') + '</div>').join('');
+      document.getElementById('ct-location').textContent = current
+        ? current.actName + ' · 第 ' + (current.rowIndex + 1) + ' 层' : '选择路线';
+    }
+
+    function routeNode(node) {
+      const meta = nodeMeta[node.type];
+      const status = [node.completed ? 'completed' : '', node.selected ? 'current' : '',
+        node.selectable ? 'available' : '', node.type].join(' ');
+      const detail = node.title + ' · ' + node.previewRewards.join(' / ')
+        + (node.nextPreview.length ? ' · 后续：' + node.nextPreview.join(' / ') : '');
+      return '<button type="button" class="ct-tower-node ' + status + '" data-node-id="'
+        + escapeHtml(node.id) + '" style="grid-column:' + (node.lane + 1) + '"'
+        + (node.selectable ? '' : ' disabled') + (node.selected ? ' aria-current="step"' : '')
+        + ' title="' + escapeHtml(detail) + '" aria-label="' + escapeHtml(meta.name + '，' + detail) + '">'
+        + '<span class="ct-tower-node-label">' + (node.completed ? '✓ ' : '') + escapeHtml(meta.name) + '</span>'
+        + '<strong class="ct-tower-node-title">' + escapeHtml(node.title) + '</strong>'
+        + '<small class="ct-node-preview">' + escapeHtml(node.previewRewards.join(' / ')) + '</small></button>';
     }
 
     function deck(state, container) {

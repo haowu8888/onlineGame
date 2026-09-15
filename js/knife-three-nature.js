@@ -1,8 +1,8 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { SCENERY } from './knife-scenery.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { SCENERY } from './knife-scenery.js?v=34';
 
-const RED_LEAVES = [0xbe624e, 0xd67d5a, 0xe59d73, 0xc66b4f, 0xe4a178];
-const PINE_LEAVES = [0x467b65, 0x5a8e71, 0x72a280];
+const RED_LEAVES = [0xa7473b, 0xc36748, 0xd99a5b, 0xb9563f, 0xdea975];
+const PINE_LEAVES = [0x315e52, 0x437764, 0x719471];
 const CROWNS = [[-0.8, 3, 0.2, 1.5], [0.9, 3.2, 0.1, 1.45], [0, 4.1, -0.2, 1.5], [-1.2, 3.8, -0.1, 1], [1.1, 4.1, -0.2, 1.05]];
 
 function instances({ geometry, items, material, shadow = true }) {
@@ -23,7 +23,7 @@ function instances({ geometry, items, material, shadow = true }) {
 }
 
 function material() {
-  return new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, flatShading: true });
+  return new THREE.MeshStandardMaterial({ roughness: 0.96, metalness: 0 });
 }
 
 function treeParts() {
@@ -120,7 +120,7 @@ function createFoliage() {
     const items = [];
     if (tree.kind === 'maple') appendMaple(items, tree);
     else appendPine(items, tree);
-    const geometry = tree.kind === 'maple' ? new THREE.IcosahedronGeometry(1, 1) : new THREE.ConeGeometry(1, 2.5, 6);
+    const geometry = tree.kind === 'maple' ? new THREE.IcosahedronGeometry(1, 2) : new THREE.ConeGeometry(1, 2.5, 12);
     const leaves = material();
     leaves.transparent = true;
     leaves.depthWrite = false;

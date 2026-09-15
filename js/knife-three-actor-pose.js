@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { ARENA, worldPosition } from './knife-three-config.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { ARENA, worldPosition } from './knife-three-config.js?v=34';
 
 export const ACTOR_RIG = Object.freeze({ heroScale: 1.12, enemyRadius: 14, headY: 1.77, hatY: 2.16, shoulderY: 1.34, armLength: 0.52 });
 const MOTION = Object.freeze({ strideRate: 2.35, stepLift: 0.09 });

@@ -462,19 +462,19 @@
 
 
   const TOWER_NODE_META = {
-    battle: { name: '??', icon: '?', shortLabel: '?', reward: '?????' },
-    elite: { name: '??', icon: '?', shortLabel: '?', reward: '?????' },
-    event: { name: '??', icon: '?', shortLabel: '?', reward: '????' },
-    rest: { name: '??', icon: '?', shortLabel: '?', reward: '?? / ?? / ??' },
-    shop: { name: '??', icon: '??', shortLabel: '?', reward: '???? / ??' },
-    boss: { name: '??', icon: '??', shortLabel: '?', reward: '?????' },
+    battle: { name: '遭遇', icon: '⚔', shortLabel: '战', reward: '战后选牌' },
+    elite: { name: '精英', icon: '◆', shortLabel: '精', reward: '战后选法宝' },
+    event: { name: '奇遇', icon: '✦', shortLabel: '遇', reward: '事件抉择' },
+    rest: { name: '营地', icon: '⌂', shortLabel: '休', reward: '治疗 / 强化 / 删牌' },
+    shop: { name: '商店', icon: '◈', shortLabel: '商', reward: '稀有卡 / 整理牌组' },
+    boss: { name: '守关', icon: '♜', shortLabel: '首', reward: '守关法宝' },
   };
 
   const ENEMY_AFFIXES = {
-    berserk: { id: 'berserk', name: '??', shortDesc: '???????', desc: '??????? +2?' },
-    thorns: { id: 'thorns', name: '??', shortDesc: '?????', desc: '????????? 2?' },
-    warded: { id: 'warded', name: '??', shortDesc: '????', desc: '???? 12 ??????????? 4 ???' },
-    frail_open: { id: 'frail_open', name: '??', shortDesc: '?????', desc: '???????? 1 ????' },
+    berserk: { id: 'berserk', name: '狂暴', shortDesc: '行动后攻击增强', desc: '每次行动后攻击加成 +2。' },
+    thorns: { id: 'thorns', name: '荆棘', shortDesc: '受伤时反击', desc: '受到伤害后反击 2 点，可用护甲抵挡。' },
+    warded: { id: 'warded', name: '护体', shortDesc: '持续获得护甲', desc: '开战获得 12 护甲，每次回合开始再获得 4 护甲。' },
+    frail_open: { id: 'frail_open', name: '破势', shortDesc: '开局施加易伤', desc: '开战时对修士施加 1 层易伤。' },
   };
 
   const RARE_REWARD_CARD_IDS = [
@@ -483,9 +483,9 @@
   ];
 
   const TOWER_PATH_ACTS = [
-    { id: 'rift', name: '????', battlePool: ['xiaoyao', 'yaoxiu', 'moxiu'], elitePool: ['moxiu', 'hunxiushi', 'yaoshou'], bossPool: ['sheyao', 'yaojiang', 'mozun'], eventPool: ['treasure', 'altar', 'gambler'] },
-    { id: 'abyss', name: '????', battlePool: ['huoling', 'bingpo', 'shimagui', 'tianyaoke'], elitePool: ['shimagui', 'tianyaoke', 'longwei'], bossPool: ['yanhuo', 'binghuang', 'shiwang'], eventPool: ['treasure', 'altar', 'gambler'] },
-    { id: 'heaven', name: '????', battlePool: ['xianbing', 'moying', 'leishou', 'longwei'], elitePool: ['moying', 'leishou', 'xianbing'], bossPool: ['xianjun', 'tiandao', 'xukong'], eventPool: ['treasure', 'altar', 'gambler'] },
+    { id: 'rift', name: '裂隙初行', battlePool: ['xiaoyao', 'yaoxiu', 'moxiu'], elitePool: ['moxiu', 'hunxiushi', 'yaoshou'], bossPool: ['sheyao', 'yaojiang', 'mozun'], eventPool: ['treasure', 'altar', 'gambler'] },
+    { id: 'abyss', name: '深渊问道', battlePool: ['huoling', 'bingpo', 'shimagui', 'tianyaoke'], elitePool: ['shimagui', 'tianyaoke', 'longwei'], bossPool: ['yanhuo', 'binghuang', 'shiwang'], eventPool: ['treasure', 'altar', 'gambler'] },
+    { id: 'heaven', name: '天阙终途', battlePool: ['xianbing', 'moying', 'leishou', 'longwei'], elitePool: ['moying', 'leishou', 'xianbing'], bossPool: ['xianjun', 'tiandao', 'xukong'], eventPool: ['treasure', 'altar', 'gambler'] },
   ];
 
   const TOWER_ROW_BLUEPRINTS = [
@@ -514,27 +514,27 @@
 
   const TOWER_PATH_EVENTS = {
     treasure: {
-      id: 'treasure', title: '????', desc: '??????????????????????????', rewardHint: '?? / ??? / ????',
+      id: 'treasure', title: '遗落宝匣', desc: '古匣藏在残垣下，封印尚未散尽。你要如何取宝？', rewardHint: '法宝 / 稀有卡 / 离开',
       choices: [
-        { id: 'open', label: '????', desc: '?? 12 ????? 1 ???????', effect: { type: 'relic', hpCostFlat: 12 } },
-        { id: 'salvage', label: '????', desc: '?? 1 ?????????', effect: { type: 'rare_card' } },
-        { id: 'leave', label: '?????', desc: '????????????', effect: { type: 'leave', toast: '?????????' } }
+        { id: 'open', label: '强破封印', desc: '消耗 12 生命，选择 1 件法宝。', effect: { type: 'relic', hpCostFlat: 12 } },
+        { id: 'salvage', label: '搜寻残页', desc: '选择 1 张稀有卡加入牌组。', effect: { type: 'rare_card' } },
+        { id: 'leave', label: '谨慎离开', desc: '不取宝物，继续前行。', effect: { type: 'leave', toast: '你绕过宝匣，继续前行。' } }
       ]
     },
     altar: {
-      id: 'altar', title: '????', desc: '????????????????????????', rewardHint: '?? / ?? / ??',
+      id: 'altar', title: '古老祭坛', desc: '祭坛灵火未熄，血炼、净化与调息皆可在此进行。', rewardHint: '体魄 / 删牌 / 治疗',
       choices: [
-        { id: 'blood_core', label: '?????', desc: '?? 10 ??????? +8???? 8 ???', effect: { type: 'max_hp', hpCostFlat: 10, maxHpGain: 8, healGain: 8, toast: '???????????????' } },
-        { id: 'purge', label: '????', desc: '?? 1 ????', effect: { type: 'remove' } },
-        { id: 'meditate', label: '????', desc: '?? 16 ???', effect: { type: 'heal', healFlat: 16, toast: '??????' } }
+        { id: 'blood_core', label: '血炼体魄', desc: '消耗 10 生命，生命上限 +8，再恢复 8 生命。', effect: { type: 'max_hp', hpCostFlat: 10, maxHpGain: 8, healGain: 8, toast: '血炼完成：生命上限提升，气血恢复。' } },
+        { id: 'purge', label: '净化牌组', desc: '移除 1 张卡牌。', effect: { type: 'remove' } },
+        { id: 'meditate', label: '静心调息', desc: '恢复 16 生命。', effect: { type: 'heal', healFlat: 16, toast: '调息完成，气血恢复。' } }
       ]
     },
     gambler: {
-      id: 'gambler', title: '???', desc: '??????????????????????', rewardHint: '????? / ???',
+      id: 'gambler', title: '赌命客', desc: '蒙面散修以命为注，邀你赌一场仙缘。胜负难料。', rewardHint: '稀有卡 / 法宝',
       choices: [
-        { id: 'small_bet', label: '????', desc: '?? 6 ???60% ????????????', effect: { type: 'gamble_card', hpCostFlat: 6, winChance: 0.6, failToast: '?????? 6 ??' } },
-        { id: 'big_bet', label: '??????', desc: '?? 12 ???45% ??????????', effect: { type: 'gamble_relic', hpCostFlat: 12, winChance: 0.45, failToast: '??????????' } },
-        { id: 'leave', label: '??????', desc: '??????????', effect: { type: 'leave', toast: '??????????' } }
+        { id: 'small_bet', label: '小试身手', desc: '消耗 6 生命，60% 概率获得稀有卡选择。', effect: { type: 'gamble_card', hpCostFlat: 6, winChance: 0.6, failToast: '赌局落败，失去 6 生命。' } },
+        { id: 'big_bet', label: '以命博取法宝', desc: '消耗 12 生命，45% 概率获得法宝选择。', effect: { type: 'gamble_relic', hpCostFlat: 12, winChance: 0.45, failToast: '此局未胜，气血已付。' } },
+        { id: 'leave', label: '不与命运对赌', desc: '不付代价，直接离开。', effect: { type: 'leave', toast: '你谢绝赌局，继续前行。' } }
       ]
     }
   };
@@ -815,14 +815,14 @@
       const event = TOWER_PATH_EVENTS[node.eventId];
       return [event ? event.rewardHint : TOWER_NODE_META.event.reward];
     }
-    if (node.type === 'rest') return ['??', '?? / ??'];
-    if (node.type === 'shop') return ['????', '????'];
-    if (node.type === 'elite') return ['?????', node.affixId ? ENEMY_AFFIXES[node.affixId].name : '????'];
+    if (node.type === 'rest') return ['治疗', '强化 / 删牌'];
+    if (node.type === 'shop') return ['以生命交易', '整理牌组'];
+    if (node.type === 'elite') return ['战后选法宝', node.affixId ? ENEMY_AFFIXES[node.affixId].name : '精英强敌'];
     if (node.type === 'boss') {
       const isFinalBoss = node.actIndex === TOWER_PATH_ACTS.length - 1;
-      return ['?????', isFinalBoss ? '????' : '????'];
+      return ['守关法宝', isFinalBoss ? '通关挑战' : '满血进阶'];
     }
-    const lines = ['?????'];
+    const lines = ['战后选牌'];
     if (node.affixId) lines.push(ENEMY_AFFIXES[node.affixId].name);
     return lines;
   }
@@ -1050,7 +1050,7 @@
       }
       if (affix.id === 'frail_open') {
         s.vulnerable = Math.max(s.vulnerable, 1);
-        this.game.ui.logMessage(`${enemy.name} ?${affix.name}?????? 1`, 'damage');
+        this.game.ui.logMessage(`${enemy.name} 发动${affix.name}，施加易伤 1`, 'damage');
       }
     }
 
@@ -1059,7 +1059,7 @@
       if (!affix) return;
       if (affix.id === 'warded') {
         enemy.block += 4;
-        this.game.ui.logMessage(`${enemy.name} ?${affix.name}?? 4 ??`, 'block');
+        this.game.ui.logMessage(`${enemy.name} 通过${affix.name}获得 4 护甲`, 'block');
       }
     }
 
@@ -1068,7 +1068,7 @@
       if (!affix) return;
       if (affix.id === 'berserk') {
         enemy.enrageBonus += 2;
-        this.game.ui.logMessage(`${enemy.name} ?${affix.name}????? +2`, 'damage');
+        this.game.ui.logMessage(`${enemy.name} 因${affix.name}获得攻击加成 +2`, 'damage');
       }
     }
 
@@ -1081,7 +1081,7 @@
       if (actual > 0) {
         this.game.ui.flashPlayerHit();
       }
-      this.game.ui.logMessage(`${enemy.name} ????? ${dmg} ??`, 'damage');
+      this.game.ui.logMessage(`${enemy.name} 的荆棘反击造成 ${dmg} 伤害`, 'damage');
     }
 
     _applyEnemyAffixOnDamaged(enemy, dealtDamage) {
@@ -1930,7 +1930,7 @@
       this.els = {};
       this.presentation = CardTowerPresentation.create({
         document, escape: escapeHtml, tactics: CardTowerTactics, classes: CLASSES,
-        floors: FLOORS, enemyTemplates: ENEMY_TEMPLATES, bossTemplates: BOSS_TEMPLATES,
+        nodeMeta: TOWER_NODE_META, canSelect: () => game._canSelectTowerNode(),
         cardTags: getCardTags, buildSummary: getBuildSummary,
       });
       this._cacheElements();
@@ -2008,62 +2008,13 @@
       this.els.btnRestart.addEventListener('click', () => this.game.restartGame());
       this.els.btnEndTurn.addEventListener('click', () => this.game.battle.endPlayerTurn());
       this.els.btnSkipReward.addEventListener('click', () => this.game.skipReward());
-<<<<<<< HEAD
       CardTowerInput.bind({ document, elements: this.els, game: this.game });
-=======
       this.els.towerMap.addEventListener('click', (e) => {
         const nodeEl = e.target.closest('.ct-tower-node.available[data-node-id]');
         if (!nodeEl) return;
         const nodeId = nodeEl.dataset.nodeId;
         if (nodeId) this.game.selectTowerNode(nodeId);
       });
-      document.addEventListener('keydown', (e) => {
-        const activeTag = document.activeElement ? document.activeElement.tagName : '';
-        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
-        if (!this.els.gameScreen.classList.contains('active')) return;
-
-        const key = e.key.toLowerCase();
-        if (key === 'e') {
-          if (this.game.state.gameOver || !this.game.battle.playerTurn) return;
-          e.preventDefault();
-          this.game.battle.endPlayerTurn();
-          return;
-        }
-
-        if (['1', '2', '3'].includes(key)) {
-          const idx = parseInt(key, 10) - 1;
-          if (this.els.cardReward.classList.contains('active')) {
-            const card = this.els.rewardCards.querySelectorAll('.ct-card')[idx];
-            if (card) { e.preventDefault(); card.click(); }
-            return;
-          }
-          if (this.els.relicReward.classList.contains('active')) {
-            const relic = this.els.relicChoices.querySelectorAll('.ct-relic-choice')[idx];
-            if (relic) { e.preventDefault(); relic.click(); }
-            return;
-          }
-          if (this.els.upgradeOverlay.classList.contains('active')) {
-            const card = this.els.upgradeCards.querySelectorAll('.ct-card')[idx];
-            if (card) { e.preventDefault(); card.click(); }
-            return;
-          }
-          if (this.els.eventOverlay.classList.contains('active')) {
-            const choice = this.els.eventChoices.querySelectorAll('.ct-event-choice')[idx];
-            if (choice) { e.preventDefault(); choice.click(); }
-            return;
-          }
-          if (this.els.restShop.classList.contains('active')) {
-            const choice = this.els.restChoices.querySelectorAll('.ct-rest-choice')[idx];
-            if (choice) { e.preventDefault(); choice.click(); }
-            return;
-          }
-        }
-
-        if (key === '0' && this.els.cardRemoval.classList.contains('active')) {
-          if (this.els.btnSkipRemoval) { e.preventDefault(); this.els.btnSkipRemoval.click(); }
-        }
-      });
->>>>>>> c9bbd8eb26f5d0172912965d532fd8c38cf17b25
 
       // Pile viewer (deck/draw/discard)
       this.els.deckInfo.addEventListener('click', (e) => {
@@ -2322,48 +2273,7 @@
 
     /* --- Tower Map --- */
     renderTowerMap() {
-<<<<<<< HEAD
       this.presentation.route(this.game.state, this.els.towerMap);
-=======
-      const s = this.game.state;
-      if (!s.towerRows || s.towerRows.length === 0) {
-        this.els.towerMap.innerHTML = '<div class="ct-node-empty">????????</div>';
-        return;
-      }
-
-      let html = '';
-      let currentAct = -1;
-      s.towerRows.forEach(row => {
-        if (row.actIndex !== currentAct) {
-          currentAct = row.actIndex;
-          html += `<div class="ct-tower-floor-divider">?${row.actIndex + 1}? ? ${escapeHtml(row.actName)}</div>`;
-        }
-        html += '<div class="ct-tower-row">';
-        row.nodes.forEach(node => {
-          const meta = TOWER_NODE_META[node.type];
-          const completed = s.completedNodeIds.includes(node.id) || (s.gameOver && s.victory);
-          const current = s.currentNodeId === node.id && !s.gameOver;
-          const available = s.availableNodeIds.includes(node.id) && !s.gameOver;
-          const affix = node.affixId ? ENEMY_AFFIXES[node.affixId] : null;
-          const previewText = node.previewRewards.filter(Boolean).join(' ? ');
-          const nextText = node.nextPreview.length ? node.nextPreview.join(' / ') : (node.type === 'boss' && node.actIndex === TOWER_PATH_ACTS.length - 1 ? '??' : '??');
-          html += `<button type="button" class="ct-tower-node ${node.type === 'boss' ? 'boss' : ''} ${completed ? 'completed' : ''} ${current ? 'current' : ''} ${available ? 'available' : ''}" data-node-id="${node.id}" data-node-type="${node.type}">
-            <div class="ct-tower-node-head">
-              <span class="ct-tower-node-icon">${meta.icon}</span>
-              <span class="ct-tower-node-label">${meta.name}</span>
-              ${affix ? `<span class="ct-node-affix" title="${escapeHtml(affix.desc)}">${affix.name}</span>` : ''}
-              ${completed ? '<span class="ct-tower-node-check">&#10003;</span>' : ''}
-            </div>
-            <div class="ct-tower-node-title">${escapeHtml(node.title)}</div>
-            <div class="ct-node-preview" data-node-preview="${escapeHtml(previewText)}">${escapeHtml(previewText)}</div>
-            <div class="ct-node-next">???${escapeHtml(nextText)}</div>
-          </button>`;
-        });
-        html += '</div>';
-      });
-
-      this.els.towerMap.innerHTML = html;
->>>>>>> c9bbd8eb26f5d0172912965d532fd8c38cf17b25
     }
 
     /* --- Deck Info --- */
@@ -2373,52 +2283,7 @@
 
     /* --- Enemies --- */
     renderEnemies() {
-<<<<<<< HEAD
       this.presentation.enemies(this.game, this.els.enemyArea);
-=======
-      const s = this.game.state;
-      const enemies = this.game.battle.enemies;
-      if (!enemies || enemies.length === 0) {
-        this.els.enemyArea.innerHTML = '';
-        return;
-      }
-
-      this.els.enemyArea.innerHTML = enemies.map((e, i) => {
-        const hpPct = Math.max(0, (e.hp / e.maxHp) * 100);
-        const intent = this.game.battle.getEnemyIntent(e);
-        const affix = e.affixId ? ENEMY_AFFIXES[e.affixId] : null;
-        let intentClass = 'intent-attack';
-        if (intent.type === 'defend') intentClass = 'intent-defend';
-        if (intent.type === 'special') intentClass = 'intent-special';
-
-        let statuses = '';
-        if (e.block > 0) statuses += `<span class="ct-status-badge block">?? ${e.block}</span>`;
-        if (e.poison > 0) statuses += `<span class="ct-status-badge poison">? ${e.poison}</span>`;
-        if (e.burn > 0) statuses += `<span class="ct-status-badge burn">?? ${e.burn}</span>`;
-        if (e.frozen > 0) statuses += `<span class="ct-status-badge frozen">?? ${e.frozen}</span>`;
-        if (e.enrageBonus > 0) statuses += `<span class="ct-status-badge enraged">?? +${e.enrageBonus}</span>`;
-        if (e.charged) statuses += `<span class="ct-status-badge enraged">???</span>`;
-        if (e.vulnerable > 0) statuses += `<span class="ct-status-badge vulnerable">?? ${e.vulnerable}</span>`;
-        if (e.weak > 0) statuses += `<span class="ct-status-badge weak">?? ${e.weak}</span>`;
-        if (affix) statuses += `<span class="ct-status-badge affix" data-enemy-affix="${affix.id}" title="${escapeHtml(affix.desc)}">${affix.name}</span>`;
-
-        let intentHtml = `??: ${intent.label}`;
-        if (e.isBoss && s.hasRelic('seeIntent')) {
-          const next = e.pattern[(e.patternIndex + 1) % e.pattern.length];
-          if (next && next.label) intentHtml += `<div class="ct-intent-next">???: ${next.label}</div>`;
-        }
-
-        return `<div class="ct-enemy ${e.isBoss ? 'boss-enemy' : ''}" data-idx="${i}">
-          <span class="ct-enemy-sprite">${e.sprite}</span>
-          <div class="ct-enemy-name">${e.name}</div>
-          ${affix ? `<div class="ct-enemy-affix" data-enemy-affix="${affix.id}" title="${escapeHtml(affix.desc)}">${affix.name} ? ${affix.shortDesc}</div>` : ''}
-          <div class="ct-enemy-hp-bar"><div class="ct-enemy-hp-fill" style="width:${hpPct}%"></div></div>
-          <div class="ct-enemy-hp-text">${e.hp} / ${e.maxHp}</div>
-          <div class="ct-enemy-intent ${intentClass}">${intentHtml}</div>
-          <div class="ct-enemy-statuses">${statuses}</div>
-        </div>`;
-      }).join('');
->>>>>>> c9bbd8eb26f5d0172912965d532fd8c38cf17b25
     }
 
     /* --- Player Status --- */
@@ -2524,11 +2389,11 @@
         return;
       }
 
-      this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="accept">??</button>`;
+      this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="accept">接受</button>`;
       this.els.eventChoices.querySelector('[data-action="accept"]').addEventListener('click', () => {
         const result = event.resolve(this.game);
         this.els.eventDesc.textContent = result;
-        this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="continue">??</button>`;
+        this.els.eventChoices.innerHTML = `<button class="ct-event-choice" data-action="continue">继续</button>`;
         this.els.eventChoices.querySelector('[data-action="continue"]').addEventListener('click', () => {
           this.els.eventOverlay.classList.remove('active');
           this.game.proceedAfterEvent();
@@ -2607,26 +2472,13 @@
 
     showRestShop(config = {}) {
       const choices = config.choices || [];
-      if (this.els.restTitle) this.els.restTitle.textContent = config.title || '??';
-      if (this.els.restSubtitle) this.els.restSubtitle.textContent = config.subtitle || '????????????';
+      if (this.els.restTitle) this.els.restTitle.textContent = config.title || '歇脚处';
+      if (this.els.restSubtitle) this.els.restSubtitle.textContent = config.subtitle || '选择一项补给，准备下一段旅程';
       this.els.restChoices.innerHTML = choices.map(choice => `
         <div class="ct-rest-choice" data-choice="${choice.id}">
           <div class="ct-rest-choice-icon">${choice.icon || '?'}</div>
-          <div class="ct-rest-choice-name">${choice.name}</div>
-          <div class="ct-rest-choice-desc">${choice.desc || ''}</div>
-    showRestShop() {
-      const s = this.game.state;
-      const healAmt = Math.floor(s.maxHp * 0.45);
-      this.els.restChoices.innerHTML = `
-        <div class="ct-rest-choice" data-choice="rest">
-          <div class="ct-rest-choice-icon">🧘</div>
-          <div class="ct-rest-choice-name">休息</div>
-          <div class="ct-rest-choice-desc">恢复 ${healAmt} 生命（生命≥90%则下战斗获得6护甲）</div>
-        </div>
-        <div class="ct-rest-choice" data-choice="remove">
-          <div class="ct-rest-choice-icon">🗑️</div>
-          <div class="ct-rest-choice-name">净化</div>
-          <div class="ct-rest-choice-desc">移除一张卡牌</div>
+          <div class="ct-rest-choice-name">${escapeHtml(choice.name)}</div>
+          <div class="ct-rest-choice-desc">${escapeHtml(choice.desc || '')}</div>
         </div>
       `).join('');
       this.els.restShop.classList.add('active');
@@ -2770,27 +2622,8 @@
     init() {
       initNav('cardtower');
       initParticles('#particles', 20);
-      var resetState = typeof Phase2SaveReset !== 'undefined' ? Phase2SaveReset.ensure('cardtower') : null;
-      if (resetState && resetState.status === 'cancelled') {
-        this.renderResetBlocked();
-        return;
-      }
       this.ui.showScreen('start');
       this.ui.renderLeaderboard();
-    }
-
-    renderResetBlocked() {
-      var app = document.getElementById('ct-app');
-      if (!app) return;
-      app.innerHTML = `
-        <div class="ct-screen ct-start-screen active">
-          <div class="ct-start-inner">
-            <h1 class="ct-start-title">阶段2更新需清档</h1>
-            <p class="ct-start-subtitle">你刚才取消了新版清档确认。斩仙塔当前版本不兼容旧进度，确认清档后才能继续进入。</p>
-            <button class="btn btn-outline btn-lg" type="button" onclick="window.location.href='../index.html'">返回首页</button>
-          </div>
-        </div>
-      `;
     }
 
     startGame(daily) {
@@ -2818,33 +2651,18 @@
         const ctState = this.state;
         ctRewards.forEach(function(r) {
           if (r.reward.type === 'hp_bonus') { ctState.hp += r.reward.value; ctState.maxHp += r.reward.value; }
-          showToast('????: ' + r.name, 'success');
+          showToast('仙缘奖励：' + r.name, 'success');
         });
       }
 
-<<<<<<< HEAD
       // 一次性道具已提交消费；满血开局也同时提高本局生命上限。
       this.state.hp += towerBonuses.hp;
       this.state.maxHp += towerBonuses.hp;
       this.state._xianyuanExtraRelicChoices = towerBonuses.extraRelicChoices;
-=======
-      const towerBonuses = Storage.get('xianyuan_tower_bonuses', { hp: 0, heal_next: 0, extraRelicChoices: 0 });
-      if (towerBonuses.hp > 0) {
-        this.state.hp += towerBonuses.hp;
-        this.state.maxHp += towerBonuses.hp;
-      }
-      if (towerBonuses.heal_next > 0) {
-        this.state.hp = Math.min(this.state.maxHp, this.state.hp + towerBonuses.heal_next);
-        towerBonuses.heal_next = 0;
-      }
-      this.state._xianyuanExtraRelicChoices = Math.max(0, towerBonuses.extraRelicChoices || 0);
-      if (towerBonuses.extraRelicChoices) towerBonuses.extraRelicChoices = 0;
-      Storage.set('xianyuan_tower_bonuses', towerBonuses);
->>>>>>> c9bbd8eb26f5d0172912965d532fd8c38cf17b25
 
       this._buildTowerRun();
       this.ui.showScreen('game');
-      this.ui.logMessage('???????????????', '');
+      this.ui.logMessage('塔门已开，选择一条路线开始攀塔。', '');
       if (typeof CrossGameAchievements !== 'undefined') {
         const runStats = Storage.get('cross_game_stats', {});
         CrossGameAchievements.trackStat('cardtower_runs', (runStats.cardtower_runs || 0) + 1);
@@ -2919,7 +2737,7 @@
       const cost = Math.max(0, hpCostFlat, pctCost);
       if (cost === 0) return true;
       if (this.state.hp <= cost) {
-        showToast('????????????', 'error');
+        showToast('生命不足，无法支付此次代价。', 'error');
         return false;
       }
       this.state.hp -= cost;
@@ -2951,7 +2769,7 @@
       }
       const meta = TOWER_NODE_META[node.type];
       const affix = node.affixId ? ENEMY_AFFIXES[node.affixId] : null;
-      this.ui.logMessage(`??${meta.name}: ${node.title}${affix ? ` ? ${affix.name}` : ''}`, '');
+      this.ui.logMessage(`进入${meta.name}：${node.title}${affix ? ` · ${affix.name}` : ''}`, '');
       if (node.type === 'battle' || node.type === 'elite' || node.type === 'boss') {
         this.battle.startBattle([this._buildEnemyDescriptor(node)]);
         this.ui.renderAll();
@@ -2976,17 +2794,17 @@
       if (node.type === 'rest') {
         const healAmt = Math.floor(this.state.maxHp * 0.3);
         this.pendingCampChoices = [
-          { id: 'rest', run: () => { const healed = this._healPlayer(healAmt); showToast(`???? ${healed} ?`, 'success'); return () => this.finishCurrentNode(); } },
+          { id: 'rest', run: () => { const healed = this._healPlayer(healAmt); showToast(`恢复生命 ${healed} 点`, 'success'); return () => this.finishCurrentNode(); } },
           { id: 'forge', run: () => () => { this.afterUpgradeCallback = () => this.finishCurrentNode(); this.ui.showUpgradeOverlay(); } },
           { id: 'purge', run: () => () => { this.cardRemovalCallback = () => this.finishCurrentNode(); this.ui.showCardRemoval(); } }
         ];
         this.ui.showRestShop({
-          title: '??',
-          subtitle: '?????????????',
+          title: '营地',
+          subtitle: '稍作休整，选择一项后继续前行。',
           choices: [
-            { id: 'rest', icon: '?', name: '??', desc: `?? ${healAmt} ??` },
-            { id: 'forge', icon: '?', name: '??', desc: '?? 1 ???' },
-            { id: 'purge', icon: '?', name: '??', desc: '?? 1 ???' }
+            { id: 'rest', icon: '♨', name: '调息', desc: `恢复 ${healAmt} 生命` },
+            { id: 'forge', icon: '⚒', name: '强化', desc: '强化 1 张卡牌' },
+            { id: 'purge', icon: '✦', name: '净化', desc: '移除 1 张卡牌' }
           ]
         });
         this.ui.renderAll();
@@ -2997,19 +2815,19 @@
         const forgeCost = 8;
         const purgeCost = 6;
         this.pendingCampChoices = [
-          { id: 'rare', run: () => { if (!this._payHp(rareCost)) return false; showToast('????????????????', 'success'); return () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() }); } },
+          { id: 'rare', run: () => { if (!this._payHp(rareCost)) return false; showToast('交易完成，请选择一张稀有卡。', 'success'); return () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() }); } },
           { id: 'forge', run: () => { if (!this._payHp(forgeCost)) return false; return () => { this.afterUpgradeCallback = () => this.finishCurrentNode(); this.ui.showUpgradeOverlay(); }; } },
           { id: 'purge', run: () => { if (!this._payHp(purgeCost)) return false; return () => { this.cardRemovalCallback = () => this.finishCurrentNode(); this.ui.showCardRemoval(); }; } },
-          { id: 'leave', run: () => { showToast('??????????', 'info'); return () => this.finishCurrentNode(); } }
+          { id: 'leave', run: () => { showToast('你离开了商店，继续前行。', 'info'); return () => this.finishCurrentNode(); } }
         ];
         this.ui.showRestShop({
-          title: '??',
-          subtitle: '???????????',
+          title: '塔中商店',
+          subtitle: '以生命交易，每次只能选择一项。',
           choices: [
-            { id: 'rare', icon: '??', name: '????', desc: `?? ${rareCost} ?????????` },
-            { id: 'forge', icon: '?', name: '????', desc: `?? ${forgeCost} ????? 1 ???` },
-            { id: 'purge', icon: '?', name: '????', desc: `?? ${purgeCost} ????? 1 ???` },
-            { id: 'leave', icon: '?', name: '??', desc: '?????????' }
+            { id: 'rare', icon: '◈', name: '购买稀有卡', desc: `消耗 ${rareCost} 生命，选择稀有卡` },
+            { id: 'forge', icon: '⚒', name: '强化卡牌', desc: `消耗 ${forgeCost} 生命，强化 1 张卡` },
+            { id: 'purge', icon: '✦', name: '移除卡牌', desc: `消耗 ${purgeCost} 生命，移除 1 张卡` },
+            { id: 'leave', icon: '→', name: '离开', desc: '不进行交易，继续前行' }
           ]
         });
         this.ui.renderAll();
@@ -3024,18 +2842,18 @@
         return;
       }
       if (node.type === 'elite') {
-        this.showRelicRewardAfterBoss({ title: '?????', subtitle: '????????????', onComplete: () => this.finishCurrentNode() });
+        this.showRelicRewardAfterBoss({ title: '精英战利品', subtitle: '击败强敌，选择一件法宝。', onComplete: () => this.finishCurrentNode() });
         return;
       }
       if (node.type === 'boss') {
         const isFinalBoss = node.actIndex === TOWER_PATH_ACTS.length - 1;
         this.showRelicRewardAfterBoss({
-          title: '????',
-          subtitle: isFinalBoss ? '?????????????' : '??????????????',
+          title: '守关战利品',
+          subtitle: isFinalBoss ? '最后的守关者已败，收下通关法宝。' : '选择法宝后恢复满血，踏入下一重天。',
           onComplete: () => {
             if (!isFinalBoss) {
               this.state.hp = this.state.maxHp;
-              showToast('????????????', 'success');
+              showToast('气血已恢复，准备踏入下一重天。', 'success');
             }
             this.finishCurrentNode();
           }
@@ -3061,7 +2879,7 @@
       this.ui.renderAll();
       if (nextIds.length > 0) {
         const nextNames = nextIds.map(id => { const nextNode = this._getNode(id); return nextNode ? TOWER_NODE_META[nextNode.type].name : ''; }).filter(Boolean).join(' / ');
-        this.ui.logMessage(`?????: ${nextNames}`, '');
+        this.ui.logMessage(`下一步可选：${nextNames}`, '');
         return;
       }
       this.battle.endGame(true);
@@ -3093,10 +2911,10 @@
           const upgraded = makeCard(card.id, true);
           upgraded.uid = card.uid;
           s.deck.push(upgraded);
-          showToast(`??: ${upgraded.name} (????!)`, 'success');
+          showToast(`获得：${upgraded.name}（已强化）`, 'success');
         } else {
           s.deck.push(card);
-          showToast(`??: ${card.name}`, 'success');
+          showToast(`获得：${card.name}`, 'success');
         }
       }
       this.ui.hideCardReward();
@@ -3135,35 +2953,35 @@
       let followUp = null;
       if (effect.type === 'relic') {
         if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
-        followUp = () => this.showRelicRewardAfterBoss({ title: '????', subtitle: '????????????????', onComplete: () => this.finishCurrentNode() });
+        followUp = () => this.showRelicRewardAfterBoss({ title: '宝匣已开', subtitle: '封印已破，选择一件法宝。', onComplete: () => this.finishCurrentNode() });
       } else if (effect.type === 'rare_card') {
         followUp = () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() });
       } else if (effect.type === 'remove') {
         followUp = () => { this.cardRemovalCallback = () => this.finishCurrentNode(); this.ui.showCardRemoval(); };
       } else if (effect.type === 'heal') {
         const healed = this._healPlayer(effect.healFlat || Math.floor(this.state.maxHp * (effect.healPct || 0)));
-        showToast(effect.toast || `?? ${healed} ?`, 'success');
+        showToast(effect.toast || `恢复 ${healed} 点生命`, 'success');
       } else if (effect.type === 'max_hp') {
         if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
         this.state.maxHp += effect.maxHpGain || 0;
         this.state.hp = Math.min(this.state.maxHp, this.state.hp + (effect.healGain || 0));
-        showToast(effect.toast || '???????', 'success');
+        showToast(effect.toast || '体魄增强，生命上限提升。', 'success');
       } else if (effect.type === 'gamble_card') {
         if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
         if (this.random() < (effect.winChance || 0.5)) {
           followUp = () => this.showCardReward({ pool: RARE_REWARD_CARD_IDS, count: 3, disableClassCards: true, onComplete: () => this.finishCurrentNode() });
         } else {
-          showToast(effect.failToast || '????????', 'error');
+          showToast(effect.failToast || '此局未胜，未获得卡牌。', 'error');
         }
       } else if (effect.type === 'gamble_relic') {
         if (!this._payHp(effect.hpCostFlat || 0, effect.hpCostPct || 0)) return;
         if (this.random() < (effect.winChance || 0.45)) {
-          followUp = () => this.showRelicRewardAfterBoss({ title: '????', subtitle: '?????????', onComplete: () => this.finishCurrentNode() });
+          followUp = () => this.showRelicRewardAfterBoss({ title: '赌局获胜', subtitle: '选择你的法宝。', onComplete: () => this.finishCurrentNode() });
         } else {
-          showToast(effect.failToast || '??????????', 'error');
+          showToast(effect.failToast || '此局未胜，未获得法宝。', 'error');
         }
       } else {
-        showToast(effect.toast || '?????????', 'info');
+        showToast(effect.toast || '你离开此处，继续前行。', 'info');
       }
       this.pendingPathEvent = null;
       this.ui.hideEvent();
@@ -3186,7 +3004,7 @@
       if (extraChoices > 0) s._xianyuanExtraRelicChoices = 0;
       this.pendingRelicChoices = choices;
       this.afterRelicCallback = options.onComplete || null;
-      this.ui.showRelicReward(choices, { title: options.title || '????', subtitle: options.subtitle || '???????????????' });
+      this.ui.showRelicReward(choices, { title: options.title || '选择法宝', subtitle: options.subtitle || '选择一件法宝，助你继续攀塔。' });
     }
 
     pickRelic(relicId) {
@@ -3197,7 +3015,7 @@
       if (relic.effect.maxHpBonus) { s.maxHp += relic.effect.maxHpBonus; s.hp += relic.effect.maxHpBonus; }
       if (relic.effect.strengthBonus) { s.strength += relic.effect.strengthBonus; }
       if (relic.effect.maxEnergyBonus) { s.maxEnergy += relic.effect.maxEnergyBonus; }
-      showToast(`????: ${relic.icon} ${relic.name}`, 'success');
+      showToast(`获得法宝：${relic.icon} ${relic.name}`, 'success');
       this.ui.hideRelicReward();
       this.pendingRelicChoices = null;
       const cb = this.afterRelicCallback;
@@ -3247,7 +3065,7 @@
       const idx = s.deck.findIndex(c => c.uid === uid);
       if (idx === -1) return;
       const removed = s.deck.splice(idx, 1)[0];
-      showToast(`??? ${removed.name}`, 'info');
+      showToast(`已移除 ${removed.name}`, 'info');
       this.ui.hideCardRemoval();
       if (this.cardRemovalCallback) {
         const cb = this.cardRemovalCallback;
@@ -3268,7 +3086,7 @@
     showCardRemovalForEvent() {
       this.cardRemovalCallback = () => {
         this.state.maxHp += 5;
-        showToast('???? +5', 'success');
+        showToast('生命上限 +5', 'success');
         this.proceedAfterEvent();
       };
       this.ui.showCardRemoval();
@@ -3282,7 +3100,7 @@
       const upgraded = makeCard(old.id, true);
       upgraded.uid = old.uid;
       s.deck[idx] = upgraded;
-      showToast(`${upgraded.name} ????`, 'success');
+      showToast(`${upgraded.name} 强化完成`, 'success');
       const cb = this.afterUpgradeCallback;
       this.afterUpgradeCallback = null;
       if (cb) { cb(); return; }
@@ -3296,6 +3114,18 @@
   document.addEventListener('DOMContentLoaded', () => {
     const game = new Game();
     window.__cardtowerGame = game;
+    GameScenes.register({
+      id: 'cardtower',
+      read: () => CardSceneModels.tower({ state: game.state, battle: game.battle,
+        tactics: CardTowerTactics, canSelect: game._canSelectTowerNode(), nodeMeta: TOWER_NODE_META,
+        started: game.ui.els.gameScreen.classList.contains('active') }),
+      act(action) {
+        if (action.type === 'tower-node') game.selectTowerNode(action.id);
+        else if (action.type === 'tower-card') game.battle.playCard(action.id);
+        else throw new RangeError('未知攀塔操作：' + action.type);
+      },
+      mount: () => game.ui.els.gameScreen.classList.contains('active') ? game.ui.els.battlePanel : document.querySelector('.ct-start-layout'),
+    });
     // 新手引导
     if (typeof GuideSystem !== 'undefined') {
       GuideSystem.start('cardtower', [

@@ -12,12 +12,13 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
   <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="../css/shared.css?v=33">
-  <link rel="stylesheet" href="../css/pwa.css?v=33">
-  <link rel="stylesheet" href="../css/cardtower.css?v=33">
-  <link rel="stylesheet" href="../css/game-shell.css?v=33">
-  <link rel="stylesheet" href="../css/cardtower-theme.css?v=33">
-  <link rel="stylesheet" href="../css/cardtower-battle.css?v=33">
+  <link rel="stylesheet" href="../css/shared.css?v=34">
+  <link rel="stylesheet" href="../css/pwa.css?v=34">
+  <link rel="stylesheet" href="../css/cardtower.css?v=34">
+  <link rel="stylesheet" href="../css/game-shell.css?v=34">
+  <link rel="stylesheet" href="../css/cardtower-theme.css?v=34">
+  <link rel="stylesheet" href="../css/cardtower-battle.css?v=34">
+  <link rel="stylesheet" href="../css/game-three.css?v=34">
 </head>
 <body class="game-page cardtower-page">
   <div class="app-loading"><div class="app-loading-spinner"></div></div>
@@ -28,6 +29,7 @@
   </nav>
   <main class="page-wrapper" id="main-content" tabindex="-1">
     <div class="ct-app" id="ct-app">
+      <div id="game-scene-mount"></div>
 
       <!-- 开始界面 -->
       <div class="ct-screen ct-start-screen active" id="ct-start">
@@ -44,7 +46,7 @@
               </div>
               <div class="ct-start-actions"><button class="btn btn-gold btn-lg ct-start-btn" id="ct-btn-start">开始攀塔</button></div>
             </div>
-            <figure class="ct-start-art"><img src="../assets/cardtower/tower.svg?v=33" width="600" height="760" alt="云山之间，仙塔层层向上"><figcaption>从练气启程，层层试炼，问道塔巅</figcaption></figure>
+            <figure class="ct-start-art"><img src="../assets/cardtower/tower.svg?v=34" width="600" height="760" alt="云山之间，仙塔层层向上"><figcaption>从练气启程，层层试炼，问道塔巅</figcaption></figure>
           </div>
           <div class="ct-leaderboard" id="ct-leaderboard"></div>
         </div>
@@ -152,25 +154,28 @@
 
     </div>
   </main>
-  <script src="../js/shared-storage.js?v=33" defer></script>
-  <script src="../js/shared.js?v=33" defer></script>
-  <script src="../js/shared-data.js?v=33" defer></script>
-  <script src="../js/shared-ui.js?v=33" defer></script>
-  <script src="../js/shared-dialog.js?v=33" defer></script>
-  <script src="../js/shared-transfer.js?v=33" defer></script>
-  <script src="../js/shared-stats.js?v=33" defer></script>
-  <script src="../js/shared-missions.js?v=33" defer></script>
-  <script src="../js/shared-daily-ui.js?v=33" defer></script>
-  <script src="../js/shared-nav.js?v=33" defer></script>
-  <script src="../js/shared-settings.js?v=33" defer></script>
-  <script src="../js/shared-sound.js?v=33" defer></script>
-  <script src="../js/shared-lifecycle.js?v=33" defer></script>
-  <script src="../js/shared-guide.js?v=33" defer></script>
-  <script src="../js/pwa-updates.js?v=33" defer></script>
-  <script src="../js/cardtower-tactics.js?v=33" defer></script>
-  <script src="../js/cardtower-presentation.js?v=33" defer></script>
-  <script src="../js/cardtower-lobby.js?v=33" defer></script>
-  <script src="../js/cardtower-input.js?v=33" defer></script>
-  <script src="../js/cardtower.js?v=33" defer></script>
+  <script src="../js/shared-storage.js?v=34" defer></script>
+  <script src="../js/shared.js?v=34" defer></script>
+  <script src="../js/shared-data.js?v=34" defer></script>
+  <script src="../js/shared-ui.js?v=34" defer></script>
+  <script src="../js/shared-dialog.js?v=34" defer></script>
+  <script src="../js/shared-transfer.js?v=34" defer></script>
+  <script src="../js/shared-stats.js?v=34" defer></script>
+  <script src="../js/shared-missions.js?v=34" defer></script>
+  <script src="../js/shared-daily-ui.js?v=34" defer></script>
+  <script src="../js/shared-nav.js?v=34" defer></script>
+  <script src="../js/shared-settings.js?v=34" defer></script>
+  <script src="../js/shared-sound.js?v=34" defer></script>
+  <script src="../js/shared-lifecycle.js?v=34" defer></script>
+  <script src="../js/shared-guide.js?v=34" defer></script>
+  <script src="../js/pwa-updates.js?v=34" defer></script>
+  <script src="../js/cardtower-tactics.js?v=34" defer></script>
+  <script src="../js/cardtower-presentation.js?v=34" defer></script>
+  <script src="../js/cardtower-lobby.js?v=34" defer></script>
+  <script src="../js/cardtower-input.js?v=34" defer></script>
+  <script src="../js/game-scene-bridge.js?v=34" defer></script>
+  <script src="../js/game-scene-cards.js?v=34" defer></script>
+  <script src="../js/cardtower.js?v=34" defer></script>
+  <script type="module" src="../js/game-three-entry.js?v=34"></script>
 </body>
 </html>

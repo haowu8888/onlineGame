@@ -1,7 +1,7 @@
-import * as THREE from './vendor/three.module.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
 
 const COURT = Object.freeze({ radius: 11.8, tile: 1.85, size: 100, texture: 128 });
-const STONE = [0x92a393, 0x8b9e90, 0x98a896, 0x8e9e8d, 0x96a598];
+const STONE = [0xa7aa96, 0x9da58e, 0xb1b09b, 0xa3a68d, 0xacb09b];
 
 function surfaceTexture() {
   const size = COURT.texture;
@@ -32,7 +32,7 @@ function floorMesh(geometry, material, height) {
   return mesh;
 }
 
-function tiles() {
+function tiles(map) {
   const points = [];
   for (let row = -6; row <= 6; row++) {
     for (let column = -6; column <= 6; column++) {
@@ -41,7 +41,7 @@ function tiles() {
       if (Math.hypot(x, z) < COURT.radius - 1.2) points.push({ x, z, row, column });
     }
   }
-  const material = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 });
+  const material = new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0, map, bumpMap: map, bumpScale: 0.035 });
   const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1.825, 0.075, 1.825), material, points.length);
   const transform = new THREE.Object3D();
   const color = new THREE.Color();
@@ -96,13 +96,17 @@ function steppingStones() {
 
 export function createGround() {
   const group = new THREE.Group();
-  const meadowMaterial = new THREE.MeshStandardMaterial({ color: 0x96aa82, roughness: 1, map: surfaceTexture() });
+  const map = surfaceTexture();
+  const tileMap = map.clone();
+  tileMap.repeat.set(0.4, 0.4);
+  tileMap.needsUpdate = true;
+  const meadowMaterial = new THREE.MeshStandardMaterial({ color: 0x63856c, roughness: 1, map, bumpMap: map, bumpScale: 0.08 });
   const meadow = floorMesh(new THREE.PlaneGeometry(COURT.size, COURT.size), meadowMaterial, -0.17);
   meadow.rotation.x = -Math.PI / 2;
   const court = new THREE.Group();
   const stoneMaterial = new THREE.MeshStandardMaterial({ color: 0xb0b49e, roughness: 1 });
   court.add(floorMesh(new THREE.CylinderGeometry(COURT.radius, COURT.radius + 0.2, 0.12, 64), stoneMaterial, -0.06));
-  court.add(tiles(), inlay(), steppingStones());
+  court.add(tiles(tileMap), inlay(), steppingStones());
   group.add(meadow, court);
   return { group, court, meadowMaterial, stoneMaterial };
 }

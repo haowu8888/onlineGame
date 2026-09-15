@@ -1,17 +1,17 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { ARENA } from './knife-three-config.js?v=33';
-import { createGround } from './knife-three-ground.js?v=33';
-import { createNature, updatePetals, revealNearbyActors } from './knife-three-nature.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { ARENA } from './knife-three-config.js?v=34';
+import { createGround } from './knife-three-ground.js?v=34';
+import { createNature, updatePetals, revealNearbyActors } from './knife-three-nature.js?v=34';
 
 const TERRAIN_COLORS = Object.freeze({
-  plain: [0x739069, 0x8a9d88, 0xa8c5bb],
-  lava: [0x78675a, 0x9f8a77, 0xbaab9a],
+  plain: [0x58795f, 0xaaa88c, 0x9ab8b9],
+  lava: [0x715544, 0xa08465, 0xa9917e],
   ice: [0xacccd0, 0xc5d6d2, 0xb6d0d2],
 });
 
 function addLights(scene) {
-  scene.add(new THREE.HemisphereLight(0xddeff1, 0x799382, 2.0));
-  const sun = new THREE.DirectionalLight(0xffe5c2, 2.4);
+  scene.add(new THREE.HemisphereLight(0xcbe1e5, 0x59715e, 1.45));
+  const sun = new THREE.DirectionalLight(0xffdba7, 2.85);
   sun.position.set(-12, 26, -8);
   sun.castShadow = true;
   sun.shadow.mapSize.set(ARENA.shadowSize, ARENA.shadowSize);

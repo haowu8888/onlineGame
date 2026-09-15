@@ -12,11 +12,12 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" as="style" onload="this.rel='stylesheet'">
   <noscript><link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" rel="stylesheet"></noscript>
-  <link rel="stylesheet" href="../css/shared.css?v=33">
-  <link rel="stylesheet" href="../css/pwa.css?v=33">
-  <link rel="stylesheet" href="../css/cardcollect.css?v=33">
-  <link rel="stylesheet" href="../css/game-shell.css?v=33">
-  <link rel="stylesheet" href="../css/cardcollect-roster.css?v=33">
+  <link rel="stylesheet" href="../css/shared.css?v=34">
+  <link rel="stylesheet" href="../css/pwa.css?v=34">
+  <link rel="stylesheet" href="../css/cardcollect.css?v=34">
+  <link rel="stylesheet" href="../css/game-shell.css?v=34">
+  <link rel="stylesheet" href="../css/cardcollect-roster.css?v=34">
+  <link rel="stylesheet" href="../css/game-three.css?v=34">
 </head>
 <body class="game-page cardcollect-page">
   <div class="app-loading"><div class="app-loading-spinner"></div></div>
@@ -54,6 +55,7 @@
 
       <!-- 阵容面板 -->
       <div class="cc-panel active" id="panel-team" data-panel="team">
+        <div id="game-scene-mount"></div>
         <div class="cc-section-heading"><h2 class="cc-panel-title">五人出战阵容</h2><button class="btn btn-gold btn-sm" id="btn-team-chapter">前往秘境 →</button></div>
         <div class="cc-team-summary" id="team-summary" aria-label="阵容属性汇总"></div>
         <div class="cc-team-toolbar" id="team-actions">
@@ -157,25 +159,29 @@
       </div>
     </div>
   </div>
-  <script src="../js/shared-storage.js?v=33" defer></script>
-  <script src="../js/shared.js?v=33" defer></script>
-  <script src="../js/shared-data.js?v=33" defer></script>
-  <script src="../js/shared-ui.js?v=33" defer></script>
-  <script src="../js/shared-dialog.js?v=33" defer></script>
-  <script src="../js/shared-transfer.js?v=33" defer></script>
-  <script src="../js/shared-stats.js?v=33" defer></script>
-  <script src="../js/shared-missions.js?v=33" defer></script>
-  <script src="../js/shared-daily-ui.js?v=33" defer></script>
-  <script src="../js/shared-nav.js?v=33" defer></script>
-  <script src="../js/shared-settings.js?v=33" defer></script>
-  <script src="../js/shared-sound.js?v=33" defer></script>
-  <script src="../js/shared-lifecycle.js?v=33" defer></script>
-  <script src="../js/shared-guide.js?v=33" defer></script>
-  <script src="../js/pwa-updates.js?v=33" defer></script>
-  <script src="../js/cardcollect-catalog.js?v=33" defer></script>
-  <script src="../js/cardcollect-progression.js?v=33" defer></script>
-  <script src="../js/cardcollect-roster.js?v=33" defer></script>
-  <script src="../js/cardcollect-roster-view.js?v=33" defer></script>
-  <script src="../js/cardcollect.js?v=33" defer></script>
+  <script src="../js/shared-storage.js?v=34" defer></script>
+  <script src="../js/shared.js?v=34" defer></script>
+  <script src="../js/shared-data.js?v=34" defer></script>
+  <script src="../js/shared-ui.js?v=34" defer></script>
+  <script src="../js/shared-dialog.js?v=34" defer></script>
+  <script src="../js/shared-transfer.js?v=34" defer></script>
+  <script src="../js/shared-stats.js?v=34" defer></script>
+  <script src="../js/shared-missions.js?v=34" defer></script>
+  <script src="../js/shared-daily-ui.js?v=34" defer></script>
+  <script src="../js/shared-nav.js?v=34" defer></script>
+  <script src="../js/shared-settings.js?v=34" defer></script>
+  <script src="../js/shared-sound.js?v=34" defer></script>
+  <script src="../js/shared-lifecycle.js?v=34" defer></script>
+  <script src="../js/shared-guide.js?v=34" defer></script>
+  <script src="../js/pwa-updates.js?v=34" defer></script>
+  <script src="../js/cardcollect-catalog.js?v=34" defer></script>
+  <script src="../js/cardcollect-progression.js?v=34" defer></script>
+  <script src="../js/cardcollect-roster.js?v=34" defer></script>
+  <script src="../js/cardcollect-roster-view.js?v=34" defer></script>
+  <script src="../js/game-scene-bridge.js?v=34" defer></script>
+  <script src="../js/game-scene-cards.js?v=34" defer></script>
+  <script src="../js/game-scene-ports.js?v=34" defer></script>
+  <script src="../js/cardcollect.js?v=34" defer></script>
+  <script type="module" src="../js/game-three-entry.js?v=34"></script>
 </body>
 </html>

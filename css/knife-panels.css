@@ -1,4 +1,4 @@
-.knife-overlay { position: absolute; inset: 0; z-index: 12; display: flex; align-items: center; background: linear-gradient(90deg, #152d35f5, #193c40de 25%, #224b4752 49%, transparent 70%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s; }
+.knife-overlay { position: absolute; inset: 0; z-index: 12; display: flex; align-items: center; background: linear-gradient(90deg, #0b2633f5, #193c40d9 25%, #224b4740 49%, transparent 70%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s; }
 .knife-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
 .arena-menu { width: 46%; max-height: 100%; overflow-y: auto; padding: 45px 20px 42px max(38px, 6.5vw); scrollbar-width: thin; scrollbar-color: #e2d4aa55 transparent; }
 .menu-kicker { color: #a6cbbb; font-size: 12px; letter-spacing: .2em; margin: 0 0 23px; display: flex; align-items: center; gap: 10px; }

@@ -1246,6 +1246,7 @@
 
   function renderBattle() {
     if (!battleState) return;
+    const pendingUltButton = document.querySelector('.cc-ult-btn');
 
     document.getElementById('battle-wave-info').textContent =
       `第${battleState.wave}/${battleState.totalWaves}波`;
@@ -1260,6 +1261,13 @@
 
     document.getElementById('battle-allies').innerHTML =
       formHtml + battleState.allies.map(u => renderBattleUnit(u, false)).join('');
+
+    // 换目标会重建面板；保留原按钮，才能继续响应正在等待的大招输入。
+    if (pendingUltButton) {
+      const unit = document.querySelector('#battle-allies [data-unit-id="' + pendingUltButton.dataset.unitId + '"]');
+      unit.appendChild(pendingUltButton);
+      unit.classList.add('ult-pending');
+    }
 
     document.getElementById('battle-enemies').innerHTML =
       battleState.enemies.map(u => renderBattleUnit(u, true)).join('');
@@ -2039,4 +2047,21 @@
   } else {
     init();
   }
+  GameScenes.register({
+    id: 'cardcollect',
+    read: () => CardSceneModels.collection({ state, roster: getRosterCards(), battleState,
+      selectedSlot: selectedTeamSlot, focusedEnemyId,
+      readyUltimateIds: [...document.querySelectorAll('.cc-ult-btn')].map(button => button.dataset.unitId) }),
+    act(action) {
+      if (action.type === 'slot') {
+        GameScenePorts.openTab(document, '.cc-tab[data-tab="team"]');
+        selectRosterSlot(action.index);
+      } else if (action.type === 'ultimate') {
+        GameScenePorts.clickControl(document, '.cc-ult-btn[data-unit-id="' + action.id + '"]');
+      } else if (action.type === 'focus-enemy') {
+        GameScenePorts.clickControl(document, '#battle-enemies [data-unit-id="' + action.id + '"]');
+      } else throw new RangeError('未知仙卡操作：' + action.type);
+    },
+    mount: () => battleState ? document.querySelector('#battle-overlay .cc-battle-scene') : null,
+  });
 })();

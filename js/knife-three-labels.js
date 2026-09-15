@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { ARENA, worldPosition } from './knife-three-config.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { ARENA, worldPosition } from './knife-three-config.js?v=34';
 
 const LABEL = Object.freeze({
   normalSize: 14, criticalSize: 19, comboSize: 19,

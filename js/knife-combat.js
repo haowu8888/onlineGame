@@ -1,5 +1,5 @@
-import { CFG } from './knife-data.js?v=33';
-import { angle, dist, lineCircleIntersect } from './knife-math.js?v=33';
+import { CFG } from './knife-data.js?v=34';
+import { angle, dist, lineCircleIntersect } from './knife-math.js?v=34';
 
 export const CombatMethods = {
   checkBladeHits() {

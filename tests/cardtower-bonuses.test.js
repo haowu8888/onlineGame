@@ -27,8 +27,7 @@ function createTower(initialStorage = {}) {
   const screens = [];
   const game = Object.assign(Object.create(runtime.api.Game.prototype), {
     state,
-    ui: { showScreen: screen => screens.push(screen), logMessage() {} },
-    startCurrentNode() { screens.push('first-node'); },
+    ui: { showScreen: screen => screens.push(screen), logMessage() {}, renderAll: () => screens.push('route') },
   });
   return { ...runtime, game, commits, screens };
 }
@@ -51,7 +50,9 @@ test('仙塔灵药：商城真实兑换两次，满血开局仍获得上限与�
   assert.deepEqual(runtime.storage.get('xianyuan_tower_bonuses'), {
     hp: PERMANENT_HP, heal_next: 0, extraRelicChoices: 0,
   });
-  assert.deepEqual(runtime.screens, ['game', 'first-node']);
+  assert.deepEqual(runtime.screens, ['game', 'route']);
+  assert.ok(runtime.game.state.availableNodeIds.length > 0);
+  assert.equal(runtime.game.state.currentNodeId, null);
 });
 
 test('仙塔一次性气血只对下一局有效，永久加成保留，已消费的圣物选项不重复领取', () => {

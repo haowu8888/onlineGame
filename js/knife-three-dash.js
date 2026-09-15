@@ -1,6 +1,6 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { ARENA, worldPosition } from './knife-three-config.js?v=33';
-import { InstanceBatch } from './knife-three-batch.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { ARENA, worldPosition } from './knife-three-config.js?v=34';
+import { InstanceBatch } from './knife-three-batch.js?v=34';
 
 const STREAKS = Object.freeze([-0.25, 0, 0.25]);
 const TRAIL = Object.freeze({ width: 0.15, height: 0.12, overlap: 0.04, color: 0xbbefdc });

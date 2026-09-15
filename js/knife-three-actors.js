@@ -1,6 +1,6 @@
-import { actorParts, ACTOR_PART_SLOTS } from './knife-three-actor-geometry.js?v=33';
-import { ACTOR_RIG, ActorMotion, ActorPainter } from './knife-three-actor-pose.js?v=33';
-import { ACTOR_PALETTE, outfitFor, drawWardrobe } from './knife-three-actor-wardrobe.js?v=33';
+import { actorParts, ACTOR_PART_SLOTS } from './knife-three-actor-geometry.js?v=34';
+import { ACTOR_RIG, ActorMotion, ActorPainter } from './knife-three-actor-pose.js?v=34';
+import { ACTOR_PALETTE, outfitFor, drawWardrobe } from './knife-three-actor-wardrobe.js?v=34';
 
 const MENU_HERO = Object.freeze({ x: 0, y: 0, radius: 18, facingAngle: 1.02, hp: 100, maxHp: 100 });
 const SIDES = Object.freeze([-1, 1]);

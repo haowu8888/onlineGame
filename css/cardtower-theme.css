@@ -1,11 +1,11 @@
 .cardtower-page {
-  --bg-primary: #15292d;
-  --bg-secondary: #1c3337;
-  --bg-card: #243f42;
+  --bg-primary: #182633;
+  --bg-secondary: #20313d;
+  --bg-card: #2b3c46;
   --text-primary: #eee9d9;
   --text-secondary: #c3cfc6;
   --text-muted: #9eafa7;
-  --border-color: #3e5757;
+  --border-color: #50606a;
   --gold: #cfb477;
   --gold-dark: #947c49;
   --cyan: #99c4b0;
@@ -13,7 +13,7 @@
   --red: #d78f7f;
   --green: #99c4b0;
   --font-display: "LXGW WenKai", "KaiTi", serif;
-  background-image: radial-gradient(ellipse at 70% 10%, #294b4c 0, transparent 55%);
+  background-image: radial-gradient(ellipse at 70% 10%, #66463c38 0, transparent 55%);
 }
 .cardtower-page .particles-container { display: none; }
 .cardtower-page .ct-app { max-width: 1400px; margin: auto; min-height: calc(100svh - var(--nav-height)); overflow: visible; }

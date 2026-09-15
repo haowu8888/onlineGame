@@ -50,3 +50,31 @@ check('仙卡录：首击清场不会空数组归约报错，也会恢复大招�
   assert.equal(targets[0].alive, false);
   assert.equal(unit.atk, initialAttack);
 });
+
+check('仙卡录：等待大招时切换目标保留按钮和点击回调', async () => {
+  const { api, document } = loadGame({
+    file: 'cardcollect.js', html: 'games/cardcollect.html',
+    entry: "  if (document.readyState === 'loading')",
+    exports: '{ waitForUltInput, setBattle(value) { battleState = value; } }',
+  });
+  const ally = { id: 'a_1', name: '剑修', hp: 100, maxHp: 100, alive: true, ultReady: true, energy: 100 };
+  api.setBattle({ allies: [ally], enemies: [enemy('e_1', 100)],
+    wave: 1, totalWaves: 3, running: true, log: [] });
+  let completed = 0;
+  const waiting = api.waitForUltInput(ally).then(() => completed++);
+  const originalButton = document.querySelector('.cc-ult-btn');
+  const originalParent = originalButton.parentNode;
+  document.querySelector('.enemy-clickable').click();
+  const restoredButton = document.querySelector('.cc-ult-btn');
+  assert.equal(restoredButton, originalButton);
+  assert.notEqual(restoredButton.parentNode, originalParent);
+  assert.equal(restoredButton.parentNode.classList.contains('ult-pending'), true);
+  assert.equal(document.querySelector('.focused').dataset.unitId, 'e_1');
+  document.querySelector('.enemy-clickable').click();
+  assert.equal(document.querySelectorAll('.cc-ult-btn').length, 1);
+  document.querySelector('.cc-ult-btn').click();
+  await waiting;
+  assert.equal(completed, 1);
+  assert.equal(document.querySelector('.cc-ult-btn'), null);
+  assert.equal(ally.ultReady, true);
+});

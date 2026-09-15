@@ -2021,6 +2021,23 @@
   showStart();
 
   // 新手引导
+  const sceneActions = {
+    hand: action => onHandCardClick(action.index),
+    'player-unit': action => onPlayerMinionClick(action.index),
+    'enemy-unit': action => onEnemyMinionClick(action.index),
+    'enemy-master': () => onEnemyMasterClick(),
+  };
+  GameScenes.register({
+    id: 'cardbattle',
+    read: () => CardSceneModels.battle({ state: $battle.style.display === 'none' ? null : G,
+      tactics: CardBattleTactics, selected: selectedMinion, spell: pendingSpell, animating, maxField: MAX_FIELD }),
+    act(action) {
+      if (!sceneActions[action.type]) throw new RangeError('未知灵卡操作：' + action.type);
+      sceneActions[action.type](action);
+    },
+    mount: () => $battle.style.display === 'none' ? document.querySelector('.cb-lobby-intro') : $battle,
+  });
+
   if (typeof GuideSystem !== 'undefined') {
     GuideSystem.start('cardbattle', [
       { title: '欢迎来到灵卡对决！', desc: '召唤弟子、布阵法宝，与AI仙师回合制对战。' },

@@ -1,4 +1,4 @@
-import { TAU } from './knife-data.js?v=33';
+import { TAU } from './knife-data.js?v=34';
 
 export const FeedbackMethods = {
   addShake(amount) {

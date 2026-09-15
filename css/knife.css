@@ -1,9 +1,9 @@
 /* 战场铺满窗口，操作与信息贴边，中心保留给走位。 */
 .knife-page {
-  --arena-ink: #172630;
-  --arena-jade: #8cc7b0;
-  --arena-gold: #edc681;
-  --arena-red: #e57d60;
+  --arena-ink: #0b2837;
+  --arena-jade: #a5c9b3;
+  --arena-gold: #dfb87a;
+  --arena-red: #c9694e;
   --arena-line: #ffffff24;
   background: var(--arena-ink);
   color: #f3efe4;
@@ -33,7 +33,7 @@
 .arena-action:hover:not(:disabled) { background: #324c43; border-color: #f2e8c6; }
 .arena-action:disabled { display: none; }
 .knife-main { position: absolute; inset: 0; overflow: hidden; background: #a8c5bb; }
-.knife-main::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2; box-shadow: inset 0 25px 100px #203d4220; }
+.knife-main::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 2; box-shadow: inset 0 0 140px #143b4933; background: linear-gradient(150deg, #fbe2b713, transparent 38%, #153a4517); }
 #knife-canvas, #knife-labels { position: absolute; inset: 0; display: block; max-width: 100%; }
 #knife-labels { pointer-events: none; z-index: 3; }
 #knife-canvas:focus-visible { outline: 1px solid #e7dac2; outline-offset: -2px; }

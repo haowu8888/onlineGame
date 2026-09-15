@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=33';
-import { InstanceBatch } from './knife-three-batch.js?v=33';
+import * as THREE from './vendor/three.module.js?v=34';
+import { InstanceBatch } from './knife-three-batch.js?v=34';
 
 const SHADOW_TEXTURE_SIZE = 32;
 const SHAPE_BEVEL = 0.035;
@@ -16,7 +16,7 @@ function tailoredShape(points, depth) {
   shape.closePath();
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth, bevelEnabled: true, bevelSize: SHAPE_BEVEL, bevelThickness: SHAPE_BEVEL,
-    bevelSegments: 1, steps: 1,
+    bevelSegments: 2, steps: 1,
   });
   geometry.translate(0, 0, -depth / 2);
   return geometry;
@@ -48,21 +48,21 @@ function contactShadow() {
 }
 
 function clothMaterial() {
-  return new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, metalness: 0, flatShading: true });
+  return new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0 });
 }
 
 function metalMaterial() {
-  return new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.32, flatShading: true });
+  return new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.32, metalness: 0.45 });
 }
 
 export function actorParts(scene) {
   const geometries = {
     torso: tailoredShape([[-0.29, -0.34], [0.29, -0.34], [0.47, 0.23], [0.29, 0.37], [-0.29, 0.37], [-0.47, 0.23]], 0.46),
     hem: tailoredShape([[-0.17, 0.28], [0.17, 0.28], [0.24, -0.23], [0.04, -0.31], [-0.24, -0.23]], 0.39),
-    head: new THREE.SphereGeometry(0.34, 8, 6),
-    hair: new THREE.SphereGeometry(0.355, 8, 4, 0, Math.PI * 2, 0, Math.PI * 0.43),
-    hat: new THREE.ConeGeometry(0.7, 0.26, 10),
-    sleeves: new THREE.CylinderGeometry(0.2, 0.255, 0.5, 5),
+    head: new THREE.SphereGeometry(0.34, 20, 14),
+    hair: new THREE.SphereGeometry(0.355, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.43),
+    hat: new THREE.ConeGeometry(0.7, 0.26, 24),
+    sleeves: new THREE.CylinderGeometry(0.2, 0.255, 0.5, 12),
     boots: tailoredShape([[-0.11, -0.13], [0.11, -0.13], [0.12, 0.12], [-0.1, 0.15]], 0.37),
     cloth: tailoredShape([[-0.43, 0.5], [0.43, 0.5], [0.54, -0.42], [0.13, -0.54], [-0.08, -0.39], [-0.5, -0.46]], 0.045),
     detail: new THREE.BoxGeometry(1, 1, 1),

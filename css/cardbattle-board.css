@@ -1,4 +1,4 @@
-.cardbattle-page .cb-battle { min-height: 0; padding: 18px 22px 12px; border: 1px solid var(--border-color); background: #243b5752; border-radius: 12px; gap: 8px; }
+.cardbattle-page .cb-battle { min-height: 0; padding: 18px 22px 12px; border: 1px solid #90b9b74a; background: #142f3c8c; border-radius: 14px; gap: 8px; }
 .cb-battle-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 2px; }
 .cb-battle-heading h1 { font: 20px var(--font-display); color: var(--text-secondary); margin: 0; }
 .cb-battle-heading > span { color: var(--text-muted); font: 11px Consolas, "Microsoft YaHei", monospace; }
@@ -72,7 +72,7 @@
 .cardbattle-page .cb-card .cb-card-cost { width: 24px; height: 24px; top: 7px; left: 7px; border: 0; background: #426f65; box-shadow: none; color: #f2f0da; font: 18px Consolas, monospace; }
 .cardbattle-page .cb-card.spell-card .cb-card-cost { background: #567397; }
 .cb-card-key { position: absolute; right: 8px; top: 11px; font: 9px Consolas, monospace; color: #758d80; }
-.cardbattle-page .cb-card .cb-card-art { display: grid; place-items: center; height: 60px; margin: 3px 0 1px; color: #4b786a; font-size: initial; }
+.cardbattle-page .cb-card .cb-card-art { display: grid; place-items: center; height: 76px; margin: 3px 0 7px; color: #3b6b63; font-size: initial; border-bottom: 1px solid #819b8538; background: radial-gradient(ellipse, #8fbba54d, transparent 65%); }
 .cb-card-art .cb-sigil { width: 51px; height: 58px; }
 .cardbattle-page .spell-card .cb-card-art { color: #627b9c; }
 .cardbattle-page .cb-card .cb-card-name { color: #2e504a; font: 17px/1.5 var(--font-display); margin: 0 0 4px; padding: 0; }

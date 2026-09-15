@@ -1,4 +1,4 @@
-/* 六款平面游戏共用的操作基础；主题和主体布局由各游戏负责。 */
+/* 六款仙侠游戏共用的操作基础；主题和主体布局由各游戏负责。 */
 .game-page {
   --nav-height: 56px;
   --game-nav-inset: clamp(16px, 3vw, 40px);
@@ -61,6 +61,45 @@
   height: 34px;
   font-size: 16px;
 }
+.game-page .retreat-stage:has(> .game-scene-shell) { min-height: 0; }
+.retreat-stage > .game-scene-shell { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+.retreat-stage > .game-scene-shell .scene-viewport { height: 440px; }
+.retreat-stage:has(> .game-scene-shell) > :is(.retreat-heading, .retreat-seal) { display: none; }
+.retreat-stage:has(> .game-scene-shell) .retreat-controls { position: relative; background: #16372f; }
+.game-page .ls-life-layout > .game-scene-shell { grid-column: 2; grid-row: 1; margin: 0; }
+.game-page .ls-life-layout > .ls-event-area { grid-row: 2; }
+.game-page .ls-life-layout > .ls-log-area { grid-row: 3; }
+.atlas-chart > .game-scene-shell { margin: 0; }
+.atlas-chart > .game-scene-shell .scene-viewport { height: 500px; }
+.atlas-chart:has(> .game-scene-shell) .map-grid { display: none; }
+.ct-start-layout > .game-scene-shell,
+.cb-lobby-intro > .game-scene-shell { grid-column: 2; grid-row: 1; width: 100%; margin: 0; }
+.ct-start-layout > .game-scene-shell .scene-viewport { height: 480px; }
+.cb-lobby-intro > .game-scene-shell .scene-viewport { height: 410px; }
+.ct-start-layout:has(> .game-scene-shell) > .ct-start-art,
+.cb-lobby-intro:has(> .game-scene-shell) > .cb-lobby-art { display: none; }
+.ct-start-layout > .ct-start-copy,
+.cb-lobby-intro > .cb-lobby-copy { grid-column: 1; grid-row: 1; }
+.game-page :is(.cult-tab, .guigu-tab, .cc-tab) { transition: color .18s, background .18s; }
+.game-page :is(.status-value, .stat-value, .cc-summary-number) { font-variant-numeric: tabular-nums; }
+.game-page:is(.cultivation-page, .guigu-page) .save-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.game-page:is(.cultivation-page, .guigu-page) .save-slot:last-child { border-bottom: 0; }
+.game-page:is(.cultivation-page, .guigu-page) .slot-info { min-width: 0; }
+.game-page:is(.cultivation-page, .guigu-page) :is(.slot-name, .slot-empty) {
+  font: 500 20px var(--font-display);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.game-page:is(.cultivation-page, .guigu-page) .slot-realm { color: var(--gold); font-size: 13px; margin-top: 5px; }
+.game-page:is(.cultivation-page, .guigu-page) .slot-details { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.game-page:is(.cultivation-page, .guigu-page) .slot-actions { display: flex; gap: 8px; flex-shrink: 0; }
 @media (max-width: 768px) {
   .game-page { --nav-height: 52px; --game-nav-inset: 14px; }
   .game-page .nav-links { background: var(--bg-secondary); padding: 14px; }
@@ -69,6 +108,16 @@
   .game-page .btn { min-height: 42px; }
   .game-page .btn-sm { min-height: 36px; }
   .game-page .modal { max-height: calc(100dvh - 24px); }
+  .game-page .ls-life-layout > .game-scene-shell { grid-column: 1 / -1; grid-row: auto; }
+  .game-page .ls-life-layout > .ls-event-area,
+  .game-page .ls-life-layout > .ls-log-area { grid-row: auto; }
+  .ct-start-layout > .game-scene-shell,
+  .cb-lobby-intro > .game-scene-shell { grid-column: 1 / -1; grid-row: 2; }
+  .ct-start-layout > .game-scene-shell .scene-viewport,
+  .cb-lobby-intro > .game-scene-shell .scene-viewport { height: 350px; }
+  .retreat-stage > .game-scene-shell .scene-viewport { height: 390px; }
+  .atlas-chart > .game-scene-shell .scene-viewport { height: 440px; }
+  .game-page:is(.cultivation-page, .guigu-page) .slot-actions { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) {
   .game-page .btn { transition: none; }

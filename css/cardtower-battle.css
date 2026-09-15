@@ -1,6 +1,6 @@
 .cardtower-page .ct-battle-panel {
   display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px 24px;
-  background: linear-gradient(180deg, #2c49474f, #14282a0a); border: 1px solid var(--border-color); border-radius: 10px;
+  background: #1729328c; border: 1px solid #ac956545; border-radius: 14px;
 }
 .ct-battle-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--text-muted); font-size: 12px; }
 .ct-battle-topline h1 { color: var(--text-secondary); font: 20px/1.4 var(--font-display); margin: 0; }
@@ -59,8 +59,8 @@
   --card-accent: #cfad8b;
   appearance: none; flex: 0 0 142px; width: 142px; min-height: 208px; height: auto; padding: 12px 10px 0; margin: 0;
   display: flex; flex-direction: column; align-items: stretch; position: relative; box-sizing: border-box;
-  font-family: inherit; text-align: center; color: var(--text-primary); background: #263d3d;
-  border: 1px solid #789185; border-top: 3px solid var(--card-accent); border-radius: 9px; box-shadow: 0 5px 0 #101f2555;
+  font-family: inherit; text-align: center; color: var(--text-primary); background: linear-gradient(155deg, #493c3a, #243441 65%);
+  border: 1px solid #ad9872; border-top: 3px solid var(--card-accent); border-radius: 10px; box-shadow: inset 0 0 0 4px #d3bd8a10, 0 6px 12px #091a2866;
   transform: none; transition: transform .15s, border-color .15s; overflow: hidden; cursor: pointer; scroll-snap-align: center;
 }
 .cardtower-page .ct-card.card-defense { --card-accent: #a3c8b7; background: #243f40; }
@@ -73,7 +73,7 @@
 .cardtower-page .ct-card-cost { position: absolute; top: 9px; left: 9px; min-width: 25px; height: 25px; display: grid; place-items: center; padding: 0 3px; border-radius: 50%; font: 19px/1 Consolas, monospace; background: var(--card-accent); color: #19302f; border: 0; box-shadow: none; }
 .cardtower-page .ct-card-cost.discounted { background: var(--cyan); color: var(--bg-primary); }
 .ct-card-key { position: absolute; top: 12px; right: 10px; color: var(--text-muted); opacity: .6; font: 10px Consolas, monospace; }
-.cardtower-page .ct-card-art { display: grid; place-items: center; height: 67px; font-size: initial; margin: 2px 0 4px; color: var(--card-accent); }
+.cardtower-page .ct-card-art { display: grid; place-items: center; height: 80px; font-size: initial; margin: 2px 0 8px; color: var(--card-accent); background: radial-gradient(ellipse, #d0ae6525, transparent 65%); border-bottom: 1px solid #d2b27730; }
 .ct-card-art .ct-sigil { width: 62px; height: 67px; }
 .cardtower-page .ct-card-name { color: var(--text-primary); font: 18px/1.4 var(--font-display); margin: 0; }
 .cardtower-page .ct-card-type { color: var(--card-accent); font-size: 9px; line-height: 1.5; margin: 3px 0 6px; min-height: 14px; }
