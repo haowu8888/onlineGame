@@ -1,6 +1,6 @@
-import { actorParts, ACTOR_PART_SLOTS } from './knife-three-actor-geometry.js?v=34';
-import { ACTOR_RIG, ActorMotion, ActorPainter } from './knife-three-actor-pose.js?v=34';
-import { ACTOR_PALETTE, outfitFor, drawWardrobe } from './knife-three-actor-wardrobe.js?v=34';
+import { actorParts, ACTOR_PART_SLOTS } from './knife-three-actor-geometry.js?v=35';
+import { ACTOR_RIG, ActorMotion, ActorPainter } from './knife-three-actor-pose.js?v=35';
+import { ACTOR_PALETTE, outfitFor, drawWardrobe } from './knife-three-actor-wardrobe.js?v=35';
 
 const MENU_HERO = Object.freeze({ x: 0, y: 0, radius: 18, facingAngle: 1.02, hp: 100, maxHp: 100 });
 const SIDES = Object.freeze([-1, 1]);
@@ -8,6 +8,7 @@ const SIDES = Object.freeze([-1, 1]);
 export class ArenaActors {
   constructor(scene) {
     this.parts = actorParts(scene);
+    this.batches = Object.entries(this.parts);
     this.painter = new ActorPainter(this.parts);
     this.motion = new ActorMotion();
   }
@@ -15,14 +16,14 @@ export class ArenaActors {
   render({ game, center, time }) {
     const enemies = (game.enemies || []).filter(enemy => enemy.alive);
     const count = enemies.length + 1 + (game.shadowClone ? 1 : 0);
-    Object.entries(this.parts).forEach(([name, batch]) => batch.begin(count * ACTOR_PART_SLOTS[name]));
+    for (const [name, batch] of this.batches) batch.begin(count * ACTOR_PART_SLOTS[name]);
     enemies.forEach(entity => this.drawActor({ entity, center, time, hero: false }));
     this.drawActor({ entity: game.player || MENU_HERO, center, time, hero: true, menu: !game.player });
     if (game.shadowClone) this.drawActor({
       entity: { ...game.player, ...game.shadowClone }, motionEntity: game.shadowClone,
       center, time, hero: true, clone: true,
     });
-    Object.values(this.parts).forEach(batch => batch.end());
+    for (const [, batch] of this.batches) batch.end();
   }
 
   drawActor({ entity, center, time, hero, clone = false, menu = false, motionEntity = entity }) {

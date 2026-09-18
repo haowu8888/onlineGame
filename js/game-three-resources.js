@@ -1,6 +1,6 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { PALETTE } from './game-three-palette.js?v=34';
-import { bakeStaticMeshes } from './game-three-batch.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { PALETTE } from './game-three-palette.js?v=35';
+import { bakeStaticMeshes } from './game-three-batch.js?v=35';
 
 export class SceneResources {
   constructor() {
@@ -64,6 +64,8 @@ function makeGeometry(kind) {
       [0.26, 0.35], [0.29, 0.5]].map(([x, y]) => new THREE.Vector2(x, y)), 24),
     rock: () => new THREE.IcosahedronGeometry(0.5, 1),
     sphere: () => new THREE.SphereGeometry(0.5, 20, 16),
+    // 地图上的小树冠只有二三十像素，低面数球体在每一步重建地块时省下大半顶点复制。
+    bush: () => new THREE.SphereGeometry(0.5, 12, 9),
     roof: roofGeometry,
     torus: () => new THREE.TorusGeometry(1, 0.035, 6, 64),
     tile: () => new THREE.CylinderGeometry(0.5, 0.5, 1, 6),

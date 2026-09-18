@@ -6,7 +6,8 @@
 - `games/`: Individual game entry pages (e.g. `games/cultivation.html`).
 - `js/`: Game logic and shared utilities (`js/shared.js`, `js/portal.js`, `js/*.js` per game).
   - `js/cultivation-recovery.js`, `js/cardcollect-progression.js`: pure-logic modules extracted from games. They use a UMD wrapper (attach to `window` in the browser, `module.exports` under Node) so they can be unit-tested. Follow this pattern when extracting more logic.
-  - `js/game-scene-*.js`: read-only game view models and adapters to existing gameplay actions. `js/game-three-*.js`: shared Three.js rendering, picking, camera controls, and resource lifecycle for the six non-knife games. Register the game source in its entry point; do not duplicate gameplay rules in the renderer.
+  - `js/game-scene-*.js`: read-only game view models and adapters to existing gameplay actions. `js/game-three-*.js`: shared Three.js rendering, picking, camera controls, and resource lifecycle for the six non-knife games. Register the game source in its entry point; do not duplicate gameplay rules in the renderer. Scenery is layered: the backdrop (landscape, garden, tower yard) is rebuilt only when the scene kind or theme changes; the layout (tiles, routes, markers) is rebuilt as progress changes. Both layers share the runtime's geometry and material cache and own only their merged geometries and label textures.
+  - `js/canvas-shapes.js`: Canvas 2D helpers (rounded rectangles with a fallback for browsers without `roundRect`) shared by both label renderers.
 - `css/`: Shared + per-game styles (`css/shared.css`, `css/*.css`).
 - `icons/`: PWA icons (`icon-192.png`, `icon-512.png`, `maskable-*.png`).
 - `manifest.json`, `sw.js`, `sw-assets.js`, `sw-runtime.js`, `offline.html`: PWA manifest, service worker lifecycle, precache manifest, fetch strategies, and offline fallback page.
@@ -35,8 +36,9 @@
 
 - When changing worker behavior or deployed assets, bump `CACHE_VERSION` and update `PWA_ASSETS.core` in `sw-assets.js`.
 - Every local resource URL referenced by a page or its module imports **must** be precached; `node scripts/check-sw-assets.js` verifies the full dependency graph. Preserve query strings in cache keys.
+- Same-origin non-HTML requests carrying a `?v=` query are served straight from the static precache when present (no background revalidation); anything else keeps the stale-while-revalidate path. This is why every deployed asset change needs a version bump, never an in-place overwrite.
 - Explicitly precache SVG resources referenced by runtime-generated markup (character portraits, terrain and card sigils); the dependency checker cannot infer arbitrary JavaScript string construction. Verify these assets in an actual offline game session.
-- Versioned page JS/CSS URLs and every transitive game ES-module import use `?v=34` to prevent an existing v33 worker from mixing new HTML with stale scripts. Keep these versions and matching precache entries synchronized.
+- Versioned page JS/CSS URLs and every transitive game ES-module import use `?v=35` to prevent an existing v34 worker from mixing new HTML with stale scripts. Keep these versions and matching precache entries synchronized.
 - Worker installation must fail atomically when a required local resource cannot be cached. Activate updates through the visible user update action; do not force-refresh active games.
 - Keep `offline.html` lightweight and same-origin (so it can be reliably cached). The SW injects a `<base>` tag when serving it for nested paths, so keep its links relative to the site root.
 - External assets: only whitelisted CDN resources should be cached.

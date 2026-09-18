@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { InstanceBatch } from './knife-three-batch.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { InstanceBatch } from './knife-three-batch.js?v=35';
 
 const SHADOW_TEXTURE_SIZE = 32;
 const SHAPE_BEVEL = 0.035;

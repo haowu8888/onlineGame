@@ -1,5 +1,5 @@
-import { TAU } from './knife-data.js?v=34';
-import { Entity } from './knife-entities.js?v=34';
+import { TAU } from './knife-data.js?v=35';
+import { Entity } from './knife-entities.js?v=35';
 
 /* ---- 弹幕 ---- */
 export class Projectile extends Entity {

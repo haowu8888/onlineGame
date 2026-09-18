@@ -21,6 +21,19 @@
 .game-page .nav-links a { padding: 7px 10px; font-size: 12px; }
 .game-page .nav-daily-btn, .game-page .nav-settings-btn { font-size: 16px; }
 .game-page .page-wrapper { padding-top: var(--nav-height); min-height: 100svh; }
+.game-page .skip-link {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+  z-index: 4000;
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: var(--gold);
+  color: var(--bg-primary);
+  font-weight: 600;
+  transform: translateY(-160%);
+}
+.game-page .skip-link:focus { transform: translateY(0); }
 .game-page .game-container {
   width: calc(100% - 40px);
   max-width: var(--game-max-width);

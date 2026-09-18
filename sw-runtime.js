@@ -48,16 +48,32 @@ class PwaRuntime {
     const sameOrigin = url.origin === this.origin;
     if (!sameOrigin && !this.assets.allowedCdnHosts.includes(url.hostname)) return null;
     const cacheName = sameOrigin ? this.cacheNames.runtime : this.cacheNames.cdn;
-    const network = this.fetchResource(request);
     const isDocument = sameOrigin && (
       request.mode === 'navigate' || request.destination === 'document' ||
       url.pathname.endsWith('.html')
     );
+    if (!isDocument && sameOrigin && url.searchParams.has('v')) return this.versionedTask({ request, cacheName });
+    return this.revalidatingTask({ request, cacheName, isDocument });
+  }
+
+  revalidatingTask({ request, cacheName, isDocument }) {
+    const network = this.fetchResource(request);
     const response = isDocument
       ? this.navigationResponse({ request, network })
       : this.cachedResponse({ request, network, cacheName });
     const completed = this.persistResponse({ request, network, cacheName });
     return { response, completed };
+  }
+
+  // 带版本号的本地资源在安装时整体预缓存，只随版本号更新；命中静态缓存就不再回源核对，
+  // 打开一个页面省下上百次后台请求。尚未预缓存的版本资源仍按原策略取网络并写入运行缓存。
+  versionedTask({ request, cacheName }) {
+    const cached = this.matchCache(this.cacheNames.static, request);
+    const fallback = cached.then((hit) => (hit ? null : this.revalidatingTask({ request, cacheName, isDocument: false })));
+    return {
+      response: fallback.then((task) => (task ? task.response : cached)),
+      completed: fallback.then((task) => (task ? task.completed : undefined)),
+    };
   }
 
   async persistResponse({ request, network, cacheName }) {

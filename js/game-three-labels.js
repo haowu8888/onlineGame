@@ -1,4 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { roundedRect } from './canvas-shapes.js?v=35';
 
 const LABEL = Object.freeze({ width: 512, height: 144, fontSize: 62, worldWidth: 2.2, worldHeight: 0.62 });
 
@@ -25,8 +26,7 @@ export class SceneLabel {
     const ctx = this.context;
     ctx.clearRect(0, 0, LABEL.width, LABEL.height);
     ctx.fillStyle = active ? 'rgba(26,62,67,0.94)' : 'rgba(11,40,55,0.8)';
-    ctx.beginPath();
-    ctx.roundRect(8, detail ? 5 : 21, LABEL.width - 16, detail ? LABEL.height - 10 : 102, 24);
+    roundedRect(ctx, 8, detail ? 5 : 21, LABEL.width - 16, detail ? LABEL.height - 10 : 102, 24);
     ctx.fill();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

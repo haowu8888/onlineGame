@@ -5,8 +5,43 @@ const { loadESModule } = require('./helpers/esm-loader.js');
 const modules = Promise.all([
   loadESModule('js/vendor/three.module.js'), loadESModule('js/knife-three-dash.js'),
   loadESModule('js/knife-three-loot.js'), loadESModule('js/knife-three-actors.js'),
+  loadESModule('js/knife-three-labels.js'),
 ]).then(results => results.map(result => result.namespace));
 const CENTER = Object.freeze({ x: 0, y: 0 });
+
+// 记录 2D 画布调用的桩，故意不提供 roundRect，模拟旧版 Safari。
+function recordingContext(calls) {
+  const record = name => (...args) => { calls.push([name, ...args]); };
+  return {
+    fillStyle: '', font: '', textAlign: '', textBaseline: '', strokeStyle: '', lineWidth: 0, globalAlpha: 1,
+    setTransform: record('setTransform'), clearRect: record('clearRect'), fillRect: record('fillRect'),
+    fillText: record('fillText'), strokeText: record('strokeText'), beginPath: record('beginPath'),
+    moveTo: record('moveTo'), arcTo: record('arcTo'), closePath: record('closePath'), fill: record('fill'),
+  };
+}
+
+test('浏览器缺少 roundRect 时连斩提示改用圆弧路径，精英名字照常投影绘制', async () => {
+  const [THREE, , , , { ArenaLabels }] = await modules;
+  const calls = [];
+  const canvas = { width: 0, height: 0, style: {}, getContext: () => recordingContext(calls) };
+  const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 100);
+  camera.position.set(0, 30, 27);
+  camera.lookAt(0, 0, 0);
+  camera.updateMatrixWorld(true);
+  const labels = new ArenaLabels({ canvas, camera });
+  labels.resize({ width: 400, height: 300, pixelRatio: 2 });
+  assert.equal(canvas.width, 800);
+  labels.render({
+    game: { player: {}, killCombo: 5, dmgTexts: [], enemies: [{ alive: true, isElite: true, name: '游侠', x: 24, y: 24, radius: 16 }] },
+    center: CENTER, showDamage: true, motion: false,
+  });
+  const names = calls.map(([name]) => name);
+  assert.ok(names.includes('arcTo'));
+  assert.ok(names.includes('fill'));
+  assert.ok(calls.some(([name, text]) => name === 'fillText' && text === '5 连斩'));
+  const label = calls.find(([name, text]) => name === 'fillText' && text === '游侠');
+  assert.ok(label && Number.isFinite(label[2]) && Number.isFinite(label[3]));
+});
 
 test('闪避轨迹沿实际路径，零位移不产生虚假刀光，释放不遗留场景节点', async () => {
   const [THREE, { DashTrails }] = await modules;

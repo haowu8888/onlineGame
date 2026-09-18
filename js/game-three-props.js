@@ -1,10 +1,10 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { PALETTE as P } from './game-three-palette.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { PALETTE as P } from './game-three-palette.js?v=35';
 
 const QUARTER_TURN = Math.PI / 2;
 
 export function tree(resources, options = {}) {
-  const { color = P.leaf, scale = 1, x = 0, z = 0 } = options;
+  const { color = P.leaf, scale = 1, x = 0, z = 0, crown = 'sphere' } = options;
   const group = new THREE.Group();
   group.add(resources.mesh({ kind: 'cylinder', color: P.bark, size: [0.21, 2.5, 0.21],
     at: [0.12, 1.15, 0], rotation: [0, 0, -0.16] }));
@@ -12,9 +12,9 @@ export function tree(resources, options = {}) {
     [-0.48, 2.65, -0.15, 1.55], [0.45, 3.05, 0, 1.35], [0, 3.5, -0.1, 0.95]];
   crowns.forEach(([cx, cy, cz, width], index) => {
     const tone = new THREE.Color(color).multiplyScalar(0.84 + index * 0.055).getHex();
-    group.add(resources.mesh({ kind: 'sphere', color: tone, size: [width, width * 0.43, width * 0.85],
+    group.add(resources.mesh({ kind: crown, color: tone, size: [width, width * 0.43, width * 0.85],
       at: [cx, cy, cz], rotation: [0, index * 0.7, 0] }));
-    group.add(resources.mesh({ kind: 'sphere', color: tone, size: [width * 0.7, width * 0.4, width * 0.6],
+    group.add(resources.mesh({ kind: crown, color: tone, size: [width * 0.7, width * 0.4, width * 0.6],
       at: [cx - 0.2, cy + 0.1, cz + 0.18] }));
     group.add(resources.mesh({ kind: 'cylinder', color: P.bark, size: [0.07, Math.abs(cx) + 0.4, 0.07],
       at: [cx * 0.45, cy - 0.12, cz], rotation: [0, 0, cx > 0 ? -0.9 : 0.9] }));

@@ -82,7 +82,10 @@ function initNav(activePage) {
   nav.className = 'nav';
   nav.setAttribute('aria-label', '游戏导航');
   nav.innerHTML = navigationMarkup(activePage);
-  document.body.prepend(nav);
+  // 跳转链接必须是页面第一个可聚焦元素，导航栏排在它后面。
+  const first = document.body.firstElementChild;
+  if (first?.classList.contains('skip-link')) first.after(nav);
+  else document.body.prepend(nav);
   bindNavigationMenu(nav);
   nav.querySelector('.nav-settings-btn').addEventListener('click', () => window._settingsModal?.open());
   nav.querySelector('.nav-daily-btn').addEventListener('click', () => openDailyMissionsModal(activePage));

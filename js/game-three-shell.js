@@ -34,12 +34,13 @@ export class SceneShell {
   update(model) {
     const wasUnstarted = this.root.classList.contains('scene-unstarted');
     const unstarted = !model.units.length && !(model.tiles || []).length;
+    const eyebrow = SCENE_LABELS[model.theme];
     if (this.title.textContent !== model.title) this.title.textContent = model.title;
     if (this.caption.textContent !== model.caption) this.caption.textContent = model.caption;
-    this.eyebrow.textContent = SCENE_LABELS[model.theme];
-    this.root.dataset.sceneKind = model.kind;
-    this.root.dataset.sceneTheme = model.theme;
-    this.root.dataset.sceneStatus = 'ready';
+    if (this.eyebrow.textContent !== eyebrow) this.eyebrow.textContent = eyebrow;
+    if (this.root.dataset.sceneKind !== model.kind) this.root.dataset.sceneKind = model.kind;
+    if (this.root.dataset.sceneTheme !== model.theme) this.root.dataset.sceneTheme = model.theme;
+    if (this.root.dataset.sceneStatus !== 'ready') this.root.dataset.sceneStatus = 'ready';
     this.root.classList.toggle('scene-unstarted', unstarted);
     this.document.body.classList.add('has-game-scene');
     if (wasUnstarted && !unstarted && model.theme !== 'cardcollect') this.reveal();

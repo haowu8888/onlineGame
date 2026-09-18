@@ -4,7 +4,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
 
-  const SIGILS = '../assets/cardtower/sigils.svg?v=34#';
+  const SIGILS = '../assets/cardtower/sigils.svg?v=35#';
   const TYPE_NAMES = Object.freeze({ attack: '攻击', defense: '防御', spell: '法术' });
   const TYPE_SIGILS = Object.freeze({ attack: 'blade', defense: 'shield', spell: 'seal' });
   const CONDITIONS = Object.freeze([

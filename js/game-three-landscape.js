@@ -1,12 +1,12 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { PALETTE as P } from './game-three-palette.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { PALETTE as P } from './game-three-palette.js?v=35';
 
 const RIDGES = [[-13, -13, 11, 6], [-8, -15, 13, 6], [-3, -16, 9, 5],
   [4, -15, 12, 5], [10, -14, 10, 6], [16, -12, 11, 6]];
 const MOUNTAIN = Object.freeze({ width: 54, depth: 20, columns: 100, rows: 36, offsetZ: -17 });
 
-function mountains(resources, theme) {
-  const geometry = resources.own(new THREE.PlaneGeometry(MOUNTAIN.width, MOUNTAIN.depth, MOUNTAIN.columns, MOUNTAIN.rows));
+function mountains(resources, theme, own) {
+  const geometry = own(new THREE.PlaneGeometry(MOUNTAIN.width, MOUNTAIN.depth, MOUNTAIN.columns, MOUNTAIN.rows));
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, 0, MOUNTAIN.offsetZ);
   const positions = geometry.getAttribute('position');
@@ -31,13 +31,14 @@ function mountains(resources, theme) {
   return new THREE.Mesh(geometry, resources.material(0xffffff, { vertexColors: true, roughness: 1 }));
 }
 
-export function landscape(resources, theme) {
+// 山体几何是每个布景独有的，交给 own 回调登记，布景重建时随之释放；材质仍由场景共享。
+export function landscape(resources, theme, own = resource => resources.own(resource)) {
   const group = new THREE.Group();
   const water = resources.mesh({ kind: 'cylinder', color: theme.sky,
     size: [75, 0.12, 65], at: [0, -3.7, -8], shadow: false,
     material: { roughness: 0.45, metalness: 0.22 } });
   group.add(water);
-  group.add(mountains(resources, theme));
+  group.add(mountains(resources, theme, own));
   return group;
 }
 

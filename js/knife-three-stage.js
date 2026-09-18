@@ -1,7 +1,7 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { ARENA } from './knife-three-config.js?v=34';
-import { createGround } from './knife-three-ground.js?v=34';
-import { createNature, updatePetals, revealNearbyActors } from './knife-three-nature.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { ARENA } from './knife-three-config.js?v=35';
+import { createGround } from './knife-three-ground.js?v=35';
+import { createNature, updatePetals, revealNearbyActors } from './knife-three-nature.js?v=35';
 
 const TERRAIN_COLORS = Object.freeze({
   plain: [0x58795f, 0xaaa88c, 0x9ab8b9],

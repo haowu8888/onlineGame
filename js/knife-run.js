@@ -1,4 +1,4 @@
-import { CFG, TERRAINS, PLAYER_SKILLS, PERM_UPGRADES } from './knife-data.js?v=34';
+import { CFG, TERRAINS, PLAYER_SKILLS, PERM_UPGRADES } from './knife-data.js?v=35';
 
 export const RunMethods = {
   resetRun() {

@@ -1,5 +1,6 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { ARENA, worldPosition } from './knife-three-config.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { ARENA, worldPosition } from './knife-three-config.js?v=35';
+import { roundedRect } from './canvas-shapes.js?v=35';
 
 const LABEL = Object.freeze({
   normalSize: 14, criticalSize: 19, comboSize: 19,
@@ -70,8 +71,7 @@ export class ArenaLabels {
     const y = this.width < LABEL.mobileWidth ? LABEL.mobileComboTop : LABEL.comboTop;
     ctx.textAlign = 'right';
     ctx.fillStyle = '#29443cbd';
-    ctx.beginPath();
-    ctx.roundRect(x - 76, y - 21, 88, 42, 7);
+    roundedRect(ctx, x - 76, y - 21, 88, 42, 7);
     ctx.fill();
     ctx.font = '700 ' + LABEL.comboSize + 'px system-ui';
     ctx.fillStyle = '#f1d09a';

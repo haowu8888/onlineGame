@@ -20,6 +20,21 @@ class PwaUpdateManager {
       this.observeInstalling(this.registration.installing);
     });
     this.observeInstalling(this.registration.installing);
+    this.watchForUpdates();
+  }
+
+  // 长时间停留的游戏页也能发现新版本：回到前台时检查，且至少间隔一小时。
+  watchForUpdates() {
+    if (typeof this.registration.update !== 'function' || !this.document.addEventListener) return;
+    const UPDATE_INTERVAL_MS = 60 * 60 * 1000;
+    let lastCheck = Date.now();
+    const check = () => {
+      if (this.document.hidden || Date.now() - lastCheck < UPDATE_INTERVAL_MS) return;
+      lastCheck = Date.now();
+      this.registration.update().catch((error) => this.logger.error('[PWA] 检查更新失败。', error));
+    };
+    this.document.addEventListener('visibilitychange', check);
+    if (typeof setInterval === 'function') setInterval(check, UPDATE_INTERVAL_MS);
   }
 
   observeInstalling(worker) {

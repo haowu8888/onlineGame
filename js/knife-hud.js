@@ -1,9 +1,10 @@
-import { createKnifeIcon } from './knife-icons.js?v=34';
-import { DASH } from './knife-movement.js?v=34';
+import { createKnifeIcon } from './knife-icons.js?v=35';
+import { DASH } from './knife-movement.js?v=35';
 
 const FRAME_RATE = 60;
 const TERRAIN_NAMES = Object.freeze({ plain: '青岚庭院', lava: '赤焰古道', ice: '寒玉秘境' });
 
+// HUD 每 100ms 刷新一次；只在值真正变化时写 DOM，避免无谓的属性变更和布局失效。
 function text(element, value) {
   const next = String(value);
   if (element.textContent !== next) element.textContent = next;
@@ -12,6 +13,19 @@ function text(element, value) {
 function fill(element, fraction) {
   const width = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
   if (element.style.width !== width) element.style.width = width;
+}
+
+function height(element, fraction) {
+  const value = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
+  if (element.style.height !== value) element.style.height = value;
+}
+
+function attribute(element, name, value) {
+  if (element.getAttribute(name) !== value) element.setAttribute(name, value);
+}
+
+function disable(element, value) {
+  if (element.disabled !== value) element.disabled = value;
 }
 
 export class KnifeHUD {
@@ -47,16 +61,17 @@ export class KnifeHUD {
     const seconds = Math.ceil(dash.cooldown / FRAME_RATE);
     const button = this.nodes['knife-dash'];
     const caption = dash.frames > 0 ? '闪避中' : seconds ? `${seconds}s` : '就绪';
-    button.disabled = this.game.state !== 'playing' || dash.cooldown > 0;
+    disable(button, this.game.state !== 'playing' || dash.cooldown > 0);
     button.classList.toggle('active', dash.frames > 0);
-    button.setAttribute('aria-label', `闪避 · ${caption} · 空格键`);
+    attribute(button, 'aria-label', `闪避 · ${caption} · 空格键`);
     text(this.nodes['dash-status'], caption);
-    this.nodes['dash-cd-mask'].style.height = `${dash.cooldown / DASH.cooldown * 100}%`;
+    height(this.nodes['dash-cd-mask'], dash.cooldown / DASH.cooldown);
   }
 
   renderBoss() {
     const boss = this.game.enemies.find(enemy => enemy.isBoss && enemy.alive);
-    this.nodes['knife-boss-bar'].hidden = !boss;
+    const bar = this.nodes['knife-boss-bar'];
+    if (bar.hidden !== !boss) bar.hidden = !boss;
     if (!boss) return;
     text(this.nodes['knife-boss-name'], boss.name);
     fill(this.nodes['knife-boss-hp-fill'], boss.hp / boss.maxHp);
@@ -108,13 +123,14 @@ export class KnifeHUD {
       const { button, status, mask } = this.skillNodes[index];
       const seconds = Math.ceil(skill.currentCooldown / FRAME_RATE);
       const caption = !skill.unlocked ? '待习得' : skill.active ? '生效中' : seconds ? `${seconds}s` : '就绪';
-      button.disabled = !skill.unlocked || seconds > 0 || this.game.state !== 'playing';
+      disable(button, !skill.unlocked || seconds > 0 || this.game.state !== 'playing');
       button.classList.toggle('locked', !skill.unlocked);
       button.classList.toggle('active', skill.active);
-      button.title = `${skill.name}：${skill.desc || ''}${skill.unlocked ? '' : ' · 升级时可习得'}`;
-      button.setAttribute('aria-label', `${skill.key} · ${skill.name} · ${caption}`);
+      const title = `${skill.name}：${skill.desc || ''}${skill.unlocked ? '' : ' · 升级时可习得'}`;
+      if (button.title !== title) button.title = title;
+      attribute(button, 'aria-label', `${skill.key} · ${skill.name} · ${caption}`);
       text(status, caption);
-      mask.style.height = `${skill.currentCooldown / skill.cooldown * 100}%`;
+      height(mask, skill.currentCooldown / skill.cooldown);
     });
   }
 }

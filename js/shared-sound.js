@@ -45,8 +45,18 @@ class SharedSoundController {
     }
   }
 
+  // 音效只是点缀：音频环境不可用时记录一次错误，不打断调用方（例如 showToast）。
   playEffect(effect) {
     if (!this.enabled || this.volume === 0) return;
+    try {
+      this.renderEffect(effect);
+    } catch (error) {
+      if (!this.reported) console.error('播放音效失败:', error);
+      this.reported = true;
+    }
+  }
+
+  renderEffect(effect) {
     const context = this.getContext();
     const source = effect.noise ? this.createNoise(effect.duration) : this.createTone(effect);
     const gain = context.createGain();

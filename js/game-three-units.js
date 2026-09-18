@@ -1,8 +1,8 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { halo } from './game-three-props.js?v=34';
-import { actor } from './game-three-actors.js?v=34';
-import { SceneLabel } from './game-three-labels.js?v=34';
-import { PALETTE as P, MOTION } from './game-three-palette.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { halo } from './game-three-props.js?v=35';
+import { actor } from './game-three-actors.js?v=35';
+import { SceneLabel } from './game-three-labels.js?v=35';
+import { PALETTE as P, MOTION } from './game-three-palette.js?v=35';
 
 const HEALTH_WIDTH = 1.05;
 const HEALTH_HEIGHT = 2.48;

@@ -16,6 +16,21 @@ check('修仙之路：普通退出仍保存；模拟 isReloading=true 时卸载�
   unload();
   assert.equal(cult.storage.get('cultivation_save_1').name, '模拟导入的新角色');
 });
+check('修仙之路：反复进入存档只登记一次卸载保存，停止后不再持有自动保存定时器', () => {
+  const game = new cult.api.CultivationGame();
+  game.activeSlot = 2;
+  game.data = { name: '反复进出的角色' };
+  const before = cult.callbacks.get('beforeunload').length;
+  game.startAutoSave();
+  game.startAutoSave();
+  assert.equal(cult.callbacks.get('beforeunload').length, before + 1);
+  assert.ok(game.autoSaveInterval);
+  game.stopAutoSave();
+  assert.equal(game.autoSaveInterval, null);
+  cult.context.GameSaveTransfer = { isReloading: false };
+  cult.callbacks.get('beforeunload').at(-1)();
+  assert.equal(cult.storage.get('cultivation_save_2').name, '反复进出的角色');
+});
 const guigu = loadGame({
   file: 'guigu.js', entry: '/* ==================== 启动 ==================== */',
   exports: '{ GuiguGame, GuiguUI }', initialStorage: { guigu_settings: { autoSave: false } },

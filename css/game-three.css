@@ -246,7 +246,7 @@
     left: 20px;
     right: 16px;
   }
-  .scene-tools { right: 10px; bottom: 48px; padding: 4px; }
+  .scene-tools { right: 10px; bottom: 48px; padding: 4px; background: #0b2837b8; backdrop-filter: none; }
   .scene-tools button {
     min-width: 42px;
     height: 40px;

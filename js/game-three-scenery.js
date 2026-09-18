@@ -1,10 +1,10 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { SceneResources, connection } from './game-three-resources.js?v=34';
-import { island, tree, pavilion, pagoda, halo } from './game-three-props.js?v=34';
-import { SceneLabel } from './game-three-labels.js?v=34';
-import { landscape, terrace, lantern } from './game-three-landscape.js?v=34';
-import { bakeStaticMeshes } from './game-three-batch.js?v=34';
-import { PALETTE as P, SCENE_THEMES } from './game-three-palette.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { connection } from './game-three-resources.js?v=35';
+import { island, tree, pavilion, pagoda, halo } from './game-three-props.js?v=35';
+import { SceneLabel } from './game-three-labels.js?v=35';
+import { landscape, terrace, lantern } from './game-three-landscape.js?v=35';
+import { bakeStaticMeshes } from './game-three-batch.js?v=35';
+import { PALETTE as P, SCENE_THEMES } from './game-three-palette.js?v=35';
 
 const RING_TICKS = 48;
 const TAU = Math.PI * 2;
@@ -15,18 +15,24 @@ const TILE_COLORS = Object.freeze({
   desert: 0xd1bc8d,
 });
 
-export class SceneScenery {
-  constructor(model) {
-    this.resources = new SceneResources();
+// 几何与材质由整个场景共享；每一层只拥有自己合并出来的几何和文字贴图，重建时精确释放。
+class SceneLayer {
+  constructor(resources) {
+    this.resources = resources;
     this.root = new THREE.Group();
+    this.owned = new Set();
     this.targets = [];
     this.labels = [];
     this.ticks = [];
-    this.build(model);
-    this.batchDecorations();
   }
 
-  batchDecorations() {
+  own(resource) {
+    this.owned.add(resource);
+    return resource;
+  }
+
+  // 不可点选且没有文字的装饰按材质合并，减少绘制次数；进度刻度需要单独控制可见性。
+  bake() {
     const decorations = new THREE.Group();
     for (const child of [...this.root.children]) {
       if (child.userData.action || this.ticks.includes(child)) continue;
@@ -34,17 +40,47 @@ export class SceneScenery {
       child.traverse(object => { if (object.isSprite) hasLabels = true; });
       if (!hasLabels) decorations.add(child);
     }
-    this.root.add(bakeStaticMeshes(decorations, resource => this.resources.own(resource)));
+    if (!decorations.children.length) return;
+    this.root.add(bakeStaticMeshes(decorations, resource => this.own(resource)));
   }
 
-  build(model) {
+  addLabel(root, { title, detail = '', height, width }) {
+    const label = new SceneLabel();
+    label.update({ title, detail, active: Boolean(root.userData.action) });
+    label.sprite.position.y = height;
+    label.sprite.scale.set(width, width / 3, 1);
+    root.add(label.sprite);
+    this.labels.push(label);
+  }
+
+  pickable(root, model) {
+    root.userData.key = model.key;
+    root.userData.action = model.action || null;
+    root.userData.label = model.detail ? model.name + ' · ' + model.detail : model.name;
+    if (model.action) this.targets.push(root);
+  }
+
+  dispose() {
+    this.labels.forEach(label => label.dispose());
+    this.owned.forEach(resource => resource.dispose());
+    this.owned.clear();
+    this.labels = [];
+    this.targets = [];
+    this.root.removeFromParent();
+  }
+}
+
+// 布景：山川、水面、庭院与塔院，只随玩法种类和主题变化。
+class SceneBackdrop extends SceneLayer {
+  constructor(resources, model) {
+    super(resources);
     this.theme = SCENE_THEMES[model.theme];
-    this.root.add(landscape(this.resources, this.theme));
+    this.root.add(landscape(resources, this.theme, resource => this.own(resource)));
     if (model.kind === 'map') this.buildMap(model);
     else if (model.kind === 'tower') this.buildTower(model);
     else if (model.kind === 'board') this.buildBoard();
     else this.buildGarden(model);
-    model.markers.forEach(marker => this.marker(marker));
+    this.bake();
   }
 
   buildGarden(model) {
@@ -103,7 +139,28 @@ export class SceneScenery {
   buildMap(model) {
     this.root.add(island(this.resources, { width: 14, depth: 14, color: P.pine }));
     if (!model.tiles.length) this.root.add(pavilion(this.resources, { scale: 1.6 }));
-    model.tiles.forEach(tile => this.mapTile(tile));
+  }
+
+  buildTower(model) {
+    const r = this.resources;
+    this.root.add(island(r, { width: 15, depth: 17, color: 0x8997a4 }));
+    this.root.add(pagoda(r, { x: 5.5, z: -2.6, scale: 0.9 }));
+    if (!model.tiles.length) this.root.add(pagoda(r, { scale: 1.3 }));
+  }
+
+  update(model) {
+    this.ticks.forEach((tick, index) => { tick.visible = index < model.progress * RING_TICKS; });
+  }
+}
+
+// 布局：地块、塔层路线与路标，随游戏进度重建；可点选对象都在这一层。
+class SceneLayout extends SceneLayer {
+  constructor(resources, model) {
+    super(resources);
+    if (model.kind === 'map') model.tiles.forEach(tile => this.mapTile(tile));
+    else if (model.kind === 'tower') this.buildTower(model);
+    model.markers.forEach(marker => this.marker(marker));
+    this.bake();
   }
 
   mapTile(tile) {
@@ -124,7 +181,7 @@ export class SceneScenery {
 
   mapDecoration(root, tile) {
     const r = this.resources;
-    if (tile.type === 'forest') root.add(tree(r, { scale: 0.4, x: 0.35, z: -0.25 }));
+    if (tile.type === 'forest') root.add(tree(r, { scale: 0.4, x: 0.35, z: -0.25, crown: 'bush' }));
     if (['mountain', 'cave', 'forbidden'].includes(tile.type)) {
       root.add(r.mesh({ kind: 'rock', color: tile.type === 'forbidden' ? P.purple : P.mist,
         size: [1.25, 1.8, 1.15], at: [0.25, 0.5, -0.25] }));
@@ -135,10 +192,6 @@ export class SceneScenery {
   }
 
   buildTower(model) {
-    const r = this.resources;
-    this.root.add(island(r, { width: 15, depth: 17, color: 0x8997a4 }));
-    this.root.add(pagoda(r, { x: 5.5, z: -2.6, scale: 0.9 }));
-    if (!model.tiles.length) this.root.add(pagoda(r, { scale: 1.3 }));
     const byId = new Map(model.tiles.map(tile => [tile.key, tile]));
     model.tiles.forEach(tile => this.towerLinks(tile, byId));
     model.tiles.forEach(tile => this.towerTile(tile));
@@ -178,30 +231,59 @@ export class SceneScenery {
     this.pickable(root, marker);
     this.addLabel(root, { title: marker.name, height: 1.35, width: 2.8 });
   }
+}
 
-  addLabel(root, { title, detail = '', height, width }) {
-    const label = new SceneLabel();
-    label.update({ title, detail, active: Boolean(root.userData.action) });
-    label.sprite.position.y = height;
-    label.sprite.scale.set(width, width / 3, 1);
-    root.add(label.sprite);
-    this.labels.push(label);
+// 鬼谷每走一步、仙途每个事件只更新布局层；山川、庭院和树木不必跟着重建。
+export class SceneScenery {
+  constructor(resources) {
+    this.resources = resources;
+    this.root = new THREE.Group();
+    this.backdrop = null;
+    this.layout = null;
+    this.backdropKey = null;
+    this.layoutKey = null;
   }
 
-  pickable(root, model) {
-    root.userData.key = model.key;
-    root.userData.action = model.action || null;
-    root.userData.label = model.detail ? model.name + ' · ' + model.detail : model.name;
-    if (model.action) this.targets.push(root);
+  static backdropKey(model) {
+    return JSON.stringify([model.kind, model.theme, Boolean((model.tiles || []).length), model.progress !== undefined]);
   }
 
-  update(model) {
-    this.ticks.forEach((tick, index) => { tick.visible = index < model.progress * RING_TICKS; });
+  static layoutKey(model) {
+    return JSON.stringify([model.kind, model.tiles, model.markers]);
+  }
+
+  // 返回是否有任一层重建，调用方据此重新取景。
+  sync(model) {
+    const backdropKey = SceneScenery.backdropKey(model);
+    const layoutKey = SceneScenery.layoutKey(model);
+    const rebuilt = backdropKey !== this.backdropKey || layoutKey !== this.layoutKey;
+    if (backdropKey !== this.backdropKey) {
+      if (this.backdrop) this.backdrop.dispose();
+      this.backdrop = new SceneBackdrop(this.resources, model);
+      this.root.add(this.backdrop.root);
+      this.backdropKey = backdropKey;
+    }
+    if (layoutKey !== this.layoutKey) {
+      if (this.layout) this.layout.dispose();
+      this.layout = new SceneLayout(this.resources, model);
+      this.root.add(this.layout.root);
+      this.layoutKey = layoutKey;
+    }
+    this.backdrop.update(model);
+    return rebuilt;
+  }
+
+  get targets() {
+    return this.layout ? this.layout.targets : [];
   }
 
   dispose() {
-    this.labels.forEach(label => label.dispose());
-    this.resources.dispose();
+    if (this.backdrop) this.backdrop.dispose();
+    if (this.layout) this.layout.dispose();
+    this.backdrop = null;
+    this.layout = null;
+    this.backdropKey = null;
+    this.layoutKey = null;
     this.root.removeFromParent();
   }
 }

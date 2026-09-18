@@ -1,4 +1,4 @@
-import { ACTOR_RIG } from './knife-three-actor-pose.js?v=34';
+import { ACTOR_RIG } from './knife-three-actor-pose.js?v=35';
 
 export const ACTOR_PALETTE = Object.freeze({
   ivory: 0xfff1d4, vermilion: 0xce4334, ink: 0x24333a,

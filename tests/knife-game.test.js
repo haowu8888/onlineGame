@@ -176,6 +176,26 @@ test('连续模拟1200帧可刷怪、攻击、拾取和升级，没有2D渲染�
   assert.equal(game.getTimeStr(), '00:20');
 });
 
+test('粒子与刀光逐帧原地衰减并压缩，数组引用不变且不留已消散项', async () => {
+  const { game } = await setup();
+  game.start();
+  const { particles, bladeTrails, dashTrails } = game;
+  game.emitParticles({ origin: { x: 0, y: 0 }, count: 5, color: '#fff', life: 0.02 });
+  game.emitParticles({ origin: { x: 0, y: 0 }, count: 3, color: '#fff', life: 1 });
+  bladeTrails.push({ x1: 0, y1: 0, x2: 1, y2: 1, life: 0.05 }, { x1: 0, y1: 0, x2: 1, y2: 1, life: 1 });
+  dashTrails.push({ x1: 0, y1: 0, x2: 1, y2: 1, life: 0.05 }, { x1: 0, y1: 0, x2: 1, y2: 1, life: 1 });
+  game.updateFeedback();
+  assert.equal(game.particles, particles);
+  assert.equal(game.bladeTrails, bladeTrails);
+  assert.equal(game.dashTrails, dashTrails);
+  assert.equal(particles.length, 3);
+  assert.ok(particles.every(particle => particle.life > 0.9 && particle.life < 1));
+  assert.equal(bladeTrails.length, 1);
+  assert.ok(Math.abs(bladeTrails[0].life - 0.92) < 1e-9);
+  assert.equal(dashTrails.length, 1);
+  assert.ok(Math.abs(dashTrails[0].life - 0.9) < 1e-9);
+});
+
 test('线段与圆碰撞涵盖零长度和线段完全位于圆内', async () => {
   const { namespace } = await loadESModule('js/knife-math.js');
   const circle = { x: 0, y: 0, radius: 10 };

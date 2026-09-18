@@ -4369,7 +4369,7 @@ class GuiguUI {
   showDeathModal(data){
     const s=this.game.state;if(!s)return;
     const lb=getLeaderboard('guigu').slice(0,5);
-    const lbHtml=lb.map((e,i)=>`<div class="death-lb-entry"><span class="lb-rank">#${i+1}</span><span class="lb-name">${e.name||'无名'}</span><span class="lb-score">${e.score}</span></div>`).join('');
+    const lbHtml=lb.map((e,i)=>`<div class="death-lb-entry"><span class="lb-rank">#${i+1}</span><span class="lb-name">${escapeHtml(e.name||'无名')}</span><span class="lb-score">${escapeHtml(String(e.score))}</span></div>`).join('');
     const body=`<div class="death-modal">
       <div class="death-title">仙途终结</div>
       <div class="death-cause">${data.cause}</div>

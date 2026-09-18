@@ -1,10 +1,13 @@
-import * as THREE from './vendor/three.module.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
 
 const INPUT = Object.freeze({ dragPixels: 7, radiansPerPixel: 0.006, zoomStep: 1.18, turnStep: Math.PI / 8 });
 
+const ray = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
 export function pickSceneTarget({ x, y, camera, targets }) {
-  const ray = new THREE.Raycaster();
-  ray.setFromCamera(new THREE.Vector2(x, y), camera);
+  if (!targets.length) return null;
+  ray.setFromCamera(pointer.set(x, y), camera);
   const allowed = new Set(targets);
   for (const hit of ray.intersectObjects(targets, true)) {
     let target = hit.object;
@@ -19,6 +22,8 @@ export class SceneInput {
     Object.assign(this, options);
     this.events = new AbortController();
     this.down = null;
+    this.hover = null;
+    this.hoverFrame = null;
     this.selectedKey = null;
     const signal = this.events.signal;
     this.canvas.addEventListener('pointerdown', event => this.pointerDown(event), { signal });
@@ -37,17 +42,26 @@ export class SceneInput {
     this.canvas.setPointerCapture(event.pointerId);
   }
 
+  // 悬停拾取要对整个场景做射线检测，连续的指针移动合并到下一动画帧只检测一次。
   pointerMove(event) {
     if (!this.down) {
-      const hit = this.hit(event);
-      this.canvas.style.cursor = hit ? 'pointer' : 'grab';
-      if (hit) this.announce(hit.userData.label);
+      this.hover = { clientX: event.clientX, clientY: event.clientY };
+      if (this.hoverFrame === null) this.hoverFrame = requestAnimationFrame(() => this.updateHover());
       return;
     }
     const delta = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     if (delta > INPUT.dragPixels) this.down.dragged = true;
     if (this.down.dragged) this.orbit({ yaw: (event.clientX - this.down.lastX) * INPUT.radiansPerPixel });
     this.down.lastX = event.clientX;
+  }
+
+  updateHover() {
+    this.hoverFrame = null;
+    if (this.down || !this.hover) return;
+    const hit = this.hit(this.hover);
+    const cursor = hit ? 'pointer' : 'grab';
+    if (this.canvas.style.cursor !== cursor) this.canvas.style.cursor = cursor;
+    if (hit) this.announce(hit.userData.label);
   }
 
   pointerUp(event) {
@@ -97,6 +111,9 @@ export class SceneInput {
   }
 
   dispose() {
+    if (this.hoverFrame !== null) cancelAnimationFrame(this.hoverFrame);
+    this.hoverFrame = null;
+    this.hover = null;
     this.events.abort();
   }
 }

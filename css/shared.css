@@ -9,6 +9,7 @@
 
 /* --- CSS变量 --- */
 :root {
+  color-scheme: dark;
   /* 主色调 */
   --bg-primary: #0a0e1a;
   --bg-secondary: #111827;
@@ -745,7 +746,7 @@ input, select, textarea {
 .fade-in {
   opacity: 0;
   transform: translateY(30px);
-  transition: all 0.6s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .fade-in.visible {
@@ -1005,6 +1006,7 @@ input, select, textarea {
 
 /* --- 减少动画偏好 --- */
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

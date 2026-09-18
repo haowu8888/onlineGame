@@ -1,5 +1,5 @@
-import { SceneShell } from './game-three-shell.js?v=34';
-import { ThreeGameScene } from './game-three-runtime.js?v=34';
+import { SceneShell } from './game-three-shell.js?v=35';
+import { ThreeGameScene } from './game-three-runtime.js?v=35';
 
 let activeScene = null;
 

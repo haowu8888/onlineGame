@@ -1,4 +1,4 @@
-import { CFG, TAU, TERRAINS, BOSS_TYPES, BOSS_VARIANTS } from './knife-data.js?v=34';
+import { CFG, TAU, TERRAINS, BOSS_TYPES, BOSS_VARIANTS } from './knife-data.js?v=35';
 
 export const SpawningMethods = {
   nextWave() {

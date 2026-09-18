@@ -2,12 +2,32 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadESModule } = require('./helpers/esm-loader');
 
+// 场景文字标签需要 2D 画布；这里只记录调用，不依赖真实浏览器。
+function fakeDocument() {
+  const context = {
+    fillStyle: '', font: '', textAlign: '', textBaseline: '',
+    clearRect() {}, beginPath() {}, moveTo() {}, arcTo() {}, closePath() {}, fill() {}, fillText() {},
+  };
+  return { createElement: () => ({ width: 0, height: 0, getContext: () => context }) };
+}
+
 const modules = Promise.all([
   loadESModule('js/vendor/three.module.js'),
   loadESModule('js/game-three-input.js'),
   loadESModule('js/game-three-resources.js'),
-  loadESModule('js/game-three-runtime.js', { AbortController, structuredClone }),
+  loadESModule('js/game-three-runtime.js', { AbortController, structuredClone, document: fakeDocument() }),
 ]).then(results => results.map(result => result.namespace));
+
+function mapModel(step) {
+  const tiles = [0, 1, 2].map(index => ({
+    key: (index + step) + ',0', name: index === 1 ? '青木镇' : '林地', type: 'forest', known: true,
+    x: (index - 1) * 1.7, z: 0, location: index === 1, selected: false, onRoute: false,
+    action: { type: 'map-select', x: index + step, y: 0 },
+  }));
+  tiles.push({ key: (3 + step) + ',0', name: '未探索', type: 'fog', known: false, x: 3.4, z: 0,
+    location: false, selected: false, onRoute: false, action: null });
+  return { kind: 'map', theme: 'guigu', title: '八荒行旅', caption: '', units: [], cards: [], markers: [], tiles };
+}
 
 test('Three.js 拾取返回真实可操作父对象，并排除不合法目标', async () => {
   const [THREE, { pickSceneTarget }] = await modules;
@@ -73,4 +93,33 @@ test('隐藏页面暂停绘制，恢复后重读状态，退出移除监听并�
   assert.equal(loop, null);
   scene.dispose();
   assert.equal(disposals, 1);
+});
+
+test('地图每走一步只重建地块层，山川布景与共享材质保留，旧布局几何精确释放', async () => {
+  const [, , , { ThreeGameScene }] = await modules;
+  const scene = new ThreeGameScene({ shell: { canvas: new EventTarget() }, source: { id: 'guigu' },
+    document: new EventTarget(), window: new EventTarget() });
+  const scenery = scene.scenery;
+  assert.equal(scenery.sync(mapModel(0)), true);
+  const backdrop = scenery.backdrop;
+  const layout = scenery.layout;
+  const released = [];
+  const watch = (layer, name) => layer.owned.forEach(resource => resource.addEventListener('dispose', () => released.push(name)));
+  watch(backdrop, 'backdrop');
+  watch(layout, 'layout');
+  assert.ok(backdrop.owned.size > 0 && layout.owned.size > 0);
+  assert.deepEqual(scenery.targets.map(target => target.userData.key), ['0,0', '1,0', '2,0']);
+  assert.equal(scenery.sync(mapModel(0)), false);
+  const materials = scene.resources.materials.size;
+  assert.equal(scenery.sync(mapModel(1)), true);
+  assert.equal(scenery.backdrop, backdrop);
+  assert.notEqual(scenery.layout, layout);
+  assert.equal(scene.resources.materials.size, materials);
+  assert.ok(released.length > 0 && released.every(name => name === 'layout'));
+  assert.deepEqual(scenery.targets.map(target => target.userData.key), ['1,0', '2,0', '3,0']);
+  assert.equal(scenery.root.children.length, 2);
+  scene.dispose();
+  assert.ok(released.includes('backdrop'));
+  assert.equal(scenery.root.children.length, 0);
+  assert.equal(scene.scene.children.includes(scenery.root), false);
 });

@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { ARENA, worldPosition } from './knife-three-config.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { ARENA, worldPosition } from './knife-three-config.js?v=35';
 
 const TRAIL = Object.freeze({
   innerFraction: 0.87, opacity: 0.5, subdivisions: 3, verticesPerStep: 12,

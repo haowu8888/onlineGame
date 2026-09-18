@@ -6,7 +6,7 @@
 
   function portraitMarkup(id, className = 'cc-portrait') {
     return `<svg class="${className}" viewBox="0 0 120 144" aria-hidden="true" focusable="false">
-      <use href="../assets/cardcollect/portraits.svg?v=34#character-${id}"></use></svg>`;
+      <use href="../assets/cardcollect/portraits.svg?v=35#character-${id}"></use></svg>`;
   }
 
   function portrait(card, escape) {

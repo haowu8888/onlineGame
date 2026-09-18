@@ -3693,10 +3693,18 @@
     }
 
     startAutoSave() {
+      this.stopAutoSave();
       this.autoSaveInterval = setInterval(() => this.save(), 30000);
+      // 返回存档列表再进入会重复调用；卸载前保存只需登记一次，避免监听器随进出次数累积。
+      if (this._unloadSaveBound) return;
+      this._unloadSaveBound = true;
       window.addEventListener('beforeunload', () => {
         if (!window.GameSaveTransfer?.isReloading) this.save();
       });
+    }
+
+    stopAutoSave() {
+      if (this.autoSaveInterval) { clearInterval(this.autoSaveInterval); this.autoSaveInterval = null; }
     }
 
     startTick(callback) {
@@ -4197,7 +4205,7 @@
       }
       panel.querySelector('#btn-back-slots').addEventListener('click', () => {
         this.game.save(); this.game.stopTick();
-        if (this.game.autoSaveInterval) clearInterval(this.game.autoSaveInterval);
+        this.game.stopAutoSave();
         this.gameEl.classList.remove('active');
         this.game.data = null;
         this.renderSlotSelection();
@@ -5919,7 +5927,7 @@
             <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px">击败守关者方可突破！</p>
             <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;">
               <div style="flex:1;text-align:center">
-                <div style="font-size:0.8rem;color:var(--cyan);margin-bottom:4px">${d.name}</div>
+                <div style="font-size:0.8rem;color:var(--cyan);margin-bottom:4px">${escapeHtml(d.name)}</div>
                 <div style="background:var(--bg-primary);border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:var(--green);width:${pHpPct}%;transition:width 0.3s"></div></div>
                 <div style="font-size:0.7rem;color:var(--text-muted)">${Math.max(0,Math.floor(playerHp))}/${playerMaxHp}</div>
               </div>

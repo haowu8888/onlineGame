@@ -1,4 +1,4 @@
-import { BLESSINGS, UPGRADES } from './knife-data.js?v=34';
+import { BLESSINGS, UPGRADES } from './knife-data.js?v=35';
 
 export const UpgradeMethods = {
   _triggerBlessingChoice() {

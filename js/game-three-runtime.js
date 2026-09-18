@@ -1,15 +1,16 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { SceneResources } from './game-three-resources.js?v=34';
-import { ScenePieces } from './game-three-units.js?v=34';
-import { SceneScenery } from './game-three-scenery.js?v=34';
-import { SceneInput } from './game-three-input.js?v=34';
-import { PALETTE, SCENE_THEMES, VIEW } from './game-three-palette.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { SceneResources } from './game-three-resources.js?v=35';
+import { ScenePieces } from './game-three-units.js?v=35';
+import { SceneScenery } from './game-three-scenery.js?v=35';
+import { SceneInput } from './game-three-input.js?v=35';
+import { PALETTE, SCENE_THEMES, VIEW } from './game-three-palette.js?v=35';
 
 export class ThreeGameScene {
   constructor({ shell, source, document, window }) {
     Object.assign(this, { shell, source, document, window });
     this.resources = new SceneResources();
     this.pieces = new ScenePieces(this.resources);
+    this.scenery = new SceneScenery(this.resources);
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(PALETTE.mist);
     this.scene.fog = new THREE.Fog(PALETTE.mist, 36, 72);
@@ -19,9 +20,10 @@ export class ThreeGameScene {
     this.lastRead = -Infinity;
     this.lastTime = null;
     this.frameCount = 0;
+    this.inView = true;
     this.failed = false;
     this.disposed = false;
-    this.scene.add(this.pieces.root);
+    this.scene.add(this.scenery.root, this.pieces.root);
     this.addLight();
   }
 
@@ -41,6 +43,7 @@ export class ThreeGameScene {
     this.bindLifecycle();
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.shell.canvas);
+    this.watchViewport();
     this.readState(0);
     this.resize();
     this.resume();
@@ -75,6 +78,16 @@ export class ThreeGameScene {
     }, { signal });
   }
 
+  // 画布滚出视口时不再绘制；状态读取和面板挂载照常进行，场景才能跟着玩法切换到新的容器。
+  watchViewport() {
+    const Observer = this.window.IntersectionObserver;
+    if (typeof Observer !== 'function') return;
+    this.viewObserver = new Observer(entries => {
+      this.inView = entries[entries.length - 1].isIntersecting;
+    });
+    this.viewObserver.observe(this.shell.canvas);
+  }
+
   readState(time) {
     const model = this.source.read();
     this.model = model;
@@ -82,15 +95,7 @@ export class ThreeGameScene {
     this.scene.background.setHex(theme.sky);
     this.scene.fog.color.setHex(theme.sky);
     this.sun.color.setHex(theme.light);
-    const structure = JSON.stringify([model.kind, model.theme, model.tiles, model.markers]);
-    if (structure !== this.structure) {
-      if (this.scenery) this.scenery.dispose();
-      this.scenery = new SceneScenery(model);
-      this.scene.add(this.scenery.root);
-      this.structure = structure;
-      this.resize();
-    }
-    this.scenery.update(model);
+    if (this.scenery.sync(model)) this.resize();
     this.pieces.update(model, time);
     this.shell.mount(this.source.mount ? this.source.mount() : null);
     this.shell.update(model);
@@ -117,7 +122,7 @@ export class ThreeGameScene {
   }
 
   targets() {
-    return [...this.pieces.targets, ...(this.scenery ? this.scenery.targets : [])];
+    return [...this.pieces.targets, ...this.scenery.targets];
   }
 
   orbit(change) {
@@ -154,7 +159,7 @@ export class ThreeGameScene {
         this.readState(seconds);
         this.lastRead = milliseconds;
       }
-      if (!this.viewportVisible) return;
+      if (!this.viewportVisible || !this.inView) return;
       this.pieces.animate(seconds, elapsed, this.motion.matches);
       this.renderer.render(this.scene, this.camera);
       this.frameCount++;
@@ -205,8 +210,9 @@ export class ThreeGameScene {
     this.pause();
     if (this.events) this.events.abort();
     if (this.resizeObserver) this.resizeObserver.disconnect();
+    if (this.viewObserver) this.viewObserver.disconnect();
     if (this.input) this.input.dispose();
-    if (this.scenery) this.scenery.dispose();
+    this.scenery.dispose();
     this.pieces.dispose();
     this.resources.dispose();
     this.scene.traverse(object => { if (object.shadow) object.shadow.dispose(); });

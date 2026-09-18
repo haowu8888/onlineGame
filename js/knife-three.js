@@ -1,9 +1,9 @@
-import * as THREE from './vendor/three.module.js?v=34';
-import { ARENA } from './knife-three-config.js?v=34';
-import { ArenaStage } from './knife-three-stage.js?v=34';
-import { ArenaActors } from './knife-three-actors.js?v=34';
-import { ArenaEffects } from './knife-three-effects.js?v=34';
-import { ArenaLabels } from './knife-three-labels.js?v=34';
+import * as THREE from './vendor/three.module.js?v=35';
+import { ARENA } from './knife-three-config.js?v=35';
+import { ArenaStage } from './knife-three-stage.js?v=35';
+import { ArenaActors } from './knife-three-actors.js?v=35';
+import { ArenaEffects } from './knife-three-effects.js?v=35';
+import { ArenaLabels } from './knife-three-labels.js?v=35';
 
 export class KnifeArena {
   constructor({ canvas, labels }) {

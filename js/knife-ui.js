@@ -1,8 +1,8 @@
-import './knife-clock.js?v=34';
-import { KnifeMenu } from './knife-menu.js?v=34';
-import { KnifeChoices } from './knife-choices.js?v=34';
-import { KnifeHUD } from './knife-hud.js?v=34';
-import { KnifeInput } from './knife-input.js?v=34';
+import './knife-clock.js?v=35';
+import { KnifeMenu } from './knife-menu.js?v=35';
+import { KnifeChoices } from './knife-choices.js?v=35';
+import { KnifeHUD } from './knife-hud.js?v=35';
+import { KnifeInput } from './knife-input.js?v=35';
 
 const HUD_INTERVAL_MS = 100;
 const CHOICE_STATES = new Set(['upgrading', 'blessing']);

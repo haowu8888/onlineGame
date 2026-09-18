@@ -1699,7 +1699,8 @@
     $collection.innerHTML = deckView.list({ decks, activeIndex: activeIdx, defaultSize: createPlayerDeck().length });
     document.getElementById('deck-back').addEventListener('click', showStart);
     document.getElementById('deck-new').addEventListener('click', () => {
-      const name = prompt('套牌名称:', '自定义套牌 ' + (decks.length + 1));
+      const input = prompt('套牌名称:', '自定义套牌 ' + (decks.length + 1));
+      const name = (input ?? '').trim().slice(0, 20);
       if (!name) return;
       decks.push({ name, cards: [] });
       saveDecks(decks);

@@ -1725,7 +1725,7 @@
           stepContent = `
             <div class="form-group" style="margin-top:20px;">
               <label class="form-label" style="font-size:1.1rem;">为你的角色取一个道号</label>
-              <input type="text" class="form-input" id="ls-name" placeholder="请输入你的道号" maxlength="12" value="${charName}">
+              <input type="text" class="form-input" id="ls-name" placeholder="请输入你的道号" maxlength="12" value="${escapeHtml(charName)}">
               <div style="margin-top:8px;font-size:0.8rem;color:var(--text-muted);">道号将伴随你的整个修仙之旅</div>
             </div>
           `;

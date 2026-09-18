@@ -113,6 +113,27 @@ test('白名单 CDN 可以离线命中；无缓存的失败请求保留真实错
   await missing.completed;
 });
 
+test('带版本号的预缓存资源直接命中静态缓存不回源；未预缓存的版本资源仍取网络并写入运行缓存', { timeout: TEST_TIMEOUT_MS }, async () => {
+  const worker = createWorkerHarness();
+  const versioned = worker.assets.core.find((asset) => asset.includes('?v='));
+  const request = worker.request(versioned);
+  await putText(worker, { cacheName: worker.names.static, path: versioned, text: 'precached asset' });
+  const hit = worker.dispatch('fetch', { request });
+  assert.equal(await (await hit.response).text(), 'precached asset');
+  await hit.completed;
+  assert.equal(worker.state.requests.length, 0);
+
+  worker.setFetch(async () => new Response('fresh asset'));
+  const fresh = worker.request('js/new-module.js?v=99');
+  const missing = worker.dispatch('fetch', { request: fresh });
+
+  assert.equal(await (await missing.response).text(), 'fresh asset');
+  await missing.completed;
+  assert.equal(worker.state.requests.length, 1);
+  const runtime = await worker.cacheStorage.open(worker.names.runtime);
+  assert.equal(await (await runtime.match(fresh)).text(), 'fresh asset');
+});
+
 test('非 GET 和白名单外跨域请求由浏览器处理', { timeout: TEST_TIMEOUT_MS }, async () => {
   const worker = createWorkerHarness();
   const requests = [
