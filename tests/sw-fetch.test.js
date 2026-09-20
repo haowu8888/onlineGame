@@ -147,3 +147,27 @@ test('非 GET 和白名单外跨域请求由浏览器处理', { timeout: TEST_TI
   }
   assert.equal(worker.state.requests.length, 0);
 });
+
+test('带搜索与分类的首页分享链接离线读取首页缓存，优先使用最近访问版本', { timeout: TEST_TIMEOUT_MS }, async () => {
+  const worker = createWorkerHarness();
+  await worker.dispatch('install').completed;
+  await putText(worker, { cacheName: worker.names.runtime, path: './', text: 'latest portal' });
+  worker.setFetch(offline);
+  for (const path of ['./?q=卡牌&category=roguelike', 'index.html?q=RPG']) {
+    const event = worker.dispatch('fetch', { request: worker.request(path, { document: true }) });
+    const html = await (await event.response).text();
+    assert.equal(html, path.startsWith('./') ? 'latest portal' : SCOPE_URL + 'index.html');
+    await event.completed;
+  }
+});
+
+test('首页筛选只忽略 q/category，其他参数和未缓存的游戏地址不会错误套用首页', { timeout: TEST_TIMEOUT_MS }, async () => {
+  const worker = createWorkerHarness();
+  await worker.dispatch('install').completed;
+  worker.setFetch(offline);
+  for (const path of ['index.html?q=卡牌&variant=unknown', 'games/cardtower.html?q=卡牌', 'missing.html?q=卡牌']) {
+    const event = worker.dispatch('fetch', { request: worker.request(path, { document: true }) });
+    assert.match(await (await event.response).text(), /<title>Offline<\/title>/);
+    await event.completed;
+  }
+});

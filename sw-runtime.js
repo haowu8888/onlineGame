@@ -104,12 +104,23 @@ class PwaRuntime {
     try {
       return await network;
     } catch (error) {
-      const cached = await this.latestCached(request);
+      const cached = await this.latestCached(request) || await this.cachedPortal(request);
       if (cached) return cached;
       const offline = await this.buildOfflineResponse();
       if (offline) return offline;
       throw error;
     }
+  }
+
+  // q/category 只控制首页的客户端筛选；离线分享链接复用首页，保留其他查询参数的缓存语义。
+  async cachedPortal(request) {
+    const url = new URL(request.url);
+    const scope = new URL(this.scopeUrl);
+    const isPortal = url.pathname === scope.pathname || url.pathname === new URL('index.html', scope).pathname;
+    if (!isPortal || (!url.searchParams.has('q') && !url.searchParams.has('category'))) return null;
+    url.searchParams.delete('q');
+    url.searchParams.delete('category');
+    return this.latestCached(url.href);
   }
 
   async buildOfflineResponse() {

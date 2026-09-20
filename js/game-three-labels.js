@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { roundedRect } from './canvas-shapes.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { roundedRect } from './canvas-shapes.js?v=38';
 
 const LABEL = Object.freeze({ width: 512, height: 144, fontSize: 62, worldWidth: 2.2, worldHeight: 0.62 });
 
@@ -19,12 +19,13 @@ export class SceneLabel {
     this.content = '';
   }
 
-  update({ title, detail = '', active = false }) {
-    const content = JSON.stringify([title, detail, active]);
+  update({ title, detail = '', active = false, variant = 'name' }) {
+    const content = JSON.stringify([title, detail, active, variant]);
     if (content === this.content) return;
     this.content = content;
     const ctx = this.context;
     ctx.clearRect(0, 0, LABEL.width, LABEL.height);
+    if (variant !== 'name') { this.drawFeedback(title, variant); return; }
     ctx.fillStyle = active ? 'rgba(26,62,67,0.94)' : 'rgba(11,40,55,0.8)';
     roundedRect(ctx, 8, detail ? 5 : 21, LABEL.width - 16, detail ? LABEL.height - 10 : 102, 24);
     ctx.fill();
@@ -38,6 +39,19 @@ export class SceneLabel {
       ctx.fillStyle = '#cbdce2';
       ctx.fillText(detail, LABEL.width / 2, 105, LABEL.width - 32);
     }
+    this.texture.needsUpdate = true;
+  }
+
+  drawFeedback(title, variant) {
+    const ctx = this.context;
+    ctx.fillStyle = variant === 'heal' ? '#bdf8d7' : '#ffe6b4';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '900 104px Georgia, "Microsoft YaHei", serif';
+    ctx.shadowColor = '#122534';
+    ctx.shadowBlur = 12;
+    ctx.fillText(title, LABEL.width / 2, LABEL.height / 2, LABEL.width - 32);
+    ctx.shadowBlur = 0;
     this.texture.needsUpdate = true;
   }
 

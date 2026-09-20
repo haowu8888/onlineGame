@@ -1218,30 +1218,8 @@
 
   // ===== Render Functions =====
   function renderBattleUnit(unit, isEnemy) {
-    const hpPct = unit.maxHp > 0 ? (unit.hp / unit.maxHp * 100) : 0;
-    const hpClass = hpPct <= 25 ? 'low' : hpPct <= 50 ? 'mid' : '';
-    const statusIcons = [];
-    if (unit.poisoned) statusIcons.push('🟢');
-    if (unit.stunned) statusIcons.push('💫');
-    if (unit.shield > 0) statusIcons.push('🛡️');
-    if (unit.atkBuffTurns > 0) statusIcons.push('⬆️');
-    if (unit.blocking) statusIcons.push('🔰');
-    if (unit.ultReady) statusIcons.push('⚡');
-    const isFocused = isEnemy && unit.alive && focusedEnemyId === unit.id;
-
-    const energyBar = unit.energy !== undefined
-      ? `<div class="unit-energy-bar"><div class="unit-energy-fill ${unit.ultReady ? 'ready' : ''}" style="width:${unit.energy}%"></div></div>`
-      : '';
-
-    return `<div class="cc-battle-unit ${unit.alive ? '' : 'dead'} ${isFocused ? 'focused' : ''} ${isEnemy && unit.alive ? 'enemy-clickable' : ''}" data-unit-id="${unit.id}">
-      <span class="unit-icon">${unit.icon || '👻'}</span>
-      <div class="unit-info">
-        <div class="unit-name">${isFocused ? '🎯 ' : ''}${unit.name} ${statusIcons.join('')}</div>
-        <div class="unit-hp-bar"><div class="unit-hp-fill ${hpClass}" style="width:${hpPct}%"></div></div>
-        <div class="unit-hp-text">${unit.hp}/${unit.maxHp}</div>
-        ${energyBar}
-      </div>
-    </div>`;
+    return CardCollectBattleView.renderUnit({ unit, isEnemy, focusedId: focusedEnemyId,
+      portrait: CardCollectRosterView.portraitMarkup, escape: escapeHtml });
   }
 
   function renderBattle() {

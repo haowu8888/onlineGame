@@ -1,4 +1,4 @@
-import { META_MILESTONES, PERM_UPGRADES, getPermUpgradeCost } from './knife-data.js?v=35';
+import { META_MILESTONES, PERM_UPGRADES, getPermUpgradeCost } from './knife-data.js?v=38';
 
 export class KnifeMetaProgress {
   constructor(storage) {

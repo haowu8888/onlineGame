@@ -1,5 +1,5 @@
-import { CFG } from './knife-data.js?v=35';
-import { angle, dist, lineCircleIntersect } from './knife-math.js?v=35';
+import { CFG } from './knife-data.js?v=38';
+import { angle, dist, lineCircleIntersect } from './knife-math.js?v=38';
 
 export const CombatMethods = {
   checkBladeHits() {
@@ -33,6 +33,7 @@ export const CombatMethods = {
   damageEnemy({ enemy, damage, color, isCrit = false }) {
     if (!enemy.alive) return 0;
     const actual = enemy.takeDamage(damage);
+    this.emitImpact({ enemy, color, critical: isCrit, defeated: !enemy.alive });
     this.player.totalDmgDealt += actual;
     this.dmgTexts.push(this.entities.text({ x: enemy.x + this.rnd(-8, 8), y: enemy.y - enemy.radius, text: String(actual), color, isCrit }));
     if (!enemy.alive) this.onEnemyDeath(enemy);

@@ -1,5 +1,5 @@
-import { createKnifeIcon } from './knife-icons.js?v=35';
-import { DASH } from './knife-movement.js?v=35';
+import { createKnifeIcon } from './knife-icons.js?v=38';
+import { DASH } from './knife-movement.js?v=38';
 
 const FRAME_RATE = 60;
 const TERRAIN_NAMES = Object.freeze({ plain: '青岚庭院', lava: '赤焰古道', ice: '寒玉秘境' });

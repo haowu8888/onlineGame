@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three.module.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
 
 const INPUT = Object.freeze({ dragPixels: 7, radiansPerPixel: 0.006, zoomStep: 1.18, turnStep: Math.PI / 8 });
 
@@ -29,7 +29,10 @@ export class SceneInput {
     this.canvas.addEventListener('pointerdown', event => this.pointerDown(event), { signal });
     this.canvas.addEventListener('pointermove', event => this.pointerMove(event), { signal });
     this.canvas.addEventListener('pointerup', event => this.pointerUp(event), { signal });
-    this.canvas.addEventListener('pointercancel', () => { this.down = null; }, { signal });
+    ['pointercancel', 'lostpointercapture'].forEach(type => {
+      this.canvas.addEventListener(type, event => this.cancelPointer(event), { signal });
+    });
+    this.canvas.addEventListener('pointerleave', () => this.clearHover(), { signal });
     this.canvas.addEventListener('keydown', event => this.keyDown(event), { signal });
     this.root.querySelectorAll('[data-view]').forEach(button => {
       button.addEventListener('click', () => this.changeView(button.dataset.view), { signal });
@@ -37,18 +40,22 @@ export class SceneInput {
   }
 
   pointerDown(event) {
-    if (event.button !== 0) return;
-    this.down = { x: event.clientX, y: event.clientY, lastX: event.clientX, dragged: false };
+    if (event.button !== 0 || event.isPrimary === false || this.down) return;
+    this.clearHover();
+    this.down = { pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+      lastX: event.clientX, dragged: false };
     this.canvas.setPointerCapture(event.pointerId);
   }
 
   // 悬停拾取要对整个场景做射线检测，连续的指针移动合并到下一动画帧只检测一次。
   pointerMove(event) {
+    if (event.isPrimary === false) return;
     if (!this.down) {
       this.hover = { clientX: event.clientX, clientY: event.clientY };
       if (this.hoverFrame === null) this.hoverFrame = requestAnimationFrame(() => this.updateHover());
       return;
     }
+    if (event.pointerId !== this.down.pointerId) return;
     const delta = Math.hypot(event.clientX - this.down.x, event.clientY - this.down.y);
     if (delta > INPUT.dragPixels) this.down.dragged = true;
     if (this.down.dragged) this.orbit({ yaw: (event.clientX - this.down.lastX) * INPUT.radiansPerPixel });
@@ -66,10 +73,24 @@ export class SceneInput {
 
   pointerUp(event) {
     const down = this.down;
-    this.down = null;
-    if (!down || down.dragged) return;
+    if (!down || event.pointerId !== down.pointerId) return;
+    this.cancelPointer(event);
+    if (down.dragged) return;
     const hit = this.hit(event);
     if (hit) this.activate(hit);
+  }
+
+  cancelPointer(event) {
+    if (!this.down || this.down.pointerId !== event.pointerId) return;
+    this.down = null;
+    if (this.canvas.hasPointerCapture(event.pointerId)) this.canvas.releasePointerCapture(event.pointerId);
+  }
+
+  clearHover() {
+    if (this.hoverFrame !== null) cancelAnimationFrame(this.hoverFrame);
+    this.hoverFrame = null;
+    this.hover = null;
+    this.canvas.style.cursor = 'grab';
   }
 
   hit(event) {
@@ -85,21 +106,28 @@ export class SceneInput {
   }
 
   keyDown(event) {
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
     const targets = this.targets();
     if (!targets.length) return;
     const index = targets.findIndex(target => target.userData.key === this.selectedKey);
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      this.activate(targets[Math.max(0, index)]);
+      if (!event.repeat) this.activate(targets[Math.max(0, index)]);
       return;
     }
-    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    const direction = event.key === 'ArrowLeft' ? -1 : 1;
-    const next = targets[(index + direction + targets.length) % targets.length];
+    const next = targets[this.nextIndex(event.key, index, targets.length)];
     this.selectedKey = next.userData.key;
     this.announce(next.userData.label + '，按回车执行');
+  }
+
+  nextIndex(key, index, count) {
+    if (key === 'Home') return 0;
+    if (key === 'End') return count - 1;
+    const direction = key === 'ArrowLeft' ? -1 : 1;
+    if (index < 0) return direction < 0 ? count - 1 : 0;
+    return (index + direction + count) % count;
   }
 
   changeView(view) {
@@ -111,9 +139,8 @@ export class SceneInput {
   }
 
   dispose() {
-    if (this.hoverFrame !== null) cancelAnimationFrame(this.hoverFrame);
-    this.hoverFrame = null;
-    this.hover = null;
+    if (this.down) this.cancelPointer(this.down);
+    this.clearHover();
     this.events.abort();
   }
 }

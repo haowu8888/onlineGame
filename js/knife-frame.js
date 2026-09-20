@@ -1,5 +1,5 @@
-import { CFG } from './knife-data.js?v=35';
-import { compactAlive } from './knife-math.js?v=35';
+import { CFG } from './knife-data.js?v=38';
+import { compactAlive } from './knife-math.js?v=38';
 
 export const FrameMethods = {
   update() {

@@ -19,7 +19,7 @@ export class SceneShell {
       '<button type="button" data-view="out" aria-label="拉远视角">−</button>' +
       '<button type="button" data-view="reset">复位</button></div></header>' +
       '<div class="scene-viewport"><canvas tabindex="0" role="application" ' +
-      'aria-label="游戏场景。左右方向键选择目标，回车执行；鼠标点选，拖动转向。"></canvas>' +
+      'aria-label="游戏场景。左右方向键选择目标，Home / End 跳到首尾，回车执行；鼠标点选，拖动转向。"></canvas>' +
       '<div class="scene-error" role="alert" hidden></div></div>' +
       '<p class="scene-hint" role="status" aria-live="polite">点选场景互动 · 拖动转向 · 方向键选取 / 回车确认</p>';
     this.canvas = this.root.querySelector('canvas');

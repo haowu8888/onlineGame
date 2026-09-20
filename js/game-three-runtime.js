@@ -1,9 +1,10 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { SceneResources } from './game-three-resources.js?v=35';
-import { ScenePieces } from './game-three-units.js?v=35';
-import { SceneScenery } from './game-three-scenery.js?v=35';
-import { SceneInput } from './game-three-input.js?v=35';
-import { PALETTE, SCENE_THEMES, VIEW } from './game-three-palette.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { SceneResources } from './game-three-resources.js?v=38';
+import { ScenePieces } from './game-three-units.js?v=38';
+import { SceneScenery } from './game-three-scenery.js?v=38';
+import { SceneInput } from './game-three-input.js?v=38';
+import { PALETTE, SCENE_THEMES, VIEW } from './game-three-palette.js?v=38';
+import { SceneAtmosphere } from './game-three-atmosphere.js?v=38';
 
 export class ThreeGameScene {
   constructor({ shell, source, document, window }) {
@@ -12,6 +13,7 @@ export class ThreeGameScene {
     this.pieces = new ScenePieces(this.resources);
     this.scenery = new SceneScenery(this.resources);
     this.scene = new THREE.Scene();
+    this.atmosphere = new SceneAtmosphere(this.scene);
     this.scene.background = new THREE.Color(PALETTE.mist);
     this.scene.fog = new THREE.Fog(PALETTE.mist, 36, 72);
     this.camera = new THREE.OrthographicCamera(-9, 9, 8.5, -8.5, VIEW.near, VIEW.far);
@@ -20,6 +22,8 @@ export class ThreeGameScene {
     this.lastRead = -Infinity;
     this.lastTime = null;
     this.frameCount = 0;
+    this.modelKey = null;
+    this.needsRender = true;
     this.inView = true;
     this.failed = false;
     this.disposed = false;
@@ -40,6 +44,7 @@ export class ThreeGameScene {
       action: action => this.activate(action), announce: text => this.shell.announce(text) });
     this.motion = this.window.matchMedia('(prefers-reduced-motion: reduce)');
     this.events = new AbortController();
+    this.motion.addEventListener('change', () => { this.needsRender = true; }, { signal: this.events.signal });
     this.bindLifecycle();
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.shell.canvas);
@@ -90,16 +95,21 @@ export class ThreeGameScene {
 
   readState(time) {
     const model = this.source.read();
+    this.shell.mount(this.source.mount ? this.source.mount() : null);
+    const key = JSON.stringify(model);
+    if (key === this.modelKey) return;
     this.model = model;
     const theme = SCENE_THEMES[model.theme];
+    this.atmosphere.update(theme);
     this.scene.background.setHex(theme.sky);
     this.scene.fog.color.setHex(theme.sky);
     this.sun.color.setHex(theme.light);
     if (this.scenery.sync(model)) this.resize();
     this.pieces.update(model, time);
-    this.shell.mount(this.source.mount ? this.source.mount() : null);
     this.shell.update(model);
     this.scene.updateMatrixWorld(true);
+    this.modelKey = key;
+    this.needsRender = true;
   }
 
   activate(action) {
@@ -133,6 +143,7 @@ export class ThreeGameScene {
 
   resize() {
     if (!this.renderer || !this.model) return;
+    this.needsRender = true;
     const width = this.shell.canvas.clientWidth;
     const height = this.shell.canvas.clientHeight;
     this.viewportVisible = Boolean(width && height);
@@ -160,8 +171,11 @@ export class ThreeGameScene {
         this.lastRead = milliseconds;
       }
       if (!this.viewportVisible || !this.inView) return;
+      const animated = this.model.units.length > 0 && !this.motion.matches;
+      if (!animated && !this.needsRender) return;
       this.pieces.animate(seconds, elapsed, this.motion.matches);
       this.renderer.render(this.scene, this.camera);
+      this.needsRender = false;
       this.frameCount++;
     } catch (error) {
       this.fail(error);
@@ -178,6 +192,7 @@ export class ThreeGameScene {
     if (!this.renderer || this.failed || this.disposed || this.document.hidden) return;
     this.lastTime = null;
     this.lastRead = -Infinity;
+    this.needsRender = true;
     this.renderer.setAnimationLoop(time => this.frame(time));
   }
 
@@ -214,6 +229,7 @@ export class ThreeGameScene {
     if (this.input) this.input.dispose();
     this.scenery.dispose();
     this.pieces.dispose();
+    this.atmosphere.dispose();
     this.resources.dispose();
     this.scene.traverse(object => { if (object.shadow) object.shadow.dispose(); });
     if (this.renderer) this.renderer.dispose();

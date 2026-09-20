@@ -1,9 +1,9 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { ARENA } from './knife-three-config.js?v=35';
-import { ArenaStage } from './knife-three-stage.js?v=35';
-import { ArenaActors } from './knife-three-actors.js?v=35';
-import { ArenaEffects } from './knife-three-effects.js?v=35';
-import { ArenaLabels } from './knife-three-labels.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { ARENA } from './knife-three-config.js?v=38';
+import { ArenaStage } from './knife-three-stage.js?v=38';
+import { ArenaActors } from './knife-three-actors.js?v=38';
+import { ArenaEffects } from './knife-three-effects.js?v=38';
+import { ArenaLabels } from './knife-three-labels.js?v=38';
 
 export class KnifeArena {
   constructor({ canvas, labels }) {
@@ -62,13 +62,14 @@ export class KnifeArena {
       this.camera.updateProjectionMatrix();
     }
     const time = motion ? (playing ? game.totalFrames / ARENA.framesPerSecond : timestamp / 1000) : 0;
+    const punch = motion ? game.impactPower : 0;
     const center = playing
-      ? { x: game.cameraX + ARENA.viewportWidth / 2 - (motion ? game.shakeX : 0),
-        y: game.cameraY + ARENA.viewportHeight / 2 - (motion ? game.shakeY : 0) }
+      ? { x: game.cameraX + ARENA.viewportWidth / 2 - (motion ? game.shakeX : 0) - Math.cos(game.impactAngle) * punch,
+        y: game.cameraY + ARENA.viewportHeight / 2 - (motion ? game.shakeY : 0) - Math.sin(game.impactAngle) * punch }
       : this.menuCenter(zoom);
     this.stage.update({ center, terrain: game.terrain?.id || 'plain', time });
     this.actors.render({ game, center, time });
-    this.effects.render({ game, center, time });
+    this.effects.render({ game, center, time, motion });
     this.renderer.render(this.scene, this.camera);
     this.labels.render({ game, center, showDamage, motion });
   }

@@ -1,6 +1,6 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { connection } from './game-three-resources.js?v=35';
-import { PALETTE as P } from './game-three-palette.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { connection } from './game-three-resources.js?v=38';
+import { PALETTE as P } from './game-three-palette.js?v=38';
 
 const HALF_TURN = Math.PI;
 const SKIN = 0xe5bea0;

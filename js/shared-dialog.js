@@ -45,7 +45,8 @@ class ModalFocus {
   onKeyDown(event) {
     if (event.key !== 'Tab' || !this.overlay.classList.contains('active')) return;
     const active = [...document.querySelectorAll('.modal-overlay.active')];
-    if (active[active.length - 1] !== this.overlay) return;
+    const top = document.querySelector('.guide-overlay.active') || active[active.length - 1];
+    if (top !== this.overlay) return;
     const elements = this.focusableElements();
     const first = elements[0];
     const last = elements[elements.length - 1];

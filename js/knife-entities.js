@@ -1,6 +1,6 @@
-import { CFG, TAU } from './knife-data.js?v=35';
-import { dist } from './knife-math.js?v=35';
-import { MOVEMENT, DASH, movementVector, idleDash, beginDash, advanceDash } from './knife-movement.js?v=35';
+import { CFG, TAU } from './knife-data.js?v=38';
+import { dist } from './knife-math.js?v=38';
+import { MOVEMENT, DASH, movementVector, idleDash, beginDash, advanceDash } from './knife-movement.js?v=38';
 
 /* ---- 实体基类 ---- */
 export class Entity {

@@ -108,7 +108,7 @@ test('地图每走一步只重建地块层，山川布景与共享材质保留�
   watch(backdrop, 'backdrop');
   watch(layout, 'layout');
   assert.ok(backdrop.owned.size > 0 && layout.owned.size > 0);
-  assert.deepEqual(scenery.targets.map(target => target.userData.key), ['0,0', '1,0', '2,0']);
+  assert.deepEqual(Array.from(scenery.targets, target => target.userData.key), ['0,0', '1,0', '2,0']);
   assert.equal(scenery.sync(mapModel(0)), false);
   const materials = scene.resources.materials.size;
   assert.equal(scenery.sync(mapModel(1)), true);
@@ -116,10 +116,104 @@ test('地图每走一步只重建地块层，山川布景与共享材质保留�
   assert.notEqual(scenery.layout, layout);
   assert.equal(scene.resources.materials.size, materials);
   assert.ok(released.length > 0 && released.every(name => name === 'layout'));
-  assert.deepEqual(scenery.targets.map(target => target.userData.key), ['1,0', '2,0', '3,0']);
+  assert.deepEqual(Array.from(scenery.targets, target => target.userData.key), ['1,0', '2,0', '3,0']);
   assert.equal(scenery.root.children.length, 2);
   scene.dispose();
   assert.ok(released.includes('backdrop'));
   assert.equal(scenery.root.children.length, 0);
   assert.equal(scene.scene.children.includes(scenery.root), false);
+});
+
+function createFrameScene(ThreeGameScene, initial) {
+  let model = initial;
+  let parent = null;
+  const stats = { renders: 0, updates: 0, mounts: 0, parent: null };
+  const canvas = Object.assign(new EventTarget(), { clientWidth: 800, clientHeight: 450 });
+  const shell = { canvas, update: () => stats.updates++, mount: value => { stats.mounts++; stats.parent = value; } };
+  const document = Object.assign(new EventTarget(), { hidden: false });
+  const source = { id: 'test', read: () => structuredClone(model), mount: () => parent };
+  const scene = new ThreeGameScene({ shell, source, document, window: new EventTarget() });
+  scene.renderer = { render: () => stats.renders++, setSize() {}, setAnimationLoop() {}, dispose() {} };
+  scene.motion = { matches: false };
+  return { scene, stats, setModel: value => { model = value; }, setParent: value => { parent = value; } };
+}
+
+const gardenModel = units => ({ kind: 'garden', theme: 'cultivation', title: '修行',
+  caption: '', units, cards: [], markers: [] });
+
+test('静止场景仅在状态、视角或尺寸变化时绘制，相同状态仍检查挂载位置', async () => {
+  const [, , , { ThreeGameScene }] = await modules;
+  const runtime = createFrameScene(ThreeGameScene, gardenModel([]));
+  const { scene, stats } = runtime;
+  scene.frame(0);
+  for (let time = 16; time <= 1000; time += 16) scene.frame(time);
+  assert.equal(stats.renders, 1);
+  assert.equal(stats.updates, 1);
+  assert.ok(stats.mounts > 1);
+  const parent = {};
+  runtime.setParent(parent);
+  scene.frame(1200);
+  assert.equal(stats.parent, parent);
+  assert.equal(stats.renders, 1);
+  runtime.setModel({ ...gardenModel([]), title: '下一境界' });
+  scene.frame(1400);
+  assert.equal(stats.renders, 2);
+  assert.equal(stats.updates, 2);
+  scene.orbit({ yaw: 0.2 });
+  scene.frame(1416);
+  assert.equal(stats.renders, 3);
+  scene.resize();
+  scene.frame(1432);
+  assert.equal(stats.renders, 4);
+  scene.dispose();
+});
+
+test('正常人物动画逐帧绘制，减少动态效果时按需更新，生命值变化仍立即呈现', async () => {
+  const [, , , { ThreeGameScene }] = await modules;
+  const unit = { key: 'player', name: '修士', role: 'sage', side: 'player', x: 0, z: 0, hp: 10, maxHp: 10 };
+  const runtime = createFrameScene(ThreeGameScene, gardenModel([unit]));
+  const { scene, stats } = runtime;
+  scene.frame(0);
+  scene.frame(16);
+  scene.frame(32);
+  assert.equal(stats.renders, 3);
+  scene.motion.matches = true;
+  scene.needsRender = true;
+  scene.frame(48);
+  scene.frame(64);
+  scene.frame(120);
+  assert.equal(stats.renders, 4);
+  assert.equal(stats.updates, 1);
+  runtime.setModel(gardenModel([{ ...unit, hp: 5, x: 2 }]));
+  scene.frame(240);
+  assert.equal(stats.renders, 5);
+  const piece = scene.pieces.pieces.get('player');
+  assert.equal(piece.root.position.x, 2);
+  assert.equal(piece.lastHp, 5);
+  scene.frame(360);
+  assert.equal(stats.renders, 5);
+  scene.motion.matches = false;
+  scene.frame(376);
+  scene.frame(392);
+  assert.equal(stats.renders, 7);
+  scene.dispose();
+});
+
+test('画布不可见时保留待绘制状态，恢复或从页面缓存返回后重绘', async () => {
+  const [, , , { ThreeGameScene }] = await modules;
+  const { scene, stats, setModel } = createFrameScene(ThreeGameScene, gardenModel([]));
+  scene.frame(0);
+  scene.inView = false;
+  setModel({ ...gardenModel([]), title: '后台更新' });
+  scene.frame(120);
+  assert.equal(stats.renders, 1);
+  assert.equal(scene.needsRender, true);
+  scene.inView = true;
+  scene.frame(136);
+  assert.equal(stats.renders, 2);
+  scene.pause();
+  scene.resume();
+  scene.frame(152);
+  assert.equal(stats.renders, 3);
+  scene.dispose();
 });

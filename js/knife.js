@@ -1,8 +1,8 @@
-import { KnifeArena } from './knife-three.js?v=35';
-import { KnifeUI } from './knife-ui.js?v=35';
-import { sceneryObstacles } from './knife-scenery.js?v=35';
+import { KnifeArena } from './knife-three.js?v=38';
+import { KnifeUI } from './knife-ui.js?v=38';
+import { sceneryObstacles } from './knife-scenery.js?v=38';
 import { Game, MetaProgress, META_MILESTONES, CHALLENGE_MODIFIERS,
-  PERM_UPGRADES, getPermUpgradeCost } from './knife-game.js?v=35';
+  PERM_UPGRADES, getPermUpgradeCost } from './knife-game.js?v=38';
 
 initNav('knife');
 

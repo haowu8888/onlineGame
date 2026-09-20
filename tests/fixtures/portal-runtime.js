@@ -4,12 +4,13 @@ const vm = require('node:vm');
 const { makeDom } = require('./dom');
 const { createStorage } = require('./game-runtime');
 const progression = require('../../js/cardcollect-progression.js');
+const { createScheduler } = require('./shared-storage');
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 const VM_TIMEOUT_MS = 1000;
 const PORTAL_SCRIPTS = [
   'portal-exchange-data.js', 'portal-exchange-model.js', 'portal-exchange.js',
-  'portal-profile.js', 'portal-missions.js', 'portal-leaderboard.js', 'portal-library.js', 'portal.js',
+  'portal-profile.js', 'portal-missions.js', 'portal-leaderboard.js', 'portal-library-location.js', 'portal-library.js', 'portal.js',
 ];
 
 function createFrames() {
@@ -61,6 +62,8 @@ function buildContext(runtime) {
   const { document, storage, frames, events, services, calls } = runtime;
   const context = vm.createContext({
     document, Storage: storage, CardCollectProgression: progression,
+    URL, location: runtime.location, history: runtime.history,
+    setTimeout: runtime.timers.schedule, clearTimeout: runtime.timers.cancel,
     CrossGameAchievements: services.achievements, CrossGameRewards: services.rewards,
     DailyMissions: services.missions,
     formatNumber: value => String(value ?? 0),
@@ -85,7 +88,7 @@ function buildContext(runtime) {
   return context;
 }
 
-function createPortalRuntime(initialStorage = {}) {
+function createPortalRuntime(initialStorage = {}, href = 'https://example.test/app/') {
   const storage = createStorage(initialStorage);
   storage.setManyImmediate = updates => {
     Object.entries(updates).forEach(([key, value]) => storage.setImmediate(key, value));
@@ -95,6 +98,11 @@ function createPortalRuntime(initialStorage = {}) {
     storage, document: makeDom(fs.readFileSync(path.join(PROJECT_ROOT, 'index.html'), 'utf8')),
     frames: createFrames(), events: createEvents(), services: createServices(storage),
     calls: { particles: [], scrollAnimations: 0, toasts: [], errors: [], settings: null },
+    timers: createScheduler(), location: { href },
+  };
+  runtime.history = {
+    state: { scroll: 10 }, writes: [],
+    replaceState(state, title, next) { this.state = state; this.writes.push(next); runtime.location.href = next; },
   };
   runtime.context = buildContext(runtime);
   for (const file of PORTAL_SCRIPTS) {

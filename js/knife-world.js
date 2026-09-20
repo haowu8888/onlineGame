@@ -1,6 +1,6 @@
-import { CFG } from './knife-data.js?v=35';
-import { angle, dist, lerp } from './knife-math.js?v=35';
-import { resolveMovement, resolveObstacles } from './knife-scenery.js?v=35';
+import { CFG } from './knife-data.js?v=38';
+import { angle, dist, lerp } from './knife-math.js?v=38';
+import { resolveMovement, resolveObstacles } from './knife-scenery.js?v=38';
 
 export const WorldMethods = {
   updatePlayerMovement() {

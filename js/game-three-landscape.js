@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { PALETTE as P } from './game-three-palette.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { PALETTE as P } from './game-three-palette.js?v=38';
 
 const RIDGES = [[-13, -13, 11, 6], [-8, -15, 13, 6], [-3, -16, 9, 5],
   [4, -15, 12, 5], [10, -14, 10, 6], [16, -12, 11, 6]];

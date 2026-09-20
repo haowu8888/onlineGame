@@ -1,10 +1,11 @@
-import { CFG, TERRAINS, PLAYER_SKILLS, PERM_UPGRADES } from './knife-data.js?v=35';
+import { CFG, TERRAINS, PLAYER_SKILLS, PERM_UPGRADES } from './knife-data.js?v=38';
 
 export const RunMethods = {
   resetRun() {
     Object.assign(this, {
       player: this.entities.player({ x: 0, y: 0 }), enemies: [], projectiles: [], pickups: [],
       dmgTexts: [], particles: [], bladeTrails: [], dashTrails: [], swordQiProjectiles: [], chests: [], hazards: [],
+      impacts: [], impactPower: 0, impactAngle: 0, impactSound: 0,
       skills: PLAYER_SKILLS.map(skill => ({ ...skill, currentCooldown: 0, active: false, activeTimer: 0 })),
       shadowClone: null, chestTimer: 0, wave: 0, waveTimer: 0, waveTransition: 0, spawnTimer: 0,
       upgradeQueue: 0, pendingUpgrades: [], pendingBlessings: [], _blessingsTaken: {}, totalFrames: 0,

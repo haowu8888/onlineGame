@@ -1,15 +1,31 @@
 /* 导入提交成功后立即重载，避免运行中的旧游戏再次覆盖新存档。 */
+const SAVE_BYTES_PER_KIBIBYTE = 1024;
+
 class SaveTransfer {
   constructor(options) {
     this.storage = options.storage;
     this.version = options.version;
     this.reload = options.reload;
     this.now = options.now;
+    this.capture = options.capture;
     this.isReloading = false;
   }
 
   createSnapshot() {
+    this.capture();
     return { ...this.storage.getSnapshot(), __save_version: this.version, __export_time: this.now().toISOString() };
+  }
+
+  inspectSnapshot(data) {
+    const incoming = this.validateSnapshot(data);
+    const current = this.storage.getSnapshot();
+    const counts = { added: 0, replaced: 0, unchanged: 0 };
+    for (const [key, raw] of Object.entries(incoming)) {
+      if (!Object.hasOwn(current, key)) counts.added++;
+      else if (current[key] === raw) counts.unchanged++;
+      else counts.replaced++;
+    }
+    return Object.freeze({ ...counts, total: Object.keys(incoming).length });
   }
 
   validateSnapshot(data) {
@@ -42,6 +58,7 @@ window.GameSaveTransfer = new SaveTransfer({
   version: CONSTANTS.SAVE_VERSION,
   reload: () => location.reload(),
   now: () => new Date(),
+  capture: () => GameSaveCheckpoints.capture(),
 });
 
 function exportData() {
@@ -56,7 +73,7 @@ function exportData() {
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-    showToast(`存档导出成功 (${Storage.getUsedSize()}KB)`, 'success');
+    showToast(`已生成存档文件 (${(blob.size / SAVE_BYTES_PER_KIBIBYTE).toFixed(1)} KB)，请在浏览器下载中查看。`, 'success');
   } catch (error) {
     console.error('导出存档失败:', error);
     showToast(`导出失败：${error.message}`, 'error');
@@ -70,7 +87,14 @@ function readImportFile(file) {
   }
   const reader = new FileReader();
   reader.onload = () => {
-    try { GameSaveTransfer.applySnapshot(JSON.parse(reader.result)); }
+    try {
+      const data = JSON.parse(reader.result);
+      GameSaveTransfer.validateSnapshot(data);
+      new SaveImportDialog({
+        document, transfer: GameSaveTransfer, createFocus: overlay => new ModalFocus(overlay),
+        exportCurrent: exportData, reportError: error => console.error('导入存档失败:', error),
+      }).open(data, file.name);
+    }
     catch (error) {
       console.error('导入存档失败:', error);
       showToast(`导入失败：${error.message}`, 'error', CONSTANTS.STORAGE_ERROR_DURATION);

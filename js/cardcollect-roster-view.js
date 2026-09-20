@@ -6,11 +6,12 @@
 
   function portraitMarkup(id, className = 'cc-portrait') {
     return `<svg class="${className}" viewBox="0 0 120 144" aria-hidden="true" focusable="false">
-      <use href="../assets/cardcollect/portraits.svg?v=35#character-${id}"></use></svg>`;
+      <use href="../assets/cardcollect/portraits.svg?v=38#character-${id}"></use></svg>`;
   }
 
   function portrait(card, escape) {
     return `<div class="cc-character-art" aria-hidden="true">${portraitMarkup(card.id)}
+      <span class="cc-art-rarity">${escape(card.quality)}</span>
       <span class="cc-role-stamp">${escape(card.roleLabel)}</span></div>`;
   }
 

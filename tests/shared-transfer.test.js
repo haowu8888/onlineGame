@@ -59,3 +59,24 @@ test('PWA 更新前存储失败会取消更新，重试成功后允许更新', (
   document.dispatchEvent(retried);
   assert.equal(retried.defaultPrevented, false);
 });
+
+test('导入预览区分新增、替换与相同数据，读取最新 pending 且不写盘或重载', () => {
+  const { api, control, context } = createSharedRuntime({ save: '1', settings: 'false' });
+  api.Storage.set('save', 2);
+  const summary = api.GameSaveTransfer.inspectSnapshot({
+    __save_version: 1, save: '2', settings: 'true', new_game: '{"level":1}',
+  });
+  assert.deepEqual(plain(summary), { added: 1, replaced: 1, unchanged: 1, total: 3 });
+  assert.equal(control.writes.length, 0);
+  assert.equal(context.reloads, 0);
+  assert.equal(api.Storage.pending.size, 1);
+});
+
+test('采集最新游戏进度异常时导出明确失败，并阻止 PWA 更新', () => {
+  const { api, document, errors } = createSharedRuntime();
+  api.GameSaveCheckpoints.register('broken', () => { throw new Error('capture failed'); });
+  assert.throws(() => api.GameSaveTransfer.createSnapshot(), /capture failed/);
+  const update = new BrowserEvent('pwa:before-update', { cancelable: true });
+  assert.equal(document.dispatchEvent(update), false);
+  assert.ok(errors.some(entry => entry[0].includes('采集最新进度')));
+});

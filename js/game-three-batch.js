@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three.module.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
 
 function mergeMeshes(meshes) {
   const geometries = meshes.map(mesh => {

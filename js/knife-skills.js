@@ -1,4 +1,4 @@
-import { CFG } from './knife-data.js?v=35';
+import { CFG } from './knife-data.js?v=38';
 
 const SKILL_ACTIONS = Object.freeze({
   sword_qi: 'castSwordQi', shadow_clone: 'castShadowClone', golden_bell: 'castGoldenBell',

@@ -100,3 +100,51 @@ test('最近游玩按实际时间去重排序，排除未知入口与非法时�
   assert.deepEqual(records, original);
   assert.throws(() => selectRecent(games, {}), /最近游玩记录格式错误/);
 });
+
+test('分享地址恢复搜索和分类，未知分类显示全部类别，地址内容只按文本搜索', () => {
+  const restored = createPortalRuntime({}, 'https://example.test/app/?q=卡牌&category=roguelike#hall');
+  assert.deepEqual(visibleGames(restored), ['cardtower']);
+  assert.equal(restored.document.getElementById('game-search').value, '卡牌');
+  assert.equal(restored.history.writes.length, 0);
+  const unknown = createPortalRuntime({}, 'https://example.test/app/?category=missing&q=RPG');
+  assert.deepEqual(visibleGames(unknown), ['cultivation', 'guigu']);
+  const markup = createPortalRuntime({}, 'https://example.test/app/?q=%3Cscript%3E');
+  assert.equal(markup.document.getElementById('game-search').value, '<script>');
+  assert.deepEqual(visibleGames(markup), []);
+});
+
+test('连续输入即时筛选且合并地址更新，保留其他参数、锚点和既有历史状态', () => {
+  const runtime = createPortalRuntime({}, 'https://example.test/app/?source=bookmark#hall');
+  search(runtime, '肉');
+  search(runtime, '肉鸽');
+  search(runtime, '肉鸽 卡牌');
+  assert.deepEqual(visibleGames(runtime), ['cardtower']);
+  assert.equal(runtime.history.writes.length, 0);
+  runtime.timers.runPending();
+  const url = new URL(runtime.location.href);
+  assert.equal(url.searchParams.get('q'), '肉鸽 卡牌');
+  assert.equal(url.searchParams.get('source'), 'bookmark');
+  assert.equal(url.hash, '#hall');
+  assert.deepEqual(runtime.history.state, { scroll: 10 });
+  assert.equal(runtime.history.writes.length, 1);
+  runtime.document.getElementById('game-filter-reset').click();
+  runtime.timers.runPending();
+  assert.equal(runtime.location.href, 'https://example.test/app/?source=bookmark#hall');
+});
+
+test('点击游戏与页面离开前提交筛选，历史返回会取消未完成的输入写入', () => {
+  const runtime = createPortalRuntime();
+  search(runtime, '仙卡');
+  runtime.events.dispatch({ type: 'click', target: runtime.document.querySelector('[data-game="cardcollect"]') });
+  assert.equal(new URL(runtime.location.href).searchParams.get('q'), '仙卡');
+  search(runtime, '新搜索');
+  runtime.location.href = 'https://example.test/app/?q=RPG&category=growth';
+  runtime.events.dispatch({ type: 'popstate' });
+  runtime.timers.runPending();
+  assert.deepEqual(visibleGames(runtime), ['cultivation', 'guigu']);
+  assert.equal(runtime.document.getElementById('game-search').value, 'RPG');
+  assert.equal(runtime.history.writes.length, 1);
+  search(runtime, '鬼谷');
+  runtime.events.dispatch({ type: 'pagehide' });
+  assert.equal(new URL(runtime.location.href).searchParams.get('q'), '鬼谷');
+});

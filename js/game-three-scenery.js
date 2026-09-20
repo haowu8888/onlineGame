@@ -1,10 +1,10 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { connection } from './game-three-resources.js?v=35';
-import { island, tree, pavilion, pagoda, halo } from './game-three-props.js?v=35';
-import { SceneLabel } from './game-three-labels.js?v=35';
-import { landscape, terrace, lantern } from './game-three-landscape.js?v=35';
-import { bakeStaticMeshes } from './game-three-batch.js?v=35';
-import { PALETTE as P, SCENE_THEMES } from './game-three-palette.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { connection } from './game-three-resources.js?v=38';
+import { island, tree, pavilion, pagoda, halo } from './game-three-props.js?v=38';
+import { SceneLabel } from './game-three-labels.js?v=38';
+import { landscape, terrace, lantern } from './game-three-landscape.js?v=38';
+import { bakeStaticMeshes } from './game-three-batch.js?v=38';
+import { PALETTE as P, SCENE_THEMES } from './game-three-palette.js?v=38';
 
 const RING_TICKS = 48;
 const TAU = Math.PI * 2;

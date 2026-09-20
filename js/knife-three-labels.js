@@ -1,9 +1,9 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { ARENA, worldPosition } from './knife-three-config.js?v=35';
-import { roundedRect } from './canvas-shapes.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { ARENA, worldPosition } from './knife-three-config.js?v=38';
+import { roundedRect } from './canvas-shapes.js?v=38';
 
 const LABEL = Object.freeze({
-  normalSize: 14, criticalSize: 19, comboSize: 19,
+  normalSize: 15, criticalSize: 24, comboSize: 19,
   lift: 2.1, fadeFraction: 0.3, comboThreshold: 2,
   comboRight: 24, comboTop: 108, mobileComboTop: 173, mobileWidth: 760,
 });
@@ -40,7 +40,7 @@ export class ArenaLabels {
     ctx.textBaseline = 'middle';
     ctx.strokeStyle = '#102028';
     ctx.lineWidth = 3;
-    if (showDamage) (game.dmgTexts || []).forEach(item => this.drawDamage(item, center));
+    if (showDamage) (game.dmgTexts || []).forEach(item => this.drawDamage(item, center, motion));
     ctx.globalAlpha = 1;
     if (game.killCombo >= LABEL.comboThreshold) this.drawCombo(game);
     (game.enemies || []).filter(enemy => enemy.alive && (enemy.isBoss || enemy.isElite))
@@ -55,14 +55,20 @@ export class ArenaLabels {
     }
   }
 
-  drawDamage(item, center) {
+  drawDamage(item, center, motion = true) {
     const ctx = this.context;
     const position = this.project(item, center);
     ctx.globalAlpha = Math.min(1, item.life / (item.maxLife * LABEL.fadeFraction));
-    ctx.font = '700 ' + (item.isCrit ? LABEL.criticalSize : LABEL.normalSize) + 'px system-ui';
-    ctx.fillStyle = item.color;
-    ctx.strokeText(item.text, position.x, position.y);
-    ctx.fillText(item.text, position.x, position.y);
+    const progress = 1 - item.life / item.maxLife;
+    const emphasis = motion ? 1 + Math.exp(-progress * 12) * (item.isCrit ? 0.38 : 0.16) : 1;
+    const size = (item.isCrit ? LABEL.criticalSize : LABEL.normalSize) * emphasis;
+    ctx.font = '900 ' + size.toFixed(1) + 'px Georgia, "Microsoft YaHei", serif';
+    ctx.fillStyle = item.isCrit ? '#fff0b5' : item.color;
+    ctx.lineWidth = item.isCrit ? 4 : 3;
+    const text = item.isCrit ? '暴击 ' + item.text : item.text;
+    ctx.strokeText(text, position.x, position.y);
+    ctx.fillText(text, position.x, position.y);
+    ctx.lineWidth = 3;
   }
 
   drawCombo(game) {

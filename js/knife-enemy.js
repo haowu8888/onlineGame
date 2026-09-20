@@ -1,6 +1,6 @@
-import { TAU, ENEMY_TYPES } from './knife-data.js?v=35';
-import { angle } from './knife-math.js?v=35';
-import { Entity } from './knife-entities.js?v=35';
+import { TAU, ENEMY_TYPES } from './knife-data.js?v=38';
+import { angle } from './knife-math.js?v=38';
+import { Entity } from './knife-entities.js?v=38';
 
 /* ---- 敌人 ---- */
 export class Enemy extends Entity {

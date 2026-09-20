@@ -1,5 +1,5 @@
-import { TAU, ENEMY_TYPES } from './knife-data.js?v=35';
-import { dist } from './knife-math.js?v=35';
+import { TAU, ENEMY_TYPES } from './knife-data.js?v=38';
+import { dist } from './knife-math.js?v=38';
 
 export const BossMethods = {
   _handleBossSkills() {

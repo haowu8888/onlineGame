@@ -1,20 +1,20 @@
-import { CFG, DIFF, TERRAINS } from './knife-data.js?v=35';
-import { Player } from './knife-entities.js?v=35';
-import { Enemy } from './knife-enemy.js?v=35';
-import { Projectile, Pickup, DmgText } from './knife-effects.js?v=35';
-import { KnifeMetaProgress } from './knife-meta.js?v=35';
-import { RunMethods } from './knife-run.js?v=35';
-import { SpawningMethods } from './knife-spawning.js?v=35';
-import { UpgradeMethods } from './knife-upgrades.js?v=35';
-import { SkillMethods } from './knife-skills.js?v=35';
-import { CombatMethods } from './knife-combat.js?v=35';
-import { BossMethods } from './knife-boss.js?v=35';
-import { DropMethods } from './knife-drops.js?v=35';
-import { FeedbackMethods } from './knife-feedback.js?v=35';
-import { WorldMethods } from './knife-world.js?v=35';
-import { FrameMethods } from './knife-frame.js?v=35';
+import { CFG, DIFF, TERRAINS } from './knife-data.js?v=38';
+import { Player } from './knife-entities.js?v=38';
+import { Enemy } from './knife-enemy.js?v=38';
+import { Projectile, Pickup, DmgText } from './knife-effects.js?v=38';
+import { KnifeMetaProgress } from './knife-meta.js?v=38';
+import { RunMethods } from './knife-run.js?v=38';
+import { SpawningMethods } from './knife-spawning.js?v=38';
+import { UpgradeMethods } from './knife-upgrades.js?v=38';
+import { SkillMethods } from './knife-skills.js?v=38';
+import { CombatMethods } from './knife-combat.js?v=38';
+import { BossMethods } from './knife-boss.js?v=38';
+import { DropMethods } from './knife-drops.js?v=38';
+import { FeedbackMethods } from './knife-feedback.js?v=38';
+import { WorldMethods } from './knife-world.js?v=38';
+import { FrameMethods } from './knife-frame.js?v=38';
 
-export { CFG, CHALLENGE_MODIFIERS, META_MILESTONES, PERM_UPGRADES, getPermUpgradeCost } from './knife-data.js?v=35';
+export { CFG, CHALLENGE_MODIFIERS, META_MILESTONES, PERM_UPGRADES, getPermUpgradeCost } from './knife-data.js?v=38';
 export const MetaProgress = new KnifeMetaProgress({
   get: (...args) => Storage.get(...args),
   setManyImmediate: values => Storage.setManyImmediate(values),
@@ -47,7 +47,8 @@ export class Game {
     Object.assign(this, { state: 'menu', player: null, keys: {}, joyDir: null, diff: DIFF.normal,
       activeModifiers: [], terrain: TERRAINS[0], _enemySpeedMul: 1, _noUpgrade: false, _bossRush: false,
       enemies: [], projectiles: [], pickups: [], particles: [], dmgTexts: [], skills: [],
-      goldPickups: [], swordQiProjectiles: [], chests: [], hazards: [], bladeTrails: [], dashTrails: [] });
+      goldPickups: [], swordQiProjectiles: [], chests: [], hazards: [], bladeTrails: [], dashTrails: [],
+      impacts: [], impactPower: 0, impactAngle: 0, impactSound: 0 });
   }
 
   setDifficulty(name) {

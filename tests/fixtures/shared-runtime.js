@@ -5,7 +5,7 @@ const { createMemoryStorage, createScheduler } = require('./shared-storage.js');
 
 const SHARED_FILES = [
   'shared-storage.js', 'shared.js', 'shared-data.js', 'shared-ui.js', 'shared-dialog.js',
-  'shared-transfer.js', 'shared-stats.js', 'shared-missions.js', 'shared-daily-ui.js',
+  'shared-transfer.js', 'shared-save-preview.js', 'shared-stats.js', 'shared-missions.js', 'shared-daily-ui.js',
   'shared-nav.js', 'shared-settings.js', 'shared-sound.js', 'shared-lifecycle.js', 'shared-guide.js',
 ];
 
@@ -137,7 +137,7 @@ function createSharedRuntime(initial = {}) {
   const api = vm.runInContext(`({ Storage, CONSTANTS, escapeHtml, formatNumber, clamp, randomInt, pick,
     FIVE_ELEMENTS, elementBonus, updateLeaderboard, getLeaderboard, getPlayerName,
     DailyMissions, CrossGameAchievements, CrossGameRewards, GameSaveTransfer, SaveTransfer,
-    SettingsModal, SettingsFields, ModalFocus, renderDailyMissions, SoundManager, SharedSoundController,
+    SettingsModal, SettingsFields, ModalFocus, SaveImportDialog, GameSaveCheckpoints, renderDailyMissions, SoundManager, SharedSoundController,
     recordRecentGame, bindNavigationMenu, normalizeDisabledButtons, watchDisabledButtons })`, context);
   return { ...storage, timers, errors, observers, document, context, api };
 }

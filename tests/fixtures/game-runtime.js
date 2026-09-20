@@ -6,6 +6,7 @@ const { makeDom } = require('./dom');
 const catalog = require('../../js/cardcollect-catalog.js');
 const progression = require('../../js/cardcollect-progression.js');
 const recovery = require('../../js/cultivation-recovery.js');
+const battleView = require('../../js/cardcollect-battle-view.js');
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
 const VM_TIMEOUT_MS = 1000;
@@ -26,6 +27,7 @@ function createContext({ storage, document, callbacks, intervals }) {
   const context = vm.createContext({
     console, Math: fixedMath, Storage: storage, document,
     CardCollectCatalog: catalog, CardCollectProgression: progression, CultivationRecovery: recovery,
+    CardCollectBattleView: battleView,
     initNav() {}, initParticles() {}, showToast() {}, updateLeaderboard() {}, getLeaderboard: () => [],
     randomInt: min => min, pick: list => list[0],
     clamp: (number, min, max) => Math.min(max, Math.max(min, number)),
@@ -56,6 +58,10 @@ function loadGame(options) {
   const document = makeDom(html);
   const context = createContext({ storage, document, callbacks, intervals });
   Object.assign(context, options.globals);
+  if (options.file === 'cardcollect.js') {
+    const view = path.join(PROJECT_ROOT, 'js/cardcollect-roster-view.js');
+    vm.runInContext(fs.readFileSync(view, 'utf8'), context, { filename: view, timeout: VM_TIMEOUT_MS });
+  }
   const filename = path.join(PROJECT_ROOT, 'js', options.file);
   const source = fs.readFileSync(filename, 'utf8');
   const end = source.lastIndexOf(options.entry);

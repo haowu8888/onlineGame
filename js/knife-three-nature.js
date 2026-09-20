@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { SCENERY } from './knife-scenery.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { SCENERY } from './knife-scenery.js?v=38';
 
 const RED_LEAVES = [0xa7473b, 0xc36748, 0xd99a5b, 0xb9563f, 0xdea975];
 const PINE_LEAVES = [0x315e52, 0x437764, 0x719471];

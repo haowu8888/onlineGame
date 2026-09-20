@@ -5,8 +5,19 @@ function hideLoading() {
   setTimeout(() => loader.remove(), CONSTANTS.TOAST_TRANSITION_MS);
 }
 
+const saveCheckpoints = new Map();
+window.GameSaveCheckpoints = Object.freeze({
+  register(key, capture) { saveCheckpoints.set(key, capture); },
+  capture() {
+    if (window.GameSaveTransfer?.isReloading) return;
+    saveCheckpoints.forEach(capture => capture());
+  },
+});
+
 function flushPageStorage() {
   if (window.GameSaveTransfer?.isReloading) return true;
+  try { GameSaveCheckpoints.capture(); }
+  catch (error) { reportStorageError(error, '采集最新进度'); return false; }
   return Storage.flush();
 }
 

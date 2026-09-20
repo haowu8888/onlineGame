@@ -103,7 +103,7 @@
     context.clear.hidden = criteria.query === '';
   }
 
-  function init({ document, storage }) {
+  function init({ document, storage, navigation }) {
     const search = document.getElementById('game-search');
     const context = {
       document, storage, games: readGames(document),
@@ -111,7 +111,16 @@
       clear: document.getElementById('game-search-clear'),
     };
     let category = 'all';
-    const update = () => renderResults(context, { category, query: search.value });
+    const update = () => {
+      const criteria = { category, query: search.value };
+      renderResults(context, criteria);
+      navigation.write(criteria);
+    };
+    const restore = criteria => {
+      category = context.filters.some(button => button.dataset.category === criteria.category) ? criteria.category : 'all';
+      search.value = criteria.query;
+      renderResults(context, { category, query: search.value });
+    };
     const clearSearch = () => {
       search.value = '';
       search.focus();
@@ -120,8 +129,9 @@
     search.addEventListener('input', update);
     search.addEventListener('search', update);
     search.addEventListener('keydown', event => {
-      if (event.key === 'Escape') clearSearch();
+      if (event.key === 'Escape' && !event.isComposing) clearSearch();
     });
+    search.addEventListener('change', () => navigation.flush());
     context.clear.addEventListener('click', clearSearch);
     context.filters.forEach(button => button.addEventListener('click', () => {
       category = button.dataset.category;
@@ -131,7 +141,8 @@
       category = 'all';
       clearSearch();
     });
-    update();
+    restore(navigation.read());
+    navigation.subscribe(restore);
     refreshRecent(context);
     return Object.freeze({ refresh: () => refreshRecent(context) });
   }

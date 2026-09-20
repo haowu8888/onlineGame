@@ -38,7 +38,7 @@
 - Every local resource URL referenced by a page or its module imports **must** be precached; `node scripts/check-sw-assets.js` verifies the full dependency graph. Preserve query strings in cache keys.
 - Same-origin non-HTML requests carrying a `?v=` query are served straight from the static precache when present (no background revalidation); anything else keeps the stale-while-revalidate path. This is why every deployed asset change needs a version bump, never an in-place overwrite.
 - Explicitly precache SVG resources referenced by runtime-generated markup (character portraits, terrain and card sigils); the dependency checker cannot infer arbitrary JavaScript string construction. Verify these assets in an actual offline game session.
-- Versioned page JS/CSS URLs and every transitive game ES-module import use `?v=35` to prevent an existing v34 worker from mixing new HTML with stale scripts. Keep these versions and matching precache entries synchronized.
+- Versioned page JS/CSS URLs and every transitive game ES-module import use `?v=38` to prevent an existing v37 worker from mixing new HTML with stale scripts. Keep these versions and matching precache entries synchronized.
 - Worker installation must fail atomically when a required local resource cannot be cached. Activate updates through the visible user update action; do not force-refresh active games.
 - Keep `offline.html` lightweight and same-origin (so it can be reliably cached). The SW injects a `<base>` tag when serving it for nested paths, so keep its links relative to the site root.
 - External assets: only whitelisted CDN resources should be cached.

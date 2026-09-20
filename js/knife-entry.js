@@ -1,6 +1,6 @@
 const status = document.getElementById('arena-status');
 
-import('./knife.js?v=35').then(() => {
+import('./knife.js?v=38').then(() => {
   status.hidden = true;
 }).catch(error => {
   status.hidden = false;

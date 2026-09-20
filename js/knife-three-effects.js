@@ -1,9 +1,10 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { ARENA, worldPosition } from './knife-three-config.js?v=35';
-import { InstanceBatch } from './knife-three-batch.js?v=35';
-import { BladeTrails } from './knife-three-trails.js?v=35';
-import { DashTrails } from './knife-three-dash.js?v=35';
-import { ArenaLoot } from './knife-three-loot.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { ARENA, worldPosition } from './knife-three-config.js?v=38';
+import { InstanceBatch } from './knife-three-batch.js?v=38';
+import { BladeTrails } from './knife-three-trails.js?v=38';
+import { DashTrails } from './knife-three-dash.js?v=38';
+import { ArenaLoot } from './knife-three-loot.js?v=38';
+import { ArenaImpacts } from './knife-three-impact.js?v=38';
 
 const FX = Object.freeze({
   gemHeight: 0.45, bladeThickness: 0.04, bladeCoreLift: 0.045,
@@ -47,6 +48,7 @@ export class ArenaEffects {
     this.trails = new BladeTrails(scene);
     this.dashTrails = new DashTrails(scene);
     this.loot = new ArenaLoot(scene);
+    this.impacts = new ArenaImpacts(scene);
     this.gems = batch(scene, new THREE.OctahedronGeometry(0.2), {
       material: { emissive: 0x238c9d, emissiveIntensity: 0.75, roughness: 0.2, metalness: 0.1 },
     });
@@ -65,7 +67,7 @@ export class ArenaEffects {
     this.batches = [this.blades, this.bladeCores, this.hilts, this.gems, this.pickupRings, this.gold, this.sparks, this.projectiles, this.zones, this.rings];
   }
 
-  render({ game, center, time }) {
+  render({ game, center, time, motion = true }) {
     const player = game.player;
     const blades = player ? player.getBladeEndpoints() : this.menuBlades(time);
     this.blades.begin(blades.length);
@@ -79,6 +81,7 @@ export class ArenaEffects {
     this.trails.render({ segments: game.bladeTrails || [], blades, center });
     this.dashTrails.render({ segments: game.dashTrails, center });
     this.loot.render({ chests: game.chests || [], center, time });
+    this.impacts.render({ events: game.impacts, center, motion });
     this.drawPickups(game, center, time);
     this.drawParticles(game, center);
     this.drawZones(game, center, time);
@@ -195,6 +198,7 @@ export class ArenaEffects {
     this.trails.dispose();
     this.dashTrails.dispose();
     this.loot.dispose();
+    this.impacts.dispose();
     this.batches.forEach(item => item.dispose());
   }
 }

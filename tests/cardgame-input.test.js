@@ -1,8 +1,6 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
+const { createGuideRuntime } = require('./helpers/guide-runtime');
 const { makeDom } = require('./fixtures/dom');
 const battleInput = require('../js/cardbattle-input');
 const towerInput = require('../js/cardtower-input');
@@ -10,11 +8,7 @@ const towerInput = require('../js/cardtower-input');
 const TOWER_OVERLAYS = ['cardReward', 'relicReward', 'upgradeOverlay', 'eventOverlay', 'restShop', 'cardRemoval'];
 
 function activeGuide(document) {
-  const context = { document, window: {}, Storage: { get: () => ({}), set() {} } };
-  const source = fs.readFileSync(path.join(__dirname, '../js/shared-guide.js'), 'utf8');
-  vm.runInNewContext(source, context);
-  const guide = context.window.GuideSystem;
-  guide.createOverlay();
+  const { guide } = createGuideRuntime(document);
   guide.overlay.classList.add('active');
   return guide;
 }
@@ -22,7 +16,7 @@ function activeGuide(document) {
 function press(document, key) {
   const event = {
     type: 'keydown', key, target: document.body, defaultPrevented: false,
-    preventDefault() { this.defaultPrevented = true; },
+    preventDefault() { this.defaultPrevented = true; }, stopImmediatePropagation() {},
   };
   document.dispatchEvent(event);
   return event.defaultPrevented;
@@ -60,7 +54,7 @@ for (const [name, create] of [['灵卡', createBattle], ['仙塔', createTower]]
     for (const button of document.querySelectorAll('#card, #btn-end-turn, #btn-hero-power, #btn-cancel, #btnEndTurn')) {
       button.addEventListener('click', () => clicked.push(button.id));
     }
-    for (const key of keys) assert.equal(press(document, key), false);
+    for (const key of keys.filter(key => key !== 'Escape')) assert.equal(press(document, key), false);
     assert.deepEqual(clicked, []);
     document.querySelector('.guide-skip-btn').click();
     assert.ok(document.querySelector('.guide-backdrop'));

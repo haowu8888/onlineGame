@@ -3694,13 +3694,10 @@
 
     startAutoSave() {
       this.stopAutoSave();
-      this.autoSaveInterval = setInterval(() => this.save(), 30000);
-      // 返回存档列表再进入会重复调用；卸载前保存只需登记一次，避免监听器随进出次数累积。
-      if (this._unloadSaveBound) return;
-      this._unloadSaveBound = true;
-      window.addEventListener('beforeunload', () => {
+      this.autoSaveInterval = setInterval(() => {
         if (!window.GameSaveTransfer?.isReloading) this.save();
-      });
+      }, 30000);
+      GameSaveCheckpoints.register('cultivation', () => this.save());
     }
 
     stopAutoSave() {

@@ -1,7 +1,8 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { ARENA } from './knife-three-config.js?v=35';
-import { createGround } from './knife-three-ground.js?v=35';
-import { createNature, updatePetals, revealNearbyActors } from './knife-three-nature.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { ARENA } from './knife-three-config.js?v=38';
+import { createGround } from './knife-three-ground.js?v=38';
+import { createNature, updatePetals, revealNearbyActors } from './knife-three-nature.js?v=38';
+import { SceneAtmosphere } from './game-three-atmosphere.js?v=38';
 
 const TERRAIN_COLORS = Object.freeze({
   plain: [0x58795f, 0xaaa88c, 0x9ab8b9],
@@ -36,6 +37,7 @@ export class ArenaStage {
     scene.background = new THREE.Color(ARENA.background);
     scene.fog = new THREE.Fog(ARENA.background, 52, 105);
     this.world = scene;
+    this.atmosphere = new SceneAtmosphere(scene);
     this.terrain = '';
   }
 
@@ -55,9 +57,11 @@ export class ArenaStage {
     this.ground.stoneMaterial.color.setHex(stone);
     this.world.background.setHex(mist);
     this.world.fog.color.setHex(mist);
+    this.atmosphere.update({ sky: mist, light: 0xffdba7, ground: meadow });
   }
 
   dispose() {
+    this.atmosphere.dispose();
     const geometries = new Set(), materials = new Set(), textures = new Set();
     this.scene.traverse(object => {
       if (object.geometry) geometries.add(object.geometry);

@@ -1,5 +1,5 @@
-import { TAU } from './knife-data.js?v=35';
-import { dist, angle } from './knife-math.js?v=35';
+import { TAU } from './knife-data.js?v=38';
+import { dist, angle } from './knife-math.js?v=38';
 
 const GOLD_CHEST_BASE = 8;
 const GOLD_CHEST_PER_WAVE = 2;

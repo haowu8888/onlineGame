@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three.module.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
 
 const COURT = Object.freeze({ radius: 11.8, tile: 1.85, size: 100, texture: 128 });
 const STONE = [0xa7aa96, 0x9da58e, 0xb1b09b, 0xa3a68d, 0xacb09b];

@@ -98,7 +98,10 @@
     openModal: openDailyMissionsModal, toast: showToast, onChange: scheduleRefresh,
   });
   const leaderboard = PortalLeaderboard.init({ document, getLeaderboard, formatNumber });
-  const library = PortalLibrary.init({ document, storage: Storage });
+  const navigation = PortalLibraryLocation.create({
+    location, history, events: window, schedule: setTimeout, cancel: clearTimeout,
+  });
+  const library = PortalLibrary.init({ document, storage: Storage, navigation });
   profile.refresh();
   initSettings();
   document.querySelectorAll('.game-card').forEach(bindCardTilt);

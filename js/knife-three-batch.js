@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three.module.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
 
 const INITIAL_CAPACITY = 32;
 const CAPACITY_GROWTH = 2;

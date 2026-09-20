@@ -1,5 +1,5 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { PALETTE as P } from './game-three-palette.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { PALETTE as P } from './game-three-palette.js?v=38';
 
 const QUARTER_TURN = Math.PI / 2;
 

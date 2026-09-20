@@ -1,7 +1,7 @@
 // 每次发布缓存资源时递增版本；新版本安装完成后等待用户确认或旧页面关闭。
 importScripts('./sw-assets.js', './sw-runtime.js');
 
-const CACHE_VERSION = 'v35';
+const CACHE_VERSION = 'v38';
 const pwaRuntime = new PwaRuntime({
   assets: PWA_ASSETS,
   baseUrl: self.location.href,

@@ -1,6 +1,6 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { worldPosition } from './knife-three-config.js?v=35';
-import { InstanceBatch } from './knife-three-batch.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { worldPosition } from './knife-three-config.js?v=38';
+import { InstanceBatch } from './knife-three-batch.js?v=38';
 
 const LOOT = Object.freeze({ wood: 0x795435, lid: 0xaa7a44, brass: 0xe6bd6b,
   medicine: 0x5cbe9f, ivory: 0xebedd2, crystal: 0x64c7e4, bob: 0.045, rate: 2 });

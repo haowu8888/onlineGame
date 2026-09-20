@@ -1,6 +1,6 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { PALETTE } from './game-three-palette.js?v=35';
-import { bakeStaticMeshes } from './game-three-batch.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { PALETTE } from './game-three-palette.js?v=38';
+import { bakeStaticMeshes } from './game-three-batch.js?v=38';
 
 export class SceneResources {
   constructor() {
@@ -68,6 +68,7 @@ function makeGeometry(kind) {
     bush: () => new THREE.SphereGeometry(0.5, 12, 9),
     roof: roofGeometry,
     torus: () => new THREE.TorusGeometry(1, 0.035, 6, 64),
+    impactRing: () => new THREE.RingGeometry(0.91, 1, 40),
     tile: () => new THREE.CylinderGeometry(0.5, 0.5, 1, 6),
   };
   if (!makers[kind]) throw new RangeError('未知场景几何体：' + kind);

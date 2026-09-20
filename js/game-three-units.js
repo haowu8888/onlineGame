@@ -1,8 +1,9 @@
-import * as THREE from './vendor/three.module.js?v=35';
-import { halo } from './game-three-props.js?v=35';
-import { actor } from './game-three-actors.js?v=35';
-import { SceneLabel } from './game-three-labels.js?v=35';
-import { PALETTE as P, MOTION } from './game-three-palette.js?v=35';
+import * as THREE from './vendor/three.module.js?v=38';
+import { halo } from './game-three-props.js?v=38';
+import { actor } from './game-three-actors.js?v=38';
+import { SceneLabel } from './game-three-labels.js?v=38';
+import { SceneHitFeedback } from './game-three-feedback.js?v=38';
+import { PALETTE as P, MOTION } from './game-three-palette.js?v=38';
 
 const HEALTH_WIDTH = 1.05;
 const HEALTH_HEIGHT = 2.48;
@@ -15,12 +16,13 @@ class SceneUnit {
     this.body = actor(resources, unit);
     this.ring = halo(resources, { radius: 0.68, color: unit.side === 'enemy' ? P.coral : P.jade });
     this.label = new SceneLabel();
+    this.feedback = new SceneHitFeedback(resources);
     this.label.sprite.scale.set(1.75, 0.5, 1);
     this.label.sprite.position.y = LABEL_HEIGHT;
     this.healthBack = resources.mesh({ color: P.ink, size: [HEALTH_WIDTH, 0.09, 0.13], at: [0, HEALTH_HEIGHT, 0] });
     this.health = resources.mesh({ color: unit.side === 'enemy' ? P.coral : P.jade,
       size: [HEALTH_WIDTH, 0.075, 0.15], at: [0, HEALTH_HEIGHT, 0] });
-    this.root.add(this.body, this.ring, this.label.sprite, this.healthBack, this.health);
+    this.root.add(this.body, this.ring, this.label.sprite, this.healthBack, this.health, this.feedback.root);
     this.lastHp = unit.hp;
     this.hitAt = -Infinity;
     this.root.position.set(unit.x, 0.1, unit.z);
@@ -64,6 +66,7 @@ class SceneUnit {
       throw new TypeError('场景收到无效生命值：' + unit.name);
     }
     if (unit.hp < this.lastHp) this.hitAt = time;
+    this.feedback.show({ before: this.lastHp, after: unit.hp, maximum: unit.maxHp, time });
     this.lastHp = unit.hp;
     const ratio = Math.max(0, Math.min(1, unit.hp / unit.maxHp));
     this.health.scale.x = HEALTH_WIDTH * ratio;
@@ -80,13 +83,16 @@ class SceneUnit {
     this.root.position.z += (unit.z - this.root.position.z) * movement;
     this.body.scale.y = this.bodyScale * (dead ? 0.28 : 1 + motion - hit * MOTION.damageScale);
     this.body.rotation.z = dead ? Math.PI / 3 : 0;
+    this.body.position.z = reducedMotion || dead ? 0 : hit * 0.22 * (unit.side === 'enemy' ? -1 : 1);
     this.ring.scale.setScalar(0.68 + (reducedMotion ? 0 : Math.sin(time * MOTION.glowRate) * 0.025));
     this.health.visible = !dead && unit.hp !== undefined;
     this.healthBack.visible = this.health.visible;
     this.label.sprite.visible = !dead;
+    this.feedback.animate(time, reducedMotion);
   }
 
   dispose() {
+    this.feedback.dispose();
     this.label.dispose();
     this.root.removeFromParent();
   }

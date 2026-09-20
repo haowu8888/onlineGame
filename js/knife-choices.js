@@ -1,4 +1,4 @@
-import { createKnifeIcon } from './knife-icons.js?v=35';
+import { createKnifeIcon } from './knife-icons.js?v=38';
 
 export class KnifeChoices {
   constructor({ game, onChoose }) {
